@@ -9,6 +9,7 @@ package org.cloudbus.cloudsim.examples.power;
  * Copyright (c) 2009, The University of Melbourne, Australia
  */
 
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -17,7 +18,7 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import org.cloudbus.cloudsim.Cloudlet;
-import org.cloudbus.cloudsim.CloudletSchedulerDynamicWorkload;
+import org.cloudbus.cloudsim.CloudletSchedulerDynamicWorkloadFixedTime;
 import org.cloudbus.cloudsim.DatacenterBroker;
 import org.cloudbus.cloudsim.DatacenterCharacteristics;
 import org.cloudbus.cloudsim.Log;
@@ -59,9 +60,11 @@ public class SingleThreshold {
 	 * Creates main() to run this example.
 	 *
 	 * @param args the args
+	 * @throws IOException 
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 
+		Log.setOutputFile("C:\\Users\\n7682905\\simresults.txt");
 		Log.printLine("Starting SingleThreshold example...");
 
 		try {
@@ -176,6 +179,7 @@ public class SingleThreshold {
 			Cloudlet cloudlet = new Cloudlet(i, length, pesNumber, fileSize, outputSize, new UtilizationModelStochastic(), new UtilizationModelStochastic(), new UtilizationModelStochastic());
 			cloudlet.setUserId(brokerId);
 			cloudlet.setVmId(i);
+			cloudlet.setCloudletDuration(120); // 20 minutes
 			list.add(cloudlet);
 		}
 
@@ -202,7 +206,7 @@ public class SingleThreshold {
 
 		for (int i = 0; i < vmsNumber; i++) {
 			vms.add(
-				new Vm(i, brokerId, mips[i % mips.length], pesNumber, ram, bw, size, vmm, new CloudletSchedulerDynamicWorkload(mips[i % mips.length], pesNumber))
+				new Vm(i, brokerId, mips[i % mips.length], pesNumber, ram, bw, size, vmm, new CloudletSchedulerDynamicWorkloadFixedTime(mips[i % mips.length], pesNumber))
 			);
 		}
 

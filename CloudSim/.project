@@ -18,12 +18,12 @@
 		<link>
 			<name>classes</name>
 			<type>2</type>
-			<location>C:/Users/n7682905/Software/cloudsim-2.1.1/classes</location>
+			<locationURI>$%7BPARENT-1-PROJECT_LOC%7D/cloudsim-2.1.1/classes</locationURI>
 		</link>
 		<link>
 			<name>sources</name>
 			<type>2</type>
-			<location>C:/Users/n7682905/Software/cloudsim-2.1.1/sources</location>
+			<locationURI>$%7BPARENT-1-PROJECT_LOC%7D/cloudsim-2.1.1/sources</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>

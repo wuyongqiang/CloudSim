@@ -9,8 +9,7 @@ package org.cloudbus.cloudsim.examples;
  * Copyright (c) 2009, The University of Melbourne, Australia
  */
 
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
+
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
