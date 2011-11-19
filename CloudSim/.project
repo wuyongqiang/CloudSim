@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>CloudSim</name>
+	<comment></comment>
+	<projects>
+	</projects>
+	<buildSpec>
+		<buildCommand>
+			<name>org.eclipse.jdt.core.javabuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+	</buildSpec>
+	<natures>
+		<nature>org.eclipse.jdt.core.javanature</nature>
+	</natures>
+	<linkedResources>
+		<link>
+			<name>classes</name>
+			<type>2</type>
+			<location>C:/Users/n7682905/Software/cloudsim-2.1.1/classes</location>
+		</link>
+		<link>
+			<name>sources</name>
+			<type>2</type>
+			<location>C:/Users/n7682905/Software/cloudsim-2.1.1/sources</location>
+		</link>
+	</linkedResources>
+</projectDescription>
