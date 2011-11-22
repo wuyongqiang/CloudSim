@@ -44,6 +44,8 @@ import org.cloudbus.cloudsim.provisioners.RamProvisionerSimple;
  */
 public class SingleThreshold {
 
+	private static final int simLength = 120;
+
 	/** The cloudlet list. */
 	private static List<Cloudlet> cloudletList;
 
@@ -64,7 +66,7 @@ public class SingleThreshold {
 	 */
 	public static void main(String[] args) throws IOException {
 
-		Log.setOutputFile("C:\\Users\\n7682905\\simresults.txt");
+		Log.setOutputFile("C:\\Users\\n7682905\\sim.txt");
 		Log.printLine("Starting SingleThreshold example...");
 
 		try {
@@ -151,6 +153,12 @@ public class SingleThreshold {
 			Log.printLine(String.format("SLA violation percentage: %.2f%%", (double) sla.size() * 100 / numberOfAllocations));
 			Log.printLine(String.format("Average SLA violation: %.2f%%", averageSla));
 			Log.printLine();
+			
+			Log.printLineToInfoFile("ST" + String.format("%.2f",utilizationThreshold),simLength, 
+					datacenter.getMigrationCount(),
+					(double) sla.size() * 100 / numberOfAllocations,
+					averageSla,
+					datacenter.getPower() / (3600 * 1000));
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -179,7 +187,7 @@ public class SingleThreshold {
 			Cloudlet cloudlet = new Cloudlet(i, length, pesNumber, fileSize, outputSize, new UtilizationModelStochastic(), new UtilizationModelStochastic(), new UtilizationModelStochastic());
 			cloudlet.setUserId(brokerId);
 			cloudlet.setVmId(i);
-			cloudlet.setCloudletDuration(120); // 20 minutes
+			cloudlet.setCloudletDuration(simLength); // 20 minutes
 			list.add(cloudlet);
 		}
 

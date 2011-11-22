@@ -9,9 +9,13 @@
 package org.cloudbus.cloudsim;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.util.Scanner;
 
 /**
  * The Log class used for performing loggin of the simulation process.
@@ -28,11 +32,29 @@ public class Log {
 
 	/** The output. */
 	private static OutputStream output;
+	
+	private static OutputStream outputDetail;
+	
+	private static OutputStream outputInfo;
+	
+	private static OutputStream outputVm;
 
 	/** The disable output flag. */
 	private static boolean disabled;
 	
 	private static String logFilePath;
+	
+	private static String infoFilePath;
+	
+	private static String vmFilePath;
+	
+	private static int logSimId;
+	
+	private static String logSimIdFilePath;
+
+	
+
+	final private static String fEncoding = "utf8";
 
 	/**
 	 * Prints the message.
@@ -63,6 +85,9 @@ public class Log {
 		}
 	}
 
+	public static int getLogSimId() {		
+		return logSimId;
+	}
 	/**
 	 * Prints the line.
 	 *
@@ -74,6 +99,39 @@ public class Log {
 		}
 	}
 	
+	public static void printLineToDetailFile(String message) {
+		if (!isDisabled()) {
+			String messageLs = message + LINE_SEPARATOR;			
+			try {
+				outputDetail.write(messageLs.getBytes());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	public static void printLineToInfoFile(String simdesc,int length, int migration,double violation,double avgviolation,double energy) {
+		if (!isDisabled()) {
+			String message = String.format("%d,%s,%d,%d,%.2f,%.2f,%.2f", logSimId,simdesc,length,migration,violation,avgviolation,energy) + LINE_SEPARATOR;			
+			try {
+				outputInfo.write(message.getBytes());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	//simid, time, vm, host, utilization
+	public static void printLineToVmFile(int time,int vm,int host,double utilization) {
+		if (!isDisabled()) {
+			String message = String.format("%d,%d,%d,%d,%.2f", logSimId, time, vm, host, utilization) + LINE_SEPARATOR;			
+			try {
+				outputVm.write(message.getBytes());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
 	
 
 	/**
@@ -136,13 +194,58 @@ public class Log {
 	 * @throws IOException 
 	 */
 	public static void setOutputFile(String filePath) throws IOException {
-		File f = new File(filePath);
+		// create log output stream
+		createFileIfNotExist(filePath);
+		output = new FileOutputStream(filePath);
+		
+		// create log detail output stream for importing to database
+		logFilePath = addFileSuffix(filePath,"Detail");		
+		createFileIfNotExist(logFilePath);
+		outputDetail = new FileOutputStream(logFilePath);
+		
+		// create info  output stream for importing to database
+		infoFilePath = addFileSuffix(filePath,"Info");		
+		createFileIfNotExist(infoFilePath);
+		outputInfo = new FileOutputStream(infoFilePath);
+		
+		// create vm  output stream for importing to database
+		vmFilePath = addFileSuffix(filePath,"vm");		
+		createFileIfNotExist(vmFilePath);
+		outputVm = new FileOutputStream(vmFilePath);
+		
+		//form the filePath for keeping the simulation id		
+		logSimIdFilePath = addFileSuffix(filePath,"Id");
+		createFileIfNotExist(logSimIdFilePath);
+		
+		String idText = readText(logSimIdFilePath).replaceAll(LINE_SEPARATOR, "");
+		if (idText==null || idText.length()==0 || idText.equals(LINE_SEPARATOR)){
+			logSimId = 1;
+			writeText(logSimIdFilePath,String.format("%d", logSimId+1));
+		}
+		else{
+			logSimId = Integer.parseInt(idText);
+			writeText(logSimIdFilePath,String.format("%d", logSimId+1));
+		}
+		
+	}
+
+	private static void createFileIfNotExist(String filePath) throws IOException {
+		File f;
+		f = new File(filePath);
 		if (!f.exists()){
 			f.createNewFile();
 		}
-		output = new FileOutputStream(filePath);
-		
-		logFilePath = filePath;
+	}
+
+	private static String addFileSuffix(String filePath, String suffix) {
+		String suffixFilePath;
+		int idx = filePath.lastIndexOf(".");		
+		if (idx<0){
+			suffixFilePath = filePath+suffix;
+		}else{
+			suffixFilePath = filePath.substring(0, idx)+suffix+filePath.substring(idx);
+		}
+		return suffixFilePath;
 	}
 
 	/**
@@ -188,5 +291,33 @@ public class Log {
 	public static void enable() {
 		setDisabled(false);
 	}
+	
+	 /** Write fixed content to the given file. */
+	private static void writeText(String fFileName,String message) throws IOException  {
+	    Writer out = new OutputStreamWriter(new FileOutputStream(fFileName), fEncoding);
+	    try {
+	      out.write(message);
+	    }
+	    finally {
+	      out.close();
+	    }
+	  }
+	  
+	  /** Read the contents of the given file. */
+	private static String readText(String fFileName) throws IOException {	  
+		StringBuilder text = new StringBuilder();
+	    String NL = LINE_SEPARATOR;
+	    Scanner scanner = new Scanner(new FileInputStream(fFileName), fEncoding);
+	    try {
+	      while (scanner.hasNextLine()){
+	        text.append(scanner.nextLine() + NL);
+	      }
+	    }
+	    finally{
+	      scanner.close();
+	    }	    
+	    return text.toString();
+	  }
+
 
 }

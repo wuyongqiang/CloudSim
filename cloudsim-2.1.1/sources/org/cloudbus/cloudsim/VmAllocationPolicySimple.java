@@ -233,6 +233,7 @@ public class VmAllocationPolicySimple extends VmAllocationPolicy {
 		if (host.vmCreate(vm)) { //if vm has been succesfully created in the host
 			getVmTable().put(vm.getUid(), host);
 			Log.formatLine("%.2f: VM #" + vm.getId() + " has been allocated to the host #" + host.getId(), CloudSim.clock());
+			Log.printLineToVmFile((int)CloudSim.clock(), vm.getId(), host.getId(), vm.getCloudletScheduler().getTotalUtilizationOfCpu(CloudSim.clock()));
 			return true;
 		}
 
