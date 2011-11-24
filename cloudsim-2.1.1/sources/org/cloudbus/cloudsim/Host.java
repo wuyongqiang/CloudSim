@@ -343,6 +343,10 @@ public class Host {
 	public double getMaxAvailableMips() {
 		return getVmScheduler().getMaxAvailableMips();
 	}
+	
+	public double getAllocatedMips() {
+		return getVmScheduler().getPeCapacity();
+	}
 
 	/**
 	 * Gets the free mips.
@@ -448,7 +452,7 @@ public class Host {
 	 *
 	 * @return the VM scheduler
 	 */
-	protected VmScheduler getVmScheduler() {
+	public VmScheduler getVmScheduler() {
 		return vmScheduler;
 	}
 

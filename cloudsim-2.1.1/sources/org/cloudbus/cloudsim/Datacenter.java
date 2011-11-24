@@ -537,10 +537,10 @@ public class Datacenter extends SimEntity {
 		Vm vm = (Vm) migrate.get("vm");
 		Host host = (Host) migrate.get("host");
 		
-		if (!host.getVmList().contains(vm)){
+		/*if (!host.getVmList().contains(vm)){
 			Log.printLine("Vm " + vm.getId() + " not in the data center, discard the migration event");
 			return;
-		}
+		}*/
 
 		getVmAllocationPolicy().deallocateHostForVm(vm);
 		host.removeMigratingInVm(vm);

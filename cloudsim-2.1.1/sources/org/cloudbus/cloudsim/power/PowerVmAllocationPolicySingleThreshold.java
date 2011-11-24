@@ -198,7 +198,11 @@ public class PowerVmAllocationPolicySingleThreshold extends VmAllocationPolicySi
 			map.put("vm", vm);
 			map.put("host", vm.getHost());
 			getSavedAllocation().add(map);
-			Log.printLineToVmFile((int)CloudSim.clock(), vm.getId(), vm.getHost().getId(), vm.getCloudletScheduler().getTotalUtilizationOfCpu(CloudSim.clock()));
+			double utilization = vm.getCloudletScheduler().getTotalUtilizationOfCpu(CloudSim.clock());
+			Log.printLineToVmFile((int)CloudSim.clock(), vm.getId(), vm.getHost().getId(), 
+					utilization, vm.getMips()*utilization, 
+					vm.getHost().getMaxAvailableMips(),
+					vm.getHost().getVmScheduler().getUsedMips());
 		}
 	}
 

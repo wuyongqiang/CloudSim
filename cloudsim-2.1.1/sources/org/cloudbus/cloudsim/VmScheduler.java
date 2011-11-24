@@ -199,6 +199,14 @@ public abstract class VmScheduler {
 	public double getAvailableMips() {
 		return availableMips;
 	}
+	
+	public double getUsedMips() {
+		if (getPeList() == null) {
+			Log.printLine("Pe list is empty");
+			return 0;
+		}
+		return getPeList().get(0).getPeProvisioner().getTotalAllocatedMips();
+	}
 
 	/**
 	 * Sets the free mips.
