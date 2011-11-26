@@ -233,11 +233,12 @@ public class VmAllocationPolicySimple extends VmAllocationPolicy {
 		if (host.vmCreate(vm)) { //if vm has been succesfully created in the host
 			getVmTable().put(vm.getUid(), host);
 			Log.formatLine("%.2f: VM #" + vm.getId() + " has been allocated to the host #" + host.getId(), CloudSim.clock());
-			double utilization = vm.getCloudletScheduler().getTotalUtilizationOfCpu(CloudSim.clock());
+			/*double utilization = vm.getCloudletScheduler().getTotalUtilizationOfCpu(CloudSim.clock());
 			Log.printLineToVmFile((int)CloudSim.clock(), vm.getId(), vm.getHost().getId(), 
 					utilization, vm.getMips()*utilization, 
 					vm.getHost().getMaxAvailableMips(),
 					vm.getHost().getVmScheduler().getUsedMips());
+					*/
 			return true;
 		}
 
