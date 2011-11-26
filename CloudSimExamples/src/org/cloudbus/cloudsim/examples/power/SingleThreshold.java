@@ -52,7 +52,7 @@ public class SingleThreshold {
 	/** The vm list. */
 	private static List<Vm> vmList;
 
-	private static double utilizationThreshold = 0.8;
+	private static double utilizationThreshold = 0.5;
 
 	private static double hostsNumber = 10;
 	private static double vmsNumber = 20;
