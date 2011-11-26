@@ -13,6 +13,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.plaf.basic.BasicInternalFrameTitlePane.MaximizeAction;
+
 import org.cloudbus.cloudsim.Host;
 import org.cloudbus.cloudsim.Log;
 import org.cloudbus.cloudsim.Vm;
@@ -74,7 +76,8 @@ public class PowerVmAllocationPolicySingleThreshold extends VmAllocationPolicySi
 		for (PowerHost host : this.<PowerHost>getHostList()) {
 			if (host.isSuitableForVm(vm)) {
 				double maxUtilization = getMaxUtilizationAfterAllocation(host, vm);
-				if ((!vm.isRecentlyCreated() && maxUtilization > getUtilizationThreshold()) || (vm.isRecentlyCreated() && maxUtilization > 1.0)) {
+				//if ((!vm.isRecentlyCreated() && maxUtilization > getUtilizationThreshold()) || (vm.isRecentlyCreated() && maxUtilization > 1.0)) {
+				if ( maxUtilization > getUtilizationThreshold() ) {
 					continue;
 				}
 				try {
@@ -145,6 +148,10 @@ public class PowerVmAllocationPolicySingleThreshold extends VmAllocationPolicySi
 	 */
 	@Override
 	public List<Map<String, Object>> optimizeAllocation(List<? extends Vm> vmList) {
+		return optimizeAllocationMM(vmList)	;
+	}	
+	
+	public List<Map<String, Object>> optimizeAllocationST(List<? extends Vm> vmList) {
 		List<Map<String, Object>> migrationMap = new ArrayList<Map<String, Object>>();
 		if (vmList.isEmpty()) {
 			return migrationMap;
@@ -170,14 +177,15 @@ public class PowerVmAllocationPolicySingleThreshold extends VmAllocationPolicySi
 		for (Vm vm : vmsToMigrate) {
 			PowerHost oldHost = (PowerHost) getVmTable().get(vm.getUid());
 			PowerHost allocatedHost = findHostForVm(vm);
-			if (allocatedHost != null && allocatedHost.getId() != oldHost.getId()) {
+			if (allocatedHost != null){
 				allocatedHost.vmCreate(vm);
 				Log.printLine("VM #" + vm.getId() + " allocated to host #" + allocatedHost.getId());
-
-				Map<String, Object> migrate = new HashMap<String, Object>();
-				migrate.put("vm", vm);
-				migrate.put("host", allocatedHost);
-				migrationMap.add(migrate);
+				if( allocatedHost.getId() != oldHost.getId()) {				
+					Map<String, Object> migrate = new HashMap<String, Object>();
+					migrate.put("vm", vm);
+					migrate.put("host", allocatedHost);
+					migrationMap.add(migrate);
+				}
 			}
 		}
 
@@ -186,6 +194,53 @@ public class PowerVmAllocationPolicySingleThreshold extends VmAllocationPolicySi
 		return migrationMap;
 	}
 
+	
+	
+	public List<Map<String, Object>> optimizeAllocationMM(List<? extends Vm> vmList) {
+		List<Map<String, Object>> migrationMap = new ArrayList<Map<String, Object>>();
+		if (vmList.isEmpty()) {
+			return migrationMap;
+		}
+		saveAllocation(vmList);
+		List<Vm> vmsToRestore = new ArrayList<Vm>();
+		vmsToRestore.addAll(vmList);
+
+		List<Vm> vmsToMigrate = new ArrayList<Vm>();
+		for (Vm vm : vmList) {
+			if (vm.isRecentlyCreated() || vm.isInMigration()) {
+				continue;
+			}
+			if ( ((PowerHost) vm.getHost()).getMaxUtilizationAmongVmsPes(vm) > this.utilizationThreshold) {
+				vmsToMigrate.add(vm);
+				vm.getHost().vmDestroy(vm);			
+			}
+		}
+		PowerVmList.sortByCpuUtilization(vmsToMigrate);
+
+		for (PowerHost host : this.<PowerHost>getHostList()) {
+			host.reallocateMigratingVms();
+		}
+
+		for (Vm vm : vmsToMigrate) {
+			PowerHost oldHost = (PowerHost) getVmTable().get(vm.getUid());
+			PowerHost allocatedHost = findHostForVm(vm);
+			if (allocatedHost != null){
+				allocatedHost.vmCreate(vm);
+				Log.printLine("VM #" + vm.getId() + " allocated to host #" + allocatedHost.getId());
+				if( allocatedHost.getId() != oldHost.getId()) {				
+					Map<String, Object> migrate = new HashMap<String, Object>();
+					migrate.put("vm", vm);
+					migrate.put("host", allocatedHost);
+					migrationMap.add(migrate);
+				}
+			}
+		}
+
+		restoreAllocation(vmsToRestore, getHostList());
+
+		return migrationMap;
+	}
+	
 	/**
 	 * Save allocation.
 	 *
@@ -198,11 +253,13 @@ public class PowerVmAllocationPolicySingleThreshold extends VmAllocationPolicySi
 			map.put("vm", vm);
 			map.put("host", vm.getHost());
 			getSavedAllocation().add(map);
+			
 			double utilization = vm.getCloudletScheduler().getTotalUtilizationOfCpu(CloudSim.clock());
 			Log.printLineToVmFile((int)CloudSim.clock(), vm.getId(), vm.getHost().getId(), 
 					utilization, vm.getMips()*utilization, 
 					vm.getHost().getMaxAvailableMips(),
 					vm.getHost().getVmScheduler().getUsedMips());
+			
 		}
 	}
 
@@ -279,7 +336,7 @@ public class PowerVmAllocationPolicySingleThreshold extends VmAllocationPolicySi
 		}
 
 		if (!host.allocatePesForVm(vm, vm.getCurrentRequestedMips())) {
-			return -1;
+			return Double.MAX_VALUE;
 		}
 
 		double maxUtilization = host.getMaxUtilizationAmongVmsPes(vm);
