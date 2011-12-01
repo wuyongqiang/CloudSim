@@ -3,12 +3,21 @@ package org.cloudbus.cloudsim;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.cloudbus.cloudsim.core.CloudSim;
+
 public class CloudletSchedulerDynamicWorkloadFixedTime extends
 		CloudletSchedulerDynamicWorkload {
 
 	public CloudletSchedulerDynamicWorkloadFixedTime(double mips, int pesNumber) {
 		super(mips, pesNumber);
 		// TODO Auto-generated constructor stub
+	}
+	
+	
+	@Override
+	public double cloudletSubmit(Cloudlet cl, double fileTransferTime) {
+		super.cloudletSubmit(cl, fileTransferTime);
+		return  cl.getCloudletDuration() + CloudSim.clock();
 	}
 	
 	/**
@@ -34,17 +43,17 @@ public class CloudletSchedulerDynamicWorkloadFixedTime extends
 		for (ResCloudlet rcl : getCloudletExecList()) {
 			rcl.updateCloudletFinishedSoFar((long) (timeSpan * getTotalCurrentAllocatedMipsForCloudlet(rcl, getPreviousTime())));
 
-            if ( rcl.getCloudlet().getCloudletDuration() <= currentTime - rcl.getStartTime()  ) { //finished: remove from the list
+            if ( rcl.getCloudlet().getCloudletDuration() <= currentTime - rcl.getExecStartTime()  ) { //finished: remove from the list
             	cloudletsToFinish.add(rcl);
                 continue;
             } else { //not finish: estimate the finish time
-            	double estimatedFinishTime = rcl.getCloudlet().getCloudletDuration() - rcl.getStartTime();
+            	double estimatedFinishTime = rcl.getCloudlet().getCloudletDuration() + rcl.getExecStartTime();
 				if (estimatedFinishTime - currentTime < 0.1) {
 					estimatedFinishTime = currentTime + 0.1;
 				}
             	if (estimatedFinishTime < nextEvent) {
-            		nextEvent = estimatedFinishTime;
-            	}
+            		nextEvent = estimatedFinishTime;            		
+            	}          
             }
 		}
 

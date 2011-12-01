@@ -130,5 +130,7 @@ public abstract class VmAllocationPolicy {
 		return (List<T>) hostList;
 	}
 
-
+	public String getPolicyDesc() {		
+		return "abstract policy";
+	}
 }

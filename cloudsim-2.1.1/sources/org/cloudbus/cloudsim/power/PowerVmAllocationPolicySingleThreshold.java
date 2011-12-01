@@ -49,6 +49,10 @@ public class PowerVmAllocationPolicySingleThreshold extends VmAllocationPolicySi
 
 	/** The utilization threshold. */
 	private double utilizationThreshold;
+	
+
+	
+	private Boolean minimizeMigration = false;
 
 	/**
 	 * Instantiates a new vM provisioner mpp.
@@ -59,7 +63,7 @@ public class PowerVmAllocationPolicySingleThreshold extends VmAllocationPolicySi
 	public PowerVmAllocationPolicySingleThreshold(List<? extends PowerHost> list, double utilizationThreshold) {
 		super(list);
 		setSavedAllocation(new ArrayList<Map<String,Object>>());
-		setUtilizationThreshold(utilizationThreshold);
+		setUtilizationThreshold(utilizationThreshold);		
 	}
 
 	/**
@@ -148,10 +152,6 @@ public class PowerVmAllocationPolicySingleThreshold extends VmAllocationPolicySi
 	 */
 	@Override
 	public List<Map<String, Object>> optimizeAllocation(List<? extends Vm> vmList) {
-		return optimizeAllocationMM(vmList)	;
-	}	
-	
-	public List<Map<String, Object>> optimizeAllocationST(List<? extends Vm> vmList) {
 		List<Map<String, Object>> migrationMap = new ArrayList<Map<String, Object>>();
 		if (vmList.isEmpty()) {
 			return migrationMap;
@@ -194,53 +194,8 @@ public class PowerVmAllocationPolicySingleThreshold extends VmAllocationPolicySi
 		return migrationMap;
 	}
 
-	
-	
-	public List<Map<String, Object>> optimizeAllocationMM(List<? extends Vm> vmList) {
-		List<Map<String, Object>> migrationMap = new ArrayList<Map<String, Object>>();
-		if (vmList.isEmpty()) {
-			return migrationMap;
-		}
-		saveAllocation(vmList);
-		List<Vm> vmsToRestore = new ArrayList<Vm>();
-		vmsToRestore.addAll(vmList);
 
-		List<Vm> vmsToMigrate = new ArrayList<Vm>();
-		for (Vm vm : vmList) {
-			if (vm.isRecentlyCreated() || vm.isInMigration()) {
-				continue;
-			}
-			if ( ((PowerHost) vm.getHost()).getMaxUtilizationAmongVmsPes(vm) > this.utilizationThreshold) {
-				vmsToMigrate.add(vm);
-				vm.getHost().vmDestroy(vm);			
-			}
-		}
-		PowerVmList.sortByCpuUtilization(vmsToMigrate);
-
-		for (PowerHost host : this.<PowerHost>getHostList()) {
-			host.reallocateMigratingVms();
-		}
-
-		for (Vm vm : vmsToMigrate) {
-			PowerHost oldHost = (PowerHost) getVmTable().get(vm.getUid());
-			PowerHost allocatedHost = findHostForVm(vm);
-			if (allocatedHost != null){
-				allocatedHost.vmCreate(vm);
-				Log.printLine("VM #" + vm.getId() + " allocated to host #" + allocatedHost.getId());
-				if( allocatedHost.getId() != oldHost.getId()) {				
-					Map<String, Object> migrate = new HashMap<String, Object>();
-					migrate.put("vm", vm);
-					migrate.put("host", allocatedHost);
-					migrationMap.add(migrate);
-				}
-			}
-		}
-
-		restoreAllocation(vmsToRestore, getHostList());
-
-		return migrationMap;
-	}
-	
+		
 	/**
 	 * Save allocation.
 	 *
@@ -385,5 +340,18 @@ public class PowerVmAllocationPolicySingleThreshold extends VmAllocationPolicySi
 	protected void setUtilizationThreshold(double utilizationThreshold) {
 		this.utilizationThreshold = utilizationThreshold;
 	}
+	
 
+	public Boolean getMinimizeMigration() {
+		return minimizeMigration;
+	}
+
+	public void setMinimizeMigration(Boolean minimizeMigration) {
+		this.minimizeMigration = minimizeMigration;
+	}
+	
+	public String getPolicyDesc() {
+		String rst = String.format("ST%.2f", getUtilizationThreshold());
+		return rst;
+	}
 }

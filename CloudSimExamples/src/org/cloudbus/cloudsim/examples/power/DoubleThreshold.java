@@ -1,16 +1,6 @@
 package org.cloudbus.cloudsim.examples.power;
 
-/*
- * Title:        CloudSim Toolkit
- * Description:  CloudSim (Cloud Simulation) Toolkit for Modeling and Simulation
- *               of Clouds
- * Licence:      GPL - http://www.gnu.org/copyleft/gpl.html
- *
- * Copyright (c) 2009, The University of Melbourne, Australia
- */
-
 import java.io.IOException;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.LinkedList;
@@ -18,52 +8,26 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import org.cloudbus.cloudsim.Cloudlet;
-import org.cloudbus.cloudsim.CloudletSchedulerDynamicWorkloadFixedTime;
 import org.cloudbus.cloudsim.DatacenterBroker;
 import org.cloudbus.cloudsim.DatacenterCharacteristics;
 import org.cloudbus.cloudsim.Log;
 import org.cloudbus.cloudsim.Storage;
-import org.cloudbus.cloudsim.UtilizationModelStochastic;
-import org.cloudbus.cloudsim.Vm;
 import org.cloudbus.cloudsim.VmSchedulerTimeShared;
 import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.power.PowerDatacenter;
 import org.cloudbus.cloudsim.power.PowerHost;
 import org.cloudbus.cloudsim.power.PowerPe;
+import org.cloudbus.cloudsim.power.PowerVmAllocationPolicyDoubleThreshold;
 import org.cloudbus.cloudsim.power.PowerVmAllocationPolicySingleThreshold;
 import org.cloudbus.cloudsim.power.models.PowerModelLinear;
 import org.cloudbus.cloudsim.provisioners.BwProvisionerSimple;
 import org.cloudbus.cloudsim.provisioners.PeProvisionerSimple;
 import org.cloudbus.cloudsim.provisioners.RamProvisionerSimple;
 
-/**
- * An example of a power aware data center. In this example the placement of VMs
- * is continuously adapted using VM migration in order to minimize the number
- * of physical nodes in use, while idle nodes are switched off to save energy.
- * The CPU utilization of each host is kept under the specified utilization threshold.
- */
-public class SingleThreshold {
+public class DoubleThreshold extends SingleThreshold {
 
-	protected static final int simLength = 120;
+	private static double utilizationLowThreshold = 0.2;
 
-	/** The cloudlet list. */
-	protected static List<Cloudlet> cloudletList;
-
-	/** The vm list. */
-	protected static List<Vm> vmList;
-
-	protected static double utilizationThreshold = 0.9;
-
-	protected static double hostsNumber = 10;
-	protected static double vmsNumber = 20;
-	protected static double cloudletsNumber = 20;
-
-	/**
-	 * Creates main() to run this example.
-	 *
-	 * @param args the args
-	 * @throws IOException 
-	 */
 	public static void main(String[] args) throws IOException {
 
 		Log.setOutputFile("C:\\Users\\n7682905\\sim.txt");
@@ -167,69 +131,7 @@ public class SingleThreshold {
 
 		Log.printLine("SingleThreshold finished!");
 	}
-
-	/**
-	 * Creates the cloudlet list.
-	 *
-	 * @param brokerId the broker id
-	 *
-	 * @return the cloudlet list
-	 */
-	protected static List<Cloudlet> createCloudletList(int brokerId) {
-		List<Cloudlet> list = new ArrayList<Cloudlet>();
-
-		long length = 150000; // 10 min on 250 MIPS
-		int pesNumber = 1;
-		long fileSize = 300;
-		long outputSize = 300;
-
-		for (int i = 0; i < cloudletsNumber; i++) {
-			Cloudlet cloudlet = new Cloudlet(i, length, pesNumber, fileSize, outputSize, new UtilizationModelStochastic(), new UtilizationModelStochastic(), new UtilizationModelStochastic());
-			cloudlet.setUserId(brokerId);
-			cloudlet.setVmId(i);
-			cloudlet.setCloudletDuration(simLength); // 20 minutes
-			list.add(cloudlet);
-		}
-
-		return list;
-	}
-
-	/**
-	 * Creates the vms.
-	 *
-	 * @param brokerId the broker id
-	 *
-	 * @return the list< vm>
-	 */
-	protected static List<Vm> createVms(int brokerId) {
-		List<Vm> vms = new ArrayList<Vm>();
-
-		// VM description
-		int[] mips = { 250, 500, 750, 1000 }; // MIPSRating
-		int pesNumber = 1; // number of cpus
-		int ram = 128; // vm memory (MB)
-		long bw = 2500; // bandwidth
-		long size = 2500; // image size (MB)
-		String vmm = "Xen"; // VMM name
-
-		for (int i = 0; i < vmsNumber; i++) {
-			vms.add(
-				new Vm(i, brokerId, mips[i % mips.length], pesNumber, ram, bw, size, vmm, new CloudletSchedulerDynamicWorkloadFixedTime(mips[i % mips.length], pesNumber))
-			);
-		}
-
-		return vms;
-	}
-
-	/**
-	 * Creates the datacenter.
-	 *
-	 * @param name the name
-	 *
-	 * @return the datacenter
-	 *
-	 * @throws Exception the exception
-	 */
+	
 	protected static PowerDatacenter createDatacenter(String name) throws Exception {
 		// Here are the steps needed to create a PowerDatacenter:
 		// 1. We need to create an object of HostList2 to store
@@ -287,7 +189,7 @@ public class SingleThreshold {
 			powerDatacenter = new PowerDatacenter(
 					name,
 					characteristics,
-					new PowerVmAllocationPolicySingleThreshold(hostList, utilizationThreshold),
+					new PowerVmAllocationPolicyDoubleThreshold(hostList, utilizationThreshold,utilizationLowThreshold),
 					new LinkedList<Storage>(),
 					5.0);
 		} catch (Exception e) {
@@ -296,57 +198,4 @@ public class SingleThreshold {
 
 		return powerDatacenter;
 	}
-
-	// We strongly encourage users to develop their own broker policies, to
-	// submit vms and cloudlets according
-	// to the specific rules of the simulated scenario
-	/**
-	 * Creates the broker.
-	 *
-	 * @return the datacenter broker
-	 */
-	protected static DatacenterBroker createBroker() {
-		DatacenterBroker broker = null;
-		try {
-			broker = new DatacenterBroker("Broker");
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}
-		return broker;
-	}
-
-	/**
-	 * Prints the Cloudlet objects.
-	 *
-	 * @param list list of Cloudlets
-	 */
-	protected static void printCloudletList(List<Cloudlet> list) {
-		int size = list.size();
-		Cloudlet cloudlet;
-
-		String indent = "\t";
-		Log.printLine();
-		Log.printLine("========== OUTPUT ==========");
-		Log.printLine("Cloudlet ID" + indent + "STATUS" + indent
-				+ "Resource ID" + indent + "VM ID" + indent + "Time" + indent
-				+ "Start Time" + indent + "Finish Time");
-
-		DecimalFormat dft = new DecimalFormat("###.##");
-		for (int i = 0; i < size; i++) {
-			cloudlet = list.get(i);
-			Log.print(indent + cloudlet.getCloudletId());
-
-			if (cloudlet.getCloudletStatus() == Cloudlet.SUCCESS) {
-				Log.printLine(indent + "SUCCESS"
-					+ indent + indent + cloudlet.getResourceId()
-					+ indent + cloudlet.getVmId()
-					+ indent + dft.format(cloudlet.getActualCPUTime())
-					+ indent + dft.format(cloudlet.getExecStartTime())
-					+ indent + indent + dft.format(cloudlet.getFinishTime())
-				);
-			}
-		}
-	}
-
 }
