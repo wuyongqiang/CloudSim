@@ -44,7 +44,7 @@ import org.cloudbus.cloudsim.provisioners.RamProvisionerSimple;
  */
 public class SingleThreshold {
 
-	protected static final int simLength = 120;
+	protected static final int simLength = 120*30; //one hour
 
 	/** The cloudlet list. */
 	protected static List<Cloudlet> cloudletList;
@@ -52,7 +52,7 @@ public class SingleThreshold {
 	/** The vm list. */
 	protected static List<Vm> vmList;
 
-	protected static double utilizationThreshold = 0.9;
+	protected static double utilizationThreshold = 0.6;
 
 	protected static double hostsNumber = 10;
 	protected static double vmsNumber = 20;
@@ -147,7 +147,7 @@ public class SingleThreshold {
 
 			Log.printLine();
 			Log.printLine(String.format("Total simulation time: %.2f sec", lastClock));
-			Log.printLine(String.format("Energy consumption: %.2f kWh", datacenter.getPower() / (3600 * 1000)));
+			Log.printLine(String.format("Energy consumption: %.4f kWh", datacenter.getPower() / (3600 * 1000)));
 			Log.printLine(String.format("Number of VM migrations: %d", datacenter.getMigrationCount()));
 			Log.printLine(String.format("Number of SLA violations: %d", sla.size()));
 			Log.printLine(String.format("SLA violation percentage: %.2f%%", (double) sla.size() * 100 / numberOfAllocations));
@@ -207,14 +207,14 @@ public class SingleThreshold {
 		// VM description
 		int[] mips = { 250, 500, 750, 1000 }; // MIPSRating
 		int pesNumber = 1; // number of cpus
-		int ram = 128; // vm memory (MB)
+		int[] rams = {128, 256, 374, 512 }; // vm memory (MB)
 		long bw = 2500; // bandwidth
 		long size = 2500; // image size (MB)
 		String vmm = "Xen"; // VMM name
 
 		for (int i = 0; i < vmsNumber; i++) {
 			vms.add(
-				new Vm(i, brokerId, mips[i % mips.length], pesNumber, ram, bw, size, vmm, new CloudletSchedulerDynamicWorkloadFixedTime(mips[i % mips.length], pesNumber))
+				new Vm(i, brokerId, mips[i % mips.length], pesNumber, rams[i % mips.length], bw, size, vmm, new CloudletSchedulerDynamicWorkloadFixedTime(mips[i % mips.length], pesNumber))
 			);
 		}
 
@@ -249,7 +249,7 @@ public class SingleThreshold {
 			// In this example, it will have only one core.
 			// 3. Create PEs and add these into an object of PowerPeList.
 			List<PowerPe> peList = new ArrayList<PowerPe>();
-			peList.add(new PowerPe(0, new PeProvisionerSimple(mips[i % mips.length]), new PowerModelLinear(maxPower, staticPowerPercent))); // need to store PowerPe id and MIPS Rating
+			peList.add(new PowerPe(0, new PeProvisionerSimple(mips[i % mips.length]), new PowerModelLinear(maxPower+ 100 *  (i % mips.length), staticPowerPercent))); // need to store PowerPe id and MIPS Rating
 
 			// 4. Create PowerHost with its id and list of PEs and add them to the list of machines
 			hostList.add(

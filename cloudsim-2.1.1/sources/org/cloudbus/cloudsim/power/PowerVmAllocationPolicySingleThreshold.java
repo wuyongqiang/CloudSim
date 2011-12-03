@@ -162,7 +162,7 @@ public class PowerVmAllocationPolicySingleThreshold extends VmAllocationPolicySi
 
 		List<Vm> vmsToMigrate = new ArrayList<Vm>();
 		for (Vm vm : vmList) {
-			if (vm.isRecentlyCreated() || vm.isInMigration()) {
+			if (vm.isRecentlyCreated() || vm.isInMigration()|| vm.getRam()>371  ) {
 				continue;
 			}
 			vmsToMigrate.add(vm);

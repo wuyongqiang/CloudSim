@@ -112,7 +112,7 @@ public class Log {
 	
 	public static void printLineToInfoFile(String simdesc,int length, int migration,double violation,double avgviolation,double energy) {
 		if (!isDisabled()) {
-			String message = String.format("%d,%s,%d,%d,%.2f,%.2f,%.2f", logSimId,simdesc,length,migration,violation,avgviolation,energy) + LINE_SEPARATOR;			
+			String message = String.format("%d,%s,%d,%d,%.2f,%.2f,%.4f", logSimId,simdesc,length,migration,violation,avgviolation,energy) + LINE_SEPARATOR;			
 			try {
 				outputInfo.write(message.getBytes());
 			} catch (IOException e) {

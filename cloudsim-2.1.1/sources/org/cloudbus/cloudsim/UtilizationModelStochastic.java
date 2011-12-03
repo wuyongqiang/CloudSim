@@ -42,8 +42,15 @@ public class UtilizationModelStochastic implements UtilizationModel {
 		if (getHistory().containsKey(time)) {
 			return getHistory().get(time);
 		}
+		
+		if (time==0){
+			return 1;
+		}
 
 		double utilization = Math.random();
+		if (utilization< 0.001){
+			utilization = 0.05;
+		}
 		getHistory().put(time, utilization);
 		return utilization;
 	}

@@ -111,7 +111,7 @@ public class DoubleThreshold extends SingleThreshold {
 
 			Log.printLine();
 			Log.printLine(String.format("Total simulation time: %.2f sec", lastClock));
-			Log.printLine(String.format("Energy consumption: %.2f kWh", datacenter.getPower() / (3600 * 1000)));
+			Log.printLine(String.format("Energy consumption: %.4f kWh", datacenter.getPower() / (3600 * 1000)));
 			Log.printLine(String.format("Number of VM migrations: %d", datacenter.getMigrationCount()));
 			Log.printLine(String.format("Number of SLA violations: %d", sla.size()));
 			Log.printLine(String.format("SLA violation percentage: %.2f%%", (double) sla.size() * 100 / numberOfAllocations));
@@ -151,7 +151,7 @@ public class DoubleThreshold extends SingleThreshold {
 			// In this example, it will have only one core.
 			// 3. Create PEs and add these into an object of PowerPeList.
 			List<PowerPe> peList = new ArrayList<PowerPe>();
-			peList.add(new PowerPe(0, new PeProvisionerSimple(mips[i % mips.length]), new PowerModelLinear(maxPower, staticPowerPercent))); // need to store PowerPe id and MIPS Rating
+			peList.add(new PowerPe(0, new PeProvisionerSimple(mips[i % mips.length]), new PowerModelLinear(maxPower+ 100 *  (i % mips.length), staticPowerPercent))); // need to store PowerPe id and MIPS Rating
 
 			// 4. Create PowerHost with its id and list of PEs and add them to the list of machines
 			hostList.add(

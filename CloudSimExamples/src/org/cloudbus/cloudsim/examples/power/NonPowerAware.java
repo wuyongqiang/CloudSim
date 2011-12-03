@@ -9,6 +9,7 @@ package org.cloudbus.cloudsim.examples.power;
  * Copyright (c) 2009, The University of Melbourne, Australia
  */
 
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -18,12 +19,15 @@ import java.util.Map.Entry;
 
 import org.cloudbus.cloudsim.Cloudlet;
 import org.cloudbus.cloudsim.CloudletSchedulerDynamicWorkload;
+import org.cloudbus.cloudsim.CloudletSchedulerDynamicWorkloadFixedTime;
 import org.cloudbus.cloudsim.DatacenterBroker;
 import org.cloudbus.cloudsim.DatacenterCharacteristics;
 import org.cloudbus.cloudsim.Log;
 import org.cloudbus.cloudsim.Storage;
 import org.cloudbus.cloudsim.UtilizationModelStochastic;
 import org.cloudbus.cloudsim.Vm;
+import org.cloudbus.cloudsim.VmAllocationPolicySimple;
+import org.cloudbus.cloudsim.VmAllocationPolicySimplePacking;
 import org.cloudbus.cloudsim.VmSchedulerTimeShared;
 import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.power.PowerDatacenter;
@@ -47,18 +51,20 @@ public class NonPowerAware {
 
 	/** The vm list. */
 	private static List<Vm> vmList;
-
+	private static int simLength = 120*30;
 	private static double hostsNumber = 10;
 	private static double vmsNumber = 20;
 	private static double cloudletsNumber = 20;
+	protected static double utilizationThreshold = 0.9;
 
 	/**
 	 * Creates main() to run this example.
 	 *
 	 * @param args the args
+	 * @throws IOException 
 	 */
-	public static void main(String[] args) {
-
+	public static void main(String[] args) throws IOException {
+		Log.setOutputFile("C:\\Users\\n7682905\\sim.txt");
 		Log.printLine("Starting Not Power Aware example...");
 
 		try {
@@ -77,7 +83,7 @@ public class NonPowerAware {
 			// Datacenters are the resource providers in CloudSim. We need at
 			// list one of them to run a CloudSim simulation
 			PowerDatacenter datacenter = createDatacenter("Datacenter_0");
-			datacenter.setDisableMigrations(true);
+			datacenter.setDisableMigrations(false);
 
 			// Third step: Create Broker
 			DatacenterBroker broker = createBroker();
@@ -140,12 +146,18 @@ public class NonPowerAware {
 
 			Log.printLine();
 			Log.printLine(String.format("Total simulation time: %.2f sec", lastClock));
-			Log.printLine(String.format("Energy consumption: %.2f kWh", datacenter.getPower() / (3600 * 1000)));
+			Log.printLine(String.format("Energy consumption: %.4f kWh", datacenter.getPower() / (3600 * 1000)));
 			Log.printLine(String.format("Number of VM migrations: %d", datacenter.getMigrationCount()));
 			Log.printLine(String.format("Number of SLA violations: %d", sla.size()));
 			Log.printLine(String.format("SLA violation percentage: %.2f%%", (double) sla.size() * 100 / numberOfAllocations));
 			Log.printLine(String.format("Average SLA violation: %.2f%%", averageSla));
 			Log.printLine();
+			
+			Log.printLineToInfoFile(datacenter.getVmAllocationPolicy().getPolicyDesc(),simLength, 
+					datacenter.getMigrationCount(),
+					(double) sla.size() * 100 / numberOfAllocations,
+					averageSla,
+					datacenter.getPower() / (3600 * 1000));
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -174,6 +186,7 @@ public class NonPowerAware {
 			Cloudlet cloudlet = new Cloudlet(i, length, pesNumber, fileSize, outputSize, new UtilizationModelStochastic(), new UtilizationModelStochastic(), new UtilizationModelStochastic());
 			cloudlet.setUserId(brokerId);
 			cloudlet.setVmId(i);
+			cloudlet.setCloudletDuration(simLength); // 20 minutes
 			list.add(cloudlet);
 		}
 
@@ -193,14 +206,14 @@ public class NonPowerAware {
 		// VM description
 		int[] mips = { 250, 500, 750, 1000 }; // MIPSRating
 		int pesNumber = 1; // number of cpus
-		int ram = 128; // vm memory (MB)
+		int[] rams = {128, 256, 374, 512 }; // vm memory (MB)
 		long bw = 2500; // bandwidth
 		long size = 2500; // image size (MB)
 		String vmm = "Xen"; // VMM name
 
 		for (int i = 0; i < vmsNumber; i++) {
 			vms.add(
-				new Vm(i, brokerId, mips[i % mips.length], pesNumber, ram, bw, size, vmm, new CloudletSchedulerDynamicWorkload(mips[i % mips.length], pesNumber))
+				new Vm(i, brokerId, mips[i % mips.length], pesNumber, rams[i % mips.length] , bw, size, vmm, new CloudletSchedulerDynamicWorkloadFixedTime(mips[i % mips.length], pesNumber))
 			);
 		}
 
@@ -235,7 +248,7 @@ public class NonPowerAware {
 			// In this example, it will have only one core.
 			// 3. Create PEs and add these into an object of PowerPeList.
 			List<PowerPe> peList = new ArrayList<PowerPe>();
-			peList.add(new PowerPe(0, new PeProvisionerSimple(mips[i % mips.length]), new PowerModelLinear(maxPower, staticPowerPercent))); // need to store PowerPe id and MIPS Rating
+			peList.add(new PowerPe(0, new PeProvisionerSimple(mips[i % mips.length]), new PowerModelLinear(maxPower+ 100 *  (i % mips.length), staticPowerPercent))); // need to store PowerPe id and MIPS Rating
 
 			// 4. Create PowerHost with its id and list of PEs and add them to the list of machines
 			hostList.add(
@@ -273,7 +286,7 @@ public class NonPowerAware {
 			powerDatacenter = new PowerDatacenterNonPowerAware(
 					name,
 					characteristics,
-					new PowerVmAllocationPolicySingleThreshold(hostList, 1.0),
+					new VmAllocationPolicySimplePacking(hostList,utilizationThreshold),
 					new LinkedList<Storage>(),
 					5.0);
 		} catch (Exception e) {

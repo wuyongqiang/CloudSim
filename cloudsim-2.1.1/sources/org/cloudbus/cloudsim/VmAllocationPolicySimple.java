@@ -221,8 +221,14 @@ public class VmAllocationPolicySimple extends VmAllocationPolicy {
 	 */
 	@Override
 	public List<Map<String, Object>> optimizeAllocation(List<? extends Vm> vmList) {
-		// TODO Auto-generated method stub
-		return null;
+		for (Vm vm : vmList){
+		double utilization = vm.getCloudletScheduler().getTotalUtilizationOfCpu(CloudSim.clock());
+		Log.printLineToVmFile((int)CloudSim.clock(), vm.getId(), vm.getHost().getId(), 
+				utilization, vm.getMips()*utilization, 
+				vm.getHost().getMaxAvailableMips(),
+				vm.getHost().getVmScheduler().getUsedMips());
+		}
+		return new ArrayList<Map<String, Object>>();
 	}
 
 	/* (non-Javadoc)
@@ -232,16 +238,14 @@ public class VmAllocationPolicySimple extends VmAllocationPolicy {
 	public boolean allocateHostForVm(Vm vm, Host host) {
 		if (host.vmCreate(vm)) { //if vm has been succesfully created in the host
 			getVmTable().put(vm.getUid(), host);
-			Log.formatLine("%.2f: VM #" + vm.getId() + " has been allocated to the host #" + host.getId(), CloudSim.clock());
-			/*double utilization = vm.getCloudletScheduler().getTotalUtilizationOfCpu(CloudSim.clock());
-			Log.printLineToVmFile((int)CloudSim.clock(), vm.getId(), vm.getHost().getId(), 
-					utilization, vm.getMips()*utilization, 
-					vm.getHost().getMaxAvailableMips(),
-					vm.getHost().getVmScheduler().getUsedMips());
-					*/
+			Log.formatLine("%.2f: VM #" + vm.getId() + " has been allocated to the host #" + host.getId(), CloudSim.clock());			
 			return true;
 		}
 
 		return false;
+	}
+	@Override
+	public String getPolicyDesc() {		
+		return "nm";
 	}
 }

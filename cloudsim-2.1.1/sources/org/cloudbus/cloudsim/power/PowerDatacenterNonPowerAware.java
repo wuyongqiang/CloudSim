@@ -80,7 +80,8 @@ public class PowerDatacenterNonPowerAware extends PowerDatacenter {
 				double hostPower = 0.0;
 
 				try {
-					hostPower = host.getMaxPower() * timeDiff;
+					if (host.getUtilizationOfCpu()!=0)
+						hostPower = host.getMaxPower() * timeDiff;
 					timeframePower += hostPower;
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -88,6 +89,7 @@ public class PowerDatacenterNonPowerAware extends PowerDatacenter {
 
 				Log.formatLine("%.2f: Host #%d utilization is %.2f%%", CloudSim.clock(), host.getId(), host.getUtilizationOfCpu() * 100);
 				Log.formatLine("%.2f: Host #%d energy is %.2f W*sec", CloudSim.clock(), host.getId(), hostPower);
+				Log.printLineToDetailFile(String.format("%d,%d,%d,%.2f,%.2f", Log.getLogSimId(), (int)CloudSim.clock(), host.getId(), host.getUtilizationOfCpu() * 100,hostPower));
 			}
 
 			Log.formatLine("\n%.2f: Consumed energy is %.2f W*sec\n", CloudSim.clock(), timeframePower);
@@ -118,7 +120,7 @@ public class PowerDatacenterNonPowerAware extends PowerDatacenter {
 
 			if (!isDisableMigrations()) {
 				List<Map<String, Object>> migrationMap = getVmAllocationPolicy().optimizeAllocation(getVmList());
-
+				
 				for (Map<String, Object> migrate : migrationMap) {
 					Vm vm = (Vm) migrate.get("vm");
 					PowerHost targetHost = (PowerHost) migrate.get("host");
@@ -137,7 +139,8 @@ public class PowerDatacenterNonPowerAware extends PowerDatacenter {
 					vm.setInMigration(true);
 
 					/** VM migration delay = RAM / bandwidth + C    (C = 10 sec) **/
-					send(getId(), vm.getRam() / ((double) vm.getBw() / 8000) + 10, CloudSimTags.VM_MIGRATE, migrate);
+					//send(getId(), vm.getRam() / ((double) vm.getBw() / 8000) + 10, CloudSimTags.VM_MIGRATE, migrate);
+					send(getId(), 5, CloudSimTags.VM_MIGRATE, migrate);
 				}
 			}
 
