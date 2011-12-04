@@ -116,6 +116,8 @@ public class DoubleThreshold extends SingleThreshold {
 			Log.printLine(String.format("Number of SLA violations: %d", sla.size()));
 			Log.printLine(String.format("SLA violation percentage: %.2f%%", (double) sla.size() * 100 / numberOfAllocations));
 			Log.printLine(String.format("Average SLA violation: %.2f%%", averageSla));
+			Log.printLine(String.format("Turn On times: %d", datacenter.getTurnOnTimes()));
+			Log.printLine(String.format("Turn Off times: %d", datacenter.getTurnOffTimes()));
 			Log.printLine();
 			
 			Log.printLineToInfoFile(datacenter.getVmAllocationPolicy().getPolicyDesc(),simLength, 
@@ -129,7 +131,7 @@ public class DoubleThreshold extends SingleThreshold {
 			Log.printLine("Unwanted errors happen");
 		}
 
-		Log.printLine("SingleThreshold finished!");
+		Log.printLine("DoubleThreshold finished!");
 	}
 	
 	protected static PowerDatacenter createDatacenter(String name) throws Exception {

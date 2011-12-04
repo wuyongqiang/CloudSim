@@ -160,12 +160,21 @@ public class PowerVmAllocationPolicySingleThreshold extends VmAllocationPolicySi
 		List<Vm> vmsToRestore = new ArrayList<Vm>();
 		vmsToRestore.addAll(vmList);
 
+		Map<Integer,Host> inMigrationHosts = new HashMap<Integer, Host>();
 		List<Vm> vmsToMigrate = new ArrayList<Vm>();
 		for (Vm vm : vmList) {
-			if (vm.isRecentlyCreated() || vm.isInMigration()|| vm.getRam()>371  ) {
+			if ( vm.isInMigration()){
+				inMigrationHosts.put(getVmTable().get(vm.getUid()).getId(), getVmTable().get(vm.getUid()));
+				continue;
+			}
+			if ( inMigrationHosts.containsKey(  vm.getHost().getId()) ){				
+				continue;
+			}
+			if (vm.isRecentlyCreated() ) {				
 				continue;
 			}
 			vmsToMigrate.add(vm);
+			inMigrationHosts.put(vm.getHost().getId(),vm.getHost());
 			vm.getHost().vmDestroy(vm);			
 		}
 		PowerVmList.sortByCpuUtilization(vmsToMigrate);

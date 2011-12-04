@@ -45,6 +45,9 @@ public class PowerDatacenter extends Datacenter {
 	/** The migration count. */
 	private int migrationCount;
 
+	private int turnOnTimes;
+	
+	private int turnOffTimes;
 	/**
 	 * Instantiates a new datacenter.
 	 *
@@ -110,7 +113,17 @@ public class PowerDatacenter extends Datacenter {
 						e.printStackTrace();
 					}
 				}
-
+				
+				if (host.getUtilizationOfCpu() > 0 && host.getLastUtilization() <= 0){
+					setTurnOnTimes(getTurnOnTimes()+1);					
+				}
+				
+				if (host.getUtilizationOfCpu() <= 0 && host.getLastUtilization() > 0){
+					setTurnOffTimes(getTurnOffTimes()+1);					
+				}
+				
+				host.setLastUtilization(host.getUtilizationOfCpu());
+				
 				Log.formatLine("%.2f: Host #%d utilization is %.2f%%", CloudSim.clock(), host.getId(), host.getUtilizationOfCpu() * 100);
 				Log.formatLine("%.2f: Host #%d energy is %.2f W*sec", CloudSim.clock(), host.getId(), hostPower);
 				
@@ -167,7 +180,7 @@ public class PowerDatacenter extends Datacenter {
 
 					/** VM migration delay = RAM / bandwidth + C    (C = 10 sec) **/
 					// vm.getRam() / ((double) vm.getBw() / 8) + 0
-					send(getId(),vm.getRam() / 128 *20 + 10, CloudSimTags.VM_MIGRATE, migrate);
+					send(getId(),vm.getEstimatedMigrationDuration(), CloudSimTags.VM_MIGRATE, migrate);
 				}
 			}
 
@@ -302,6 +315,22 @@ public class PowerDatacenter extends Datacenter {
 	 */
 	protected void incrementMigrationCount() {
 		setMigrationCount(getMigrationCount() + 1);
+	}
+
+	public void setTurnOnTimes(int turnOnOffTimes) {
+		this.turnOnTimes = turnOnOffTimes;
+	}
+
+	public int getTurnOnTimes() {
+		return turnOnTimes;
+	}
+
+	public void setTurnOffTimes(int turnOffTimes) {
+		this.turnOffTimes = turnOffTimes;
+	}
+
+	public int getTurnOffTimes() {
+		return turnOffTimes;
 	}
 
 

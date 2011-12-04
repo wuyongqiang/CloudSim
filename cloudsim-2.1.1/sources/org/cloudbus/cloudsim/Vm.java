@@ -72,6 +72,12 @@ public class Vm {
 
 	/** The recently created. */
 	private boolean recentlyCreated;
+	
+	private double recommendMigrationInterval;
+	
+	private double lastMigrationTime;
+	
+	private double estimatedMigrationDuration;
 
 	/**
 	 * Creates a new VMCharacteristics object.
@@ -116,6 +122,10 @@ public class Vm {
 		setCurrentAllocatedMips(null);
 		setCurrentAllocatedRam(0);
 		setCurrentAllocatedSize(0);
+		
+		setEstimatedMigrationDuration(getRam() / 128 *20 + 10);
+		setRecommendMigrationInterval(10 * getEstimatedMigrationDuration());
+		 
 	}
 
 	/**
@@ -559,6 +569,30 @@ public class Vm {
 	 */
 	public void setRecentlyCreated(boolean recentlyCreated) {
 		this.recentlyCreated = recentlyCreated;
+	}
+
+	public void setRecommendMigrationInterval(double recommendMigrationInterval) {
+		this.recommendMigrationInterval = recommendMigrationInterval;
+	}
+
+	public double getRecommendMigrationInterval() {
+		return recommendMigrationInterval;
+	}
+
+	public void setLastMigrationTime(double d) {
+		this.lastMigrationTime = d;
+	}
+
+	public double getLastMigrationTime() {
+		return lastMigrationTime;
+	}
+
+	public void setEstimatedMigrationDuration(double estimatedMigrationDuration) {
+		this.estimatedMigrationDuration = estimatedMigrationDuration;
+	}
+
+	public double getEstimatedMigrationDuration() {
+		return estimatedMigrationDuration;
 	}
 
 }

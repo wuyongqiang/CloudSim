@@ -24,6 +24,8 @@ import org.cloudbus.cloudsim.provisioners.RamProvisioner;
  * @since		CloudSim Toolkit 2.0
  */
 public class PowerHost extends HostDynamicWorkload {
+	
+	private double lastUtilization;
 
 	/**
 	 * Instantiates a new host.
@@ -63,6 +65,14 @@ public class PowerHost extends HostDynamicWorkload {
 	@SuppressWarnings("unchecked")
 	public double getMaxPower() {
     	return PowerPeList.getMaxPower((List<PowerPe>) getPeList());
+	}
+
+	public void setLastUtilization(double lastUtilization) {
+		this.lastUtilization = lastUtilization;
+	}
+
+	public double getLastUtilization() {
+		return lastUtilization;
 	}
 
 }
