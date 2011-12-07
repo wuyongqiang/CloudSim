@@ -48,6 +48,8 @@ public class PowerDatacenter extends Datacenter {
 	private int turnOnTimes;
 	
 	private int turnOffTimes;
+	
+	private List<String> powerOnOffRecord;
 	/**
 	 * Instantiates a new datacenter.
 	 *
@@ -72,6 +74,7 @@ public class PowerDatacenter extends Datacenter {
 		setDisableMigrations(false);
 		setCloudletSubmitted(-1);
 		setMigrationCount(0);
+		powerOnOffRecord = new ArrayList<String>();
 	}
 
 	/**
@@ -115,11 +118,17 @@ public class PowerDatacenter extends Datacenter {
 				}
 				
 				if (host.getUtilizationOfCpu() > 0 && host.getLastUtilization() <= 0){
-					setTurnOnTimes(getTurnOnTimes()+1);					
+					setTurnOnTimes(getTurnOnTimes()+1);		
+					String s = String.format("%d,%d,%s",(int)CloudSim.clock(), host.getId(),"on");
+					getPowerOnOffRecords().add(s);
+					Log.printLineToHostOnOffFile(s);
 				}
 				
 				if (host.getUtilizationOfCpu() <= 0 && host.getLastUtilization() > 0){
-					setTurnOffTimes(getTurnOffTimes()+1);					
+					setTurnOffTimes(getTurnOffTimes()+1);
+					String s = String.format("%d,%d,%s",(int)CloudSim.clock(), host.getId(),"off");
+					getPowerOnOffRecords().add(s);
+					Log.printLineToHostOnOffFile(s);
 				}
 				
 				host.setLastUtilization(host.getUtilizationOfCpu());
@@ -333,5 +342,8 @@ public class PowerDatacenter extends Datacenter {
 		return turnOffTimes;
 	}
 
+	public List<String> getPowerOnOffRecords(){
+		return this.powerOnOffRecord;
+	}
 
 }

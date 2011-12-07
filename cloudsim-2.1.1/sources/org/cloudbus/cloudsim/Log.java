@@ -52,6 +52,10 @@ public class Log {
 	
 	private static String logSimIdFilePath;
 
+	private static String hostOnOffFilePath;
+
+	private static FileOutputStream outputHostOnOff;
+
 	
 
 	final private static String fEncoding = "utf8";
@@ -104,6 +108,17 @@ public class Log {
 			String messageLs = message + LINE_SEPARATOR;			
 			try {
 				outputDetail.write(messageLs.getBytes());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	public static void printLineToHostOnOffFile(String message) {
+		if (!isDisabled()) {
+			String messageLs = message + LINE_SEPARATOR;			
+			try {
+				outputHostOnOff.write(messageLs.getBytes());
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -212,6 +227,11 @@ public class Log {
 		vmFilePath = addFileSuffix(filePath,"vm");		
 		createFileIfNotExist(vmFilePath);
 		outputVm = new FileOutputStream(vmFilePath);
+		
+		// create vm  output stream for importing to database
+		 hostOnOffFilePath = addFileSuffix(filePath, "hostOnOff");
+		createFileIfNotExist(hostOnOffFilePath);
+		outputHostOnOff = new FileOutputStream(hostOnOffFilePath);
 		
 		//form the filePath for keeping the simulation id		
 		logSimIdFilePath = addFileSuffix(filePath,"Id");
