@@ -25,6 +25,7 @@ import org.cloudbus.cloudsim.DatacenterCharacteristics;
 import org.cloudbus.cloudsim.Log;
 import org.cloudbus.cloudsim.Storage;
 import org.cloudbus.cloudsim.UtilizationModelStochastic;
+import org.cloudbus.cloudsim.UtilizationModelWorkHour;
 import org.cloudbus.cloudsim.Vm;
 import org.cloudbus.cloudsim.VmAllocationPolicySimple;
 import org.cloudbus.cloudsim.VmAllocationPolicySimplePacking;
@@ -56,6 +57,8 @@ public class NonPowerAware {
 	private static double vmsNumber = 20;
 	private static double cloudletsNumber = 20;
 	protected static double utilizationThreshold = 0.9;
+
+	private static UtilizationModelWorkHour utilizationModelWorkHour;
 
 	/**
 	 * Creates main() to run this example.
@@ -96,6 +99,7 @@ public class NonPowerAware {
 			broker.submitVmList(vmList);
 
 			// Fifth step: Create one cloudlet
+			utilizationModelWorkHour = new UtilizationModelWorkHour();
 			cloudletList = createCloudletList(brokerId);
 
 			// submit cloudlet list to the broker
@@ -183,7 +187,7 @@ public class NonPowerAware {
 		long outputSize = 300;
 
 		for (int i = 0; i < cloudletsNumber; i++) {
-			Cloudlet cloudlet = new Cloudlet(i, length, pesNumber, fileSize, outputSize, new UtilizationModelStochastic(), new UtilizationModelStochastic(), new UtilizationModelStochastic());
+			Cloudlet cloudlet = new Cloudlet(i, length, pesNumber, fileSize, outputSize, utilizationModelWorkHour, new UtilizationModelStochastic(), new UtilizationModelStochastic());
 			cloudlet.setUserId(brokerId);
 			cloudlet.setVmId(i);
 			cloudlet.setCloudletDuration(simLength); // 20 minutes

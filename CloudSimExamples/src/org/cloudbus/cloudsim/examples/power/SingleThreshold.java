@@ -23,7 +23,9 @@ import org.cloudbus.cloudsim.DatacenterBroker;
 import org.cloudbus.cloudsim.DatacenterCharacteristics;
 import org.cloudbus.cloudsim.Log;
 import org.cloudbus.cloudsim.Storage;
+import org.cloudbus.cloudsim.UtilizationModel;
 import org.cloudbus.cloudsim.UtilizationModelStochastic;
+import org.cloudbus.cloudsim.UtilizationModelWorkHour;
 import org.cloudbus.cloudsim.Vm;
 import org.cloudbus.cloudsim.VmSchedulerTimeShared;
 import org.cloudbus.cloudsim.core.CloudSim;
@@ -52,11 +54,13 @@ public class SingleThreshold {
 	/** The vm list. */
 	protected static List<Vm> vmList;
 
-	protected static double utilizationThreshold = 0.6;
+	protected static double utilizationThreshold = 0.8;
 
 	protected static double hostsNumber = 10;
 	protected static double vmsNumber = 20;
 	protected static double cloudletsNumber = 20;
+
+	protected static UtilizationModelStochastic utilizationModelWorkHour;
 
 	/**
 	 * Creates main() to run this example.
@@ -97,6 +101,7 @@ public class SingleThreshold {
 			broker.submitVmList(vmList);
 
 			// Fifth step: Create one cloudlet
+			utilizationModelWorkHour = new UtilizationModelWorkHour();
 			cloudletList = createCloudletList(brokerId);
 
 			// submit cloudlet list to the broker
@@ -159,6 +164,7 @@ public class SingleThreshold {
 					(double) sla.size() * 100 / numberOfAllocations,
 					averageSla,
 					datacenter.getPower() / (3600 * 1000));
+			utilizationModelWorkHour.saveHistory("simWorkload");
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -184,7 +190,7 @@ public class SingleThreshold {
 		long outputSize = 300;
 
 		for (int i = 0; i < cloudletsNumber; i++) {
-			Cloudlet cloudlet = new Cloudlet(i, length, pesNumber, fileSize, outputSize, new UtilizationModelStochastic(), new UtilizationModelStochastic(), new UtilizationModelStochastic());
+			Cloudlet cloudlet = new Cloudlet(i, length, pesNumber, fileSize, outputSize, utilizationModelWorkHour, new UtilizationModelStochastic(), new UtilizationModelStochastic());
 			cloudlet.setUserId(brokerId);
 			cloudlet.setVmId(i);
 			cloudlet.setCloudletDuration(simLength); // 20 minutes

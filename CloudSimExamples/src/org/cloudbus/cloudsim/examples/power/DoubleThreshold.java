@@ -12,6 +12,7 @@ import org.cloudbus.cloudsim.DatacenterBroker;
 import org.cloudbus.cloudsim.DatacenterCharacteristics;
 import org.cloudbus.cloudsim.Log;
 import org.cloudbus.cloudsim.Storage;
+import org.cloudbus.cloudsim.UtilizationModelWorkHour;
 import org.cloudbus.cloudsim.VmSchedulerTimeShared;
 import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.power.PowerDatacenter;
@@ -26,7 +27,7 @@ import org.cloudbus.cloudsim.provisioners.RamProvisionerSimple;
 
 public class DoubleThreshold extends SingleThreshold {
 
-	private static double utilizationLowThreshold = 0.2;
+	private static double utilizationLowThreshold = 0.4;
 
 	public static void main(String[] args) throws IOException {
 
@@ -61,6 +62,7 @@ public class DoubleThreshold extends SingleThreshold {
 			broker.submitVmList(vmList);
 
 			// Fifth step: Create one cloudlet
+			utilizationModelWorkHour = new UtilizationModelWorkHour();
 			cloudletList = createCloudletList(brokerId);
 
 			// submit cloudlet list to the broker
@@ -125,7 +127,7 @@ public class DoubleThreshold extends SingleThreshold {
 					(double) sla.size() * 100 / numberOfAllocations,
 					averageSla,
 					datacenter.getPower() / (3600 * 1000));
-
+			utilizationModelWorkHour.saveHistory("c:\\users\\n7682905\\simWorkload.txt");
 		} catch (Exception e) {
 			e.printStackTrace();
 			Log.printLine("Unwanted errors happen");
