@@ -61,7 +61,7 @@ public class UtilizationModelWorkHour extends UtilizationModelStochastic {
 	}
 
 	private double addRandomVariation(double baseUtilization){
-		double randomUtilization = (Math.random()-0.5)/5;		
+		double randomUtilization = (Math.random()-0.5)/1.5;		
 		double utilization = baseUtilization + randomUtilization;
 		if (utilization<0){
 			utilization = 0.05;
@@ -81,7 +81,7 @@ public class UtilizationModelWorkHour extends UtilizationModelStochastic {
 		    	for (int i=0;i<3700;i++){
 		    		String key = String.format("%d", i);
 		    		if (history.containsKey(key)){
-		    			String message = String.format("%d,%.2f", i,history.get(key)) + LINE_SEPARATOR;
+		    			String message = String.format("%d,%d,%.2f",Log.getLogSimId(), i,history.get(key)) + LINE_SEPARATOR;
 			    		out.write(message);
 		    		}		    		
 		    	}

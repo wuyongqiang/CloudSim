@@ -8,10 +8,14 @@
 
 package org.cloudbus.cloudsim;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 
 import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.lists.PeList;
@@ -31,6 +35,10 @@ public class HostDynamicWorkload extends Host {
 
 	/** The under allocated mips. */
 	private Map<String, List<List<Double>>> underAllocatedMips;
+	
+	private Queue<Double> historyUtilizationQueue;	
+	
+	private int queueLength = 16;
 
 	/**
 	 * Instantiates a new host.
@@ -53,6 +61,8 @@ public class HostDynamicWorkload extends Host {
 		setUtilizationMips(0);
 		setUnderAllocatedMips(new HashMap<String, List<List<Double>>>());
 		setVmsMigratingIn(new ArrayList<Vm>());
+		historyUtilizationQueue = new ArrayDeque<Double>();
+		
 	}
 
 	/* (non-Javadoc)
@@ -126,9 +136,32 @@ public class HostDynamicWorkload extends Host {
 	 */
 	@SuppressWarnings("unchecked")
 	public double getMaxUtilization() {
-		return PeList.getMaxUtilization((List<Pe>) getPeList());
+		double currentUtilization =  PeList.getMaxUtilization((List<Pe>) getPeList());
+		return currentUtilization;
+		//return getHistoryAvgUtilization(currentUtilization);
 	}
 
+	public double getHistoryAvgUtilization(double currentUtilization){
+		
+		if ( historyUtilizationQueue.isEmpty()){
+			while(historyUtilizationQueue.size()< queueLength){
+				historyUtilizationQueue.offer(currentUtilization);
+			}
+			return currentUtilization;
+		}
+		else{
+			historyUtilizationQueue.remove();
+			historyUtilizationQueue.offer(currentUtilization);
+			Iterator<Double> it = historyUtilizationQueue.iterator();
+			double avgUtilization = 0;
+			int count = 0;
+			while(it.hasNext()){
+				avgUtilization += it.next();
+				count ++;
+			}			
+			return avgUtilization / count ++;
+		}
+	}
 	/**
 	 * Gets the max utilization among by all PEs
 	 * allocated to the VM.

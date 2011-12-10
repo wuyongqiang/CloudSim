@@ -51,16 +51,16 @@ public class PowerVmAllocationPolicyDoubleThreshold extends
 				continue;
 			}
 
-			if (((PowerHost) vm.getHost()).getMaxUtilizationAmongVmsPes(vm) < this
+			if (((PowerHost) vm.getHost()).getMaxUtilization() < this
 					.getUtilizationThreshold()
 					&& ((PowerHost) vm.getHost())
-							.getMaxUtilizationAmongVmsPes(vm) > this
+							.getMaxUtilization() > this
 							.getUtilizationLowThreshold()) {
 				continue;
 			}
 			
 			boolean mustMigrate = false;
-			if ( ((PowerHost) vm.getHost()).getMaxUtilizationAmongVmsPes(vm) > this
+			if ( ((PowerHost) vm.getHost()).getMaxUtilization() > this
 			.getUtilizationThreshold()){
 				mustMigrate = true;
 			}
@@ -115,7 +115,7 @@ public class PowerVmAllocationPolicyDoubleThreshold extends
 		/*if (mustMigrate)
 			return smallestVm;
 		else*/ 
-			if (smallestVm.getRecommendMigrationInterval() + smallestVm.getLastMigrationTime() < CloudSim.clock())
+			if (smallestVm.getLastMigrationTime()==0 || smallestVm.getRecommendMigrationInterval() + smallestVm.getLastMigrationTime() < CloudSim.clock())
 			return smallestVm;
 		else
 			return null;
