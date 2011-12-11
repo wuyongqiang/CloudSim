@@ -5,7 +5,7 @@
 	<property name="ireport.y" value="0"/>
 	<subDataset name="New Dataset 1">
 		<parameter name="dssimid" class="java.lang.Integer">
-			<defaultValueExpression><![CDATA[120]]></defaultValueExpression>
+			<defaultValueExpression><![CDATA[104]]></defaultValueExpression>
 		</parameter>
 		<queryString>
 			<![CDATA[select simid,time,date_add(now(),interval `time` second) as time1,count(host) as hostno from simdetail where simid=$P{dssimid} and utilization>0.01  group by simid,time ;]]>
@@ -19,7 +19,7 @@
 		<defaultValueExpression><![CDATA["C:\\users\\n7682905\\reports\\"]]></defaultValueExpression>
 	</parameter>
 	<parameter name="simid" class="java.lang.Integer">
-		<defaultValueExpression><![CDATA[10]]></defaultValueExpression>
+		<defaultValueExpression><![CDATA[104]]></defaultValueExpression>
 	</parameter>
 	<queryString>
 		<![CDATA[select distinct host from simdetail where simid=$P{simid}]]>
@@ -48,7 +48,7 @@
 					<subreportParameterExpression><![CDATA[$F{host}]]></subreportParameterExpression>
 				</subreportParameter>
 				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
-				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "onehost_time.jasper"]]></subreportExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{SUBREPORT_DIR} + "onehost_time.jasper"]]></subreportExpression>
 			</subreport>
 		</band>
 	</detail>

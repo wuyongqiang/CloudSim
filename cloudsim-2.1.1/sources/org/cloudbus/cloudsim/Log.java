@@ -56,6 +56,10 @@ public class Log {
 
 	private static FileOutputStream outputHostOnOff;
 
+	private static FileOutputStream outputViolation;
+
+	private static String violationFilePath;
+
 	
 
 	final private static String fEncoding = "utf8";
@@ -142,6 +146,18 @@ public class Log {
 			String message = String.format("%d,%d,%d,%d,%.2f,%.2f,%.2f,%.2f", logSimId, time, vm, host, utilization, vmmips, hostmips, usedmips) + LINE_SEPARATOR;			
 			try {
 				outputVm.write(message.getBytes());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	//simid, time, vm, host, requestedUtilization, allocatedUtilization
+	public static void printLineToViolationFile(int time,int vm,int host,double requestUtilization, double allocatedUtilization) {
+		if (!isDisabled()) {
+			String message = String.format("%d,%d,%d,%d,%.2f,%.2f", logSimId, time, vm, host, requestUtilization, allocatedUtilization) + LINE_SEPARATOR;			
+			try {
+				outputViolation.write(message.getBytes());
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -236,6 +252,11 @@ public class Log {
 		//form the filePath for keeping the simulation id		
 		logSimIdFilePath = addFileSuffix(filePath,"Id");
 		createFileIfNotExist(logSimIdFilePath);
+		
+		// create vm  output stream for importing to database
+		 violationFilePath = addFileSuffix(filePath, "violation");
+		createFileIfNotExist(violationFilePath);
+		outputViolation = new FileOutputStream(violationFilePath);
 		
 		String idText = readText(logSimIdFilePath).replaceAll(LINE_SEPARATOR, "");
 		if (idText==null || idText.length()==0 || idText.equals(LINE_SEPARATOR)){

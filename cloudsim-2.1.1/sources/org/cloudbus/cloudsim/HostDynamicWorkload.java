@@ -96,10 +96,12 @@ public class HostDynamicWorkload extends Host {
 				Log.printLine("Under allocated MIPS for VM #" + vm.getId() + ": requested " + totalRequestedMips + ", allocated " + totalAllocatedMips);
 			}
 
-			updateUnderAllocatedMips(vm, totalRequestedMips, totalAllocatedMips);
+			updateUnderAllocatedMips(vm, totalRequestedMips, totalAllocatedMips, CloudSim.clock());
 
 			Log.formatLine("%.2f: Total allocated MIPS for VM #" + vm.getId() + " (Host #" + vm.getHost().getId() + ") is %.2f, was requested %.2f out of total %.2f (%.2f%%)", CloudSim.clock(), totalAllocatedMips, totalRequestedMips, vm.getMips(), totalRequestedMips / vm.getMips() * 100);
-
+			if ( totalAllocatedMips < totalRequestedMips ){ 
+				Log.printLineToViolationFile((int)CloudSim.clock(), vm.getId(), vm.getHost().getId(),  totalRequestedMips, totalAllocatedMips);
+			}
 			if (vm.isInMigration()) {
 				Log.printLine("VM #" + vm.getId() + " is in migration");
 				totalAllocatedMips /= 0.9; // performance degradation due to migration - 10%
@@ -135,13 +137,13 @@ public class HostDynamicWorkload extends Host {
 	 * @return the utilization
 	 */
 	@SuppressWarnings("unchecked")
-	public double getMaxUtilization() {
+	public double getMaxUtilization(boolean moreRecently) {
 		double currentUtilization =  PeList.getMaxUtilization((List<Pe>) getPeList());
-		return currentUtilization;
-		//return getHistoryAvgUtilization(currentUtilization);
+		//return currentUtilization;
+		return getHistoryAvgUtilization(currentUtilization,moreRecently);
 	}
 
-	public double getHistoryAvgUtilization(double currentUtilization){
+	public double getHistoryAvgUtilization(double currentUtilization,boolean moreRecently){
 		
 		if ( historyUtilizationQueue.isEmpty()){
 			while(historyUtilizationQueue.size()< queueLength){
@@ -155,9 +157,12 @@ public class HostDynamicWorkload extends Host {
 			Iterator<Double> it = historyUtilizationQueue.iterator();
 			double avgUtilization = 0;
 			int count = 0;
+			int size = historyUtilizationQueue.size();
+			if (moreRecently) size = size/2;
 			while(it.hasNext()){
 				avgUtilization += it.next();
 				count ++;
+				if (count>=size) break;
 			}			
 			return avgUtilization / count ++;
 		}
@@ -200,11 +205,12 @@ public class HostDynamicWorkload extends Host {
 	 * @param requested the requested
 	 * @param allocated the allocated
 	 */
-	protected void updateUnderAllocatedMips(Vm vm, double requested, double allocated) {
+	protected void updateUnderAllocatedMips(Vm vm, double requested, double allocated, double time) {
 		List<List<Double>> underAllocatedMipsArray;
 		List<Double> underAllocatedMips = new ArrayList<Double>();
 		underAllocatedMips.add(requested);
 		underAllocatedMips.add(allocated);
+		underAllocatedMips.add(time);
 
 		if (getUnderAllocatedMips().containsKey(vm.getUid())) {
 			underAllocatedMipsArray = getUnderAllocatedMips().get(vm.getUid());

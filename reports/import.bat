@@ -7,3 +7,5 @@ mysqlimport --local -r -f --verbose  --fields-terminated-by=,    --ignore-lines=
 mysqlimport --local -r -f --verbose  --fields-terminated-by=,    --ignore-lines=0 --lines-terminated-by="\r\n" --columns=simid,time,vm,host,utilization,mips,hostmips,usedmips test  c:\users\n7682905\simvm.txt
 
 mysqlimport --local -r -f --verbose  --fields-terminated-by=,    --ignore-lines=0 --lines-terminated-by="\r\n" --columns=simid,time,utilization test  c:\users\n7682905\simworkload.txt
+
+mysqlimport --local -r -f --verbose  --fields-terminated-by=,    --ignore-lines=0 --lines-terminated-by="\r\n" --columns=simid,time,vm,host,req_utilization,aloc_utilization test  c:\users\n7682905\simviolation.txt

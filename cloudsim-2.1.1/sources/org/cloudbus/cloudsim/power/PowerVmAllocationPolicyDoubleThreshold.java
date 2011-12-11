@@ -51,21 +51,34 @@ public class PowerVmAllocationPolicyDoubleThreshold extends
 				continue;
 			}
 
-			if (((PowerHost) vm.getHost()).getMaxUtilization() < this
+			if (((PowerHost) vm.getHost()).getMaxUtilization(true) < this
 					.getUtilizationThreshold()
 					&& ((PowerHost) vm.getHost())
-							.getMaxUtilization() > this
+							.getMaxUtilization(false) > this
 							.getUtilizationLowThreshold()) {
 				continue;
 			}
-			
-			boolean mustMigrate = false;
-			if ( ((PowerHost) vm.getHost()).getMaxUtilization() > this
-			.getUtilizationThreshold()){
-				mustMigrate = true;
+			//decide the Migration Emergency Level
+			int mustMigrateLevel = 1;
+			if ( ((PowerHost) vm.getHost()).getMaxUtilization(true) > 
+					(getUtilizationThreshold()+0.1)){
+						mustMigrateLevel = 3;
 			}
+			else if ( ((PowerHost) vm.getHost()).getMaxUtilization(true) > this
+			.getUtilizationThreshold()){
+				mustMigrateLevel = 2;
+			}
+			
+			if ( ((PowerHost) vm.getHost()).getMaxUtilization(false) < 
+			(getUtilizationLowThreshold()-0.2)){
+				mustMigrateLevel = 2;
+			}
+			else if ( ((PowerHost) vm.getHost()).getMaxUtilization(false) < 
+					(getUtilizationLowThreshold()-0.3)){
+				mustMigrateLevel = 3;
+			} 
 			// find the smallest vm to migrate out
-			Vm vmToMigrate = findVmToMigrate(vmList, vm, mustMigrate);
+			Vm vmToMigrate = findVmToMigrate(vmList, vm, mustMigrateLevel);
 			if (vmToMigrate != null) {
 				vmsToMigrate.add(vmToMigrate);
 				inMigrationHosts.put(vmToMigrate.getHost().getId(),
@@ -102,7 +115,7 @@ public class PowerVmAllocationPolicyDoubleThreshold extends
 	}
 
 	// find the smallest vm in the same host
-	private Vm findVmToMigrate(List<? extends Vm> vmList, Vm vm, boolean mustMigrate) {
+	private Vm findVmToMigrate(List<? extends Vm> vmList, Vm vm, int mustMigrateLevel) {
 		Vm smallestVm = vm;
 
 		for (Vm vmTmp : vmList) {
@@ -112,10 +125,8 @@ public class PowerVmAllocationPolicyDoubleThreshold extends
 				}
 			}
 		}
-		/*if (mustMigrate)
-			return smallestVm;
-		else*/ 
-			if (smallestVm.getLastMigrationTime()==0 || smallestVm.getRecommendMigrationInterval() + smallestVm.getLastMigrationTime() < CloudSim.clock())
+
+		if (smallestVm.getLastMigrationTime()==0 || smallestVm.getRecommendMigrationInterval()/mustMigrateLevel + smallestVm.getLastMigrationTime() < CloudSim.clock())
 			return smallestVm;
 		else
 			return null;

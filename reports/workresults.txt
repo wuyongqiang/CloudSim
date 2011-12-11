@@ -40,12 +40,30 @@ average utilization
 98	MM0.80-0.40avg	3600	32	1.81	10	1.6155
 115	MM0.80-0.50avg	3600	41	2.13	10	1.6224
 
+2011-12-10: identify ten minutes waiting for a new migration, change it to 0 at the beginning of the simulation. This causes the violation hike in the next 10 minutes, when the workload is picking up.(see mincom-99)
+
+2011-12-11:
+mincom-100 is devide the migration interval by 2 when workload is picking up )
+mincom-101 is devide the migration interval by 3 when workload is picking up )
+mincom-102 is with migration emergency level for workload pickup)
+mincom-103 is with migration emergency level for workload pickup and going down)
+mincom-104 is adding average cpu utilization
+mincom-106 is adding more recent cpu utilization for comparing with the upper threshold
+99	MM0.80-0.40	3600	92	17.04	15.68	1.343
+100	MM0.80-0.40	3600	124	13.51	15.65	1.4383
+101	MM0.80-0.40	3600	157	11.83	12.1	1.439
+102	MM0.80-0.40	3600	145	16.05	20.63	1.4228
+103	MM0.80-0.40	3600	160	15.3	16.77	1.4015
+104	MM0.80-0.40	3600	116	14.56	20.23	1.4594
+106	MM0.80-0.40	3600	119	14.73	20.26	1.3749
+reason analysis for high percentage of viloation, is the unbalance of allocation of the workload
+
 things to do:
-1) graph(time variation values: utilization, vm number, energy)
+1) graph(time variation values: utilization, vm number, energy, violation, migration times)
    todo ( host number graph )
 2) multiple thresholds(time variation threshold)
 3) co-evolution parameter finding
-
+4) question: how do you know the requested utilization from the VM?
 
 why the parameters are needed to be changed?
 

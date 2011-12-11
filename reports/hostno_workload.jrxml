@@ -2,15 +2,21 @@
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="hostno_workload" language="groovy" pageWidth="1190" pageHeight="842" orientation="Landscape" columnWidth="1150" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
 	<property name="ireport.zoom" value="1.0"/>
 	<property name="ireport.x" value="0"/>
-	<property name="ireport.y" value="306"/>
+	<property name="ireport.y" value="0"/>
 	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
 		<defaultValueExpression><![CDATA["C:\\Users\\n7682905\\reports\\"]]></defaultValueExpression>
 	</parameter>
 	<parameter name="simid" class="java.lang.Integer"/>
 	<queryString>
-		<![CDATA[select 1;]]>
+		<![CDATA[select * from siminfo limit 1;]]>
 	</queryString>
-	<field name="1" class="java.lang.Long"/>
+	<field name="simid" class="java.lang.Integer"/>
+	<field name="simdesc" class="java.lang.String"/>
+	<field name="length" class="java.lang.Integer"/>
+	<field name="migration" class="java.lang.Integer"/>
+	<field name="violation" class="java.lang.Float"/>
+	<field name="avgviolation" class="java.lang.Float"/>
+	<field name="energy" class="java.lang.Float"/>
 	<background>
 		<band splitType="Stretch"/>
 	</background>
@@ -31,7 +37,7 @@
 					<subreportParameterExpression><![CDATA[$P{simid}]]></subreportParameterExpression>
 				</subreportParameter>
 				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
-				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "onehostno.jasper"]]></subreportExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{SUBREPORT_DIR} + "onehostno.jasper"]]></subreportExpression>
 			</subreport>
 			<subreport runToBottom="true">
 				<reportElement x="0" y="360" width="1150" height="360"/>
@@ -39,7 +45,7 @@
 					<subreportParameterExpression><![CDATA[$P{simid}]]></subreportParameterExpression>
 				</subreportParameter>
 				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
-				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "workload.jasper"]]></subreportExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{SUBREPORT_DIR} + "workload.jasper"]]></subreportExpression>
 			</subreport>
 		</band>
 	</detail>
