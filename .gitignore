@@ -66,3 +66,4 @@ com.adobe.flexbuilder.project.prefs
 riaImpl/FlexAutomated/test.properties
 reports/*.html
 reports/*.html_files
+reports/*.jasper
