@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="hosts" language="groovy" pageWidth="1190" pageHeight="842" orientation="Landscape" columnWidth="1150" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<subDataset name="New Dataset 1">
+		<parameter name="dssimid" class="java.lang.Integer">
+			<defaultValueExpression><![CDATA[120]]></defaultValueExpression>
+		</parameter>
+		<queryString>
+			<![CDATA[select simid,time,date_add(now(),interval `time` second) as time1,count(host) as hostno from simdetail where simid=$P{dssimid} and utilization>0.01  group by simid,time ;]]>
+		</queryString>
+		<field name="simid" class="java.lang.Integer"/>
+		<field name="time" class="java.lang.Integer"/>
+		<field name="time1" class="java.sql.Timestamp"/>
+		<field name="hostno" class="java.lang.Long"/>
+	</subDataset>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["C:\\users\\n7682905\\reports\\"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="simid" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[10]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select distinct host from simdetail where simid=$P{simid}]]>
+	</queryString>
+	<field name="host" class="java.lang.Integer"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="10" splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band height="10" splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band height="10" splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band height="155" splitType="Stretch">
+			<subreport>
+				<reportElement x="0" y="0" width="1150" height="155"/>
+				<subreportParameter name="sub_simid">
+					<subreportParameterExpression><![CDATA[$P{simid}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="sub_host">
+					<subreportParameterExpression><![CDATA[$F{host}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "onehost_time.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+	<columnFooter>
+		<band height="10" splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="10" splitType="Stretch"/>
+	</pageFooter>
+</jasperReport>

@@ -164,7 +164,7 @@ public class SingleThreshold {
 					(double) sla.size() * 100 / numberOfAllocations,
 					averageSla,
 					datacenter.getPower() / (3600 * 1000));
-			utilizationModelWorkHour.saveHistory("simWorkload");
+			utilizationModelWorkHour.saveHistory("c:\\users\\n7682905\\simWorkload.txt");
 
 		} catch (Exception e) {
 			e.printStackTrace();

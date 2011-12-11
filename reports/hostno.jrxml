@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="hostno" language="groovy" pageWidth="1190" pageHeight="842" orientation="Landscape" columnWidth="1150" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="simid" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[120]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select simid,time,date_add(now(),interval `time` second) as time1,count(host) as hostno from simdetail where simid=$P{simid} and utilization>0.01  group by simid,time ;]]>
+	</queryString>
+	<field name="simid" class="java.lang.Integer"/>
+	<field name="time" class="java.lang.Integer"/>
+	<field name="time1" class="java.sql.Timestamp"/>
+	<field name="hostno" class="java.lang.Long"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="79" splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band height="35" splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band height="61" splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band splitType="Stretch"/>
+	</detail>
+	<columnFooter>
+		<band height="150" splitType="Stretch">
+			<timeSeriesChart>
+				<chart>
+					<reportElement x="0" y="0" width="1150" height="150"/>
+					<chartTitle/>
+					<chartSubtitle/>
+					<chartLegend/>
+				</chart>
+				<timeSeriesDataset>
+					<timeSeries>
+						<seriesExpression><![CDATA["hostno"]]></seriesExpression>
+						<timePeriodExpression><![CDATA[$F{time1}]]></timePeriodExpression>
+						<valueExpression><![CDATA[$F{hostno}]]></valueExpression>
+					</timeSeries>
+				</timeSeriesDataset>
+				<timeSeriesPlot>
+					<plot/>
+				</timeSeriesPlot>
+			</timeSeriesChart>
+		</band>
+	</columnFooter>
+	<pageFooter>
+		<band height="54" splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band height="42" splitType="Stretch"/>
+	</summary>
+</jasperReport>

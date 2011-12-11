@@ -1,0 +1,63 @@
+simid,simdesc, 		length,	migration, 	violation, 	avgviolation, 	energy
+'64', 'ST0.90', 	'3600', '11412', '	37.02', 	'33.94', 	'1.4768'
+'65', 'MM0.90-0.20', 	'3600', '1223', '	16.48', 	'22.97', 	'1.347'
+'66', 'MM0.90-0.40', 	'3600', '2896', 	'30.32', 	'27.11', 	'1.2359'
+'67', 'nm-sp', 		'3600', '0', 		'0', 		'0', 		'2.7961'
+'68', 'MM0.90-0.40', 	'3600', '1168', 	'78.71', 	'30.47', 	'1.3048'
+'69', 'ST0.90', 	'3600', '1498', 	'89.84',	'32.58', 	'1.2202'
+
+
+79: migration cost unware
+83: one migration on a host
+89: one migration on a host but with the smallest vm to migrate
+90: one migration on a host  with the smallest vm to migrate, considering the recommended migration interval
+
+79	MM0.60-0.20	3600	1149	72.81	16.07	1.6493
+83	MM0.60-0.20	3600	351	25.05	12.41	1.6211
+89	MM0.60-0.20	3600	882	21.13	10.09	1.5732
+90	MM0.60-0.20	3600	94	6.08	10.64	1.8368
+
+different workload type. below is the typical workhour workload
+
+94	ST0.80-wh	3600	320	33.25	16.65	1.2529
+95	ST0.60-wh	3600	351	30.07	12.87	1.482
+96	MM0.60-0.20wh	3600	42	2.02	10	2.0617
+97	MM0.80-0.40wh	3600	53	5.26	11.96	1.5865
+---------------------------------------------------------------------
+93	ST0.60-wh	3600	390	32.69	14.03	1.4869
+95	ST0.80-wh	3600	317	33.03	15.32	1.2636
+96	MM0.80-0.20-wh	3600	22	1.25	10	2.304
+94	MM0.60-0.20-wh	3600	46	2.2	10	2.1221
+97	MM0.80-0.40-wh	3600	37	3.28	8.48	1.6421
+116	MM0.80-0.50-wh	3600	60	2.81	10	1.627
+117	MM0.80-0.60-wh	3600	44	2.45	9.52	1.5853
+118	MM0.80-0.70-wh	3600	55	2.92	9.8	1.6269
+119	MM0.70-0.40-wh	3600	56	2.81	10	1.61
+120	MM0.60-0.40-wh	3600	71	3.44	10	1.8896
+121	MM0.50-0.40-wh	3600	77	3.92	10	2.2674
+================================================================
+average utilization
+98	MM0.80-0.40avg	3600	32	1.81	10	1.6155
+115	MM0.80-0.50avg	3600	41	2.13	10	1.6224
+
+things to do:
+1) graph(time variation values: utilization, vm number, energy)
+   todo ( host number graph )
+2) multiple thresholds(time variation threshold)
+3) co-evolution parameter finding
+
+
+why the parameters are needed to be changed?
+
+
+when are they changed?
+
+
+how are they changed?
+	open control
+	loop-feedback control model
+	decision model( Markov decision )
+	history - genetic model
+
+	increasing from 8 clock - 18 clock. any difference between peak time and idle time?
+how to judge the effect of the change.

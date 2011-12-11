@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="onehost" language="groovy" pageWidth="595" pageHeight="162" columnWidth="595" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<subDataset name="ds1">
+		<parameter name="ds_simid" class="java.lang.Integer">
+			<defaultValueExpression><![CDATA[10]]></defaultValueExpression>
+		</parameter>
+		<parameter name="ds_host" class="java.lang.Integer">
+			<defaultValueExpression><![CDATA[2]]></defaultValueExpression>
+		</parameter>
+		<queryString>
+			<![CDATA[(select time, host, count(*) as vmno, 1-hostmips/(usedmips+hostmips) as utilization from simvm where simid=$P{ds_simid} and host=$P{ds_host} group by host,time order by time)
+union
+(select time, host, utilization as vmno, utilization from simdetail where simid=$P{ds_simid} and host=$P{ds_host} and utilization = 0)
+order by time]]>
+		</queryString>
+		<field name="time" class="java.lang.Integer"/>
+		<field name="host" class="java.lang.Integer"/>
+		<field name="vmno" class="java.lang.Double"/>
+		<field name="utilization" class="java.lang.Double"/>
+	</subDataset>
+	<parameter name="sub_simid" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[1]]></defaultValueExpression>
+	</parameter>
+	<parameter name="sub_host" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[1]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select `simid`,`time`, date_add(now(),interval `time` second) as time1, `host`, `utilization`, `energy`  from simdetail where simid=$P{sub_simid} and host=$P{sub_host}]]>
+	</queryString>
+	<field name="simid" class="java.lang.Integer"/>
+	<field name="time" class="java.lang.Integer"/>
+	<field name="time1" class="java.sql.Timestamp"/>
+	<field name="host" class="java.lang.Integer"/>
+	<field name="utilization" class="java.lang.Float"/>
+	<field name="energy" class="java.lang.Float"/>
+	<columnHeader>
+		<band height="15">
+			<textField>
+				<reportElement x="199" y="0" width="100" height="15"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.String"><![CDATA["host "+$P{sub_host}]]></textFieldExpression>
+			</textField>
+		</band>
+	</columnHeader>
+	<detail>
+		<band/>
+	</detail>
+	<columnFooter>
+		<band height="140">
+			<multiAxisChart>
+				<chart>
+					<reportElement x="0" y="0" width="595" height="140"/>
+					<chartTitle/>
+					<chartSubtitle/>
+					<chartLegend/>
+				</chart>
+				<multiAxisPlot>
+					<plot labelRotation="90.0"/>
+					<axis>
+						<lineChart>
+							<chart>
+								<reportElement x="0" y="0" width="0" height="0" backcolor="#FFFFFF"/>
+								<chartTitle color="#000000"/>
+								<chartSubtitle color="#000000"/>
+								<chartLegend textColor="#000000" backgroundColor="#FFFFFF"/>
+							</chart>
+							<categoryDataset>
+								<categorySeries>
+									<seriesExpression><![CDATA["utilization"]]></seriesExpression>
+									<categoryExpression><![CDATA[$F{time}]]></categoryExpression>
+									<valueExpression><![CDATA[$F{utilization}]]></valueExpression>
+								</categorySeries>
+							</categoryDataset>
+							<linePlot>
+								<plot labelRotation="90.0"/>
+								<categoryAxisFormat labelRotation="90.0">
+									<axisFormat>
+										<labelFont/>
+										<tickLabelFont/>
+									</axisFormat>
+								</categoryAxisFormat>
+								<valueAxisFormat>
+									<axisFormat>
+										<labelFont/>
+										<tickLabelFont/>
+									</axisFormat>
+								</valueAxisFormat>
+								<domainAxisMinValueExpression><![CDATA[0]]></domainAxisMinValueExpression>
+								<domainAxisMaxValueExpression><![CDATA[120]]></domainAxisMaxValueExpression>
+							</linePlot>
+						</lineChart>
+					</axis>
+					<axis>
+						<lineChart>
+							<chart>
+								<reportElement x="0" y="0" width="0" height="0" backcolor="#FFFFFF"/>
+								<chartTitle color="#000000"/>
+								<chartSubtitle color="#000000"/>
+								<chartLegend textColor="#000000" backgroundColor="#FFFFFF"/>
+							</chart>
+							<categoryDataset>
+								<categorySeries>
+									<seriesExpression><![CDATA["energy"]]></seriesExpression>
+									<categoryExpression><![CDATA[$F{time}]]></categoryExpression>
+									<valueExpression><![CDATA[$F{energy}]]></valueExpression>
+								</categorySeries>
+							</categoryDataset>
+							<linePlot>
+								<plot/>
+								<categoryAxisFormat>
+									<axisFormat>
+										<labelFont/>
+										<tickLabelFont/>
+									</axisFormat>
+								</categoryAxisFormat>
+								<valueAxisFormat>
+									<axisFormat>
+										<labelFont/>
+										<tickLabelFont/>
+									</axisFormat>
+								</valueAxisFormat>
+								<domainAxisMinValueExpression><![CDATA[0]]></domainAxisMinValueExpression>
+								<domainAxisMaxValueExpression><![CDATA[120]]></domainAxisMaxValueExpression>
+							</linePlot>
+						</lineChart>
+					</axis>
+					<axis>
+						<lineChart>
+							<chart>
+								<reportElement x="0" y="0" width="0" height="0" backcolor="#FFFFFF"/>
+								<chartTitle color="#000000"/>
+								<chartSubtitle color="#000000"/>
+								<chartLegend textColor="#000000" backgroundColor="#FFFFFF"/>
+							</chart>
+							<categoryDataset>
+								<dataset>
+									<datasetRun subDataset="ds1">
+										<datasetParameter name="ds_simid">
+											<datasetParameterExpression><![CDATA[$P{sub_simid}]]></datasetParameterExpression>
+										</datasetParameter>
+										<datasetParameter name="ds_host">
+											<datasetParameterExpression><![CDATA[$P{sub_host}]]></datasetParameterExpression>
+										</datasetParameter>
+										<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+									</datasetRun>
+								</dataset>
+								<categorySeries>
+									<seriesExpression><![CDATA["vmno"]]></seriesExpression>
+									<categoryExpression><![CDATA[$F{time}]]></categoryExpression>
+									<valueExpression><![CDATA[$F{vmno}]]></valueExpression>
+								</categorySeries>
+							</categoryDataset>
+							<linePlot>
+								<plot/>
+								<categoryAxisFormat>
+									<axisFormat>
+										<labelFont/>
+										<tickLabelFont/>
+									</axisFormat>
+								</categoryAxisFormat>
+								<valueAxisFormat>
+									<axisFormat>
+										<labelFont/>
+										<tickLabelFont/>
+									</axisFormat>
+								</valueAxisFormat>
+								<domainAxisMinValueExpression><![CDATA[0]]></domainAxisMinValueExpression>
+								<domainAxisMaxValueExpression><![CDATA[120]]></domainAxisMaxValueExpression>
+								<rangeAxisMinValueExpression><![CDATA[0]]></rangeAxisMinValueExpression>
+							</linePlot>
+						</lineChart>
+					</axis>
+					<axis>
+						<lineChart>
+							<chart>
+								<reportElement x="0" y="0" width="0" height="0" backcolor="#FFFFFF"/>
+								<chartTitle color="#000000"/>
+								<chartSubtitle color="#000000"/>
+								<chartLegend textColor="#000000" backgroundColor="#FFFFFF"/>
+							</chart>
+							<categoryDataset>
+								<dataset>
+									<datasetRun subDataset="ds1">
+										<datasetParameter name="ds_simid">
+											<datasetParameterExpression><![CDATA[$P{sub_simid}]]></datasetParameterExpression>
+										</datasetParameter>
+										<datasetParameter name="ds_host">
+											<datasetParameterExpression><![CDATA[$P{sub_host}]]></datasetParameterExpression>
+										</datasetParameter>
+										<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+									</datasetRun>
+								</dataset>
+								<categorySeries>
+									<seriesExpression><![CDATA["u2"]]></seriesExpression>
+									<categoryExpression><![CDATA[$F{time}]]></categoryExpression>
+									<valueExpression><![CDATA[$F{utilization}]]></valueExpression>
+								</categorySeries>
+							</categoryDataset>
+							<linePlot>
+								<plot/>
+								<categoryAxisFormat>
+									<axisFormat>
+										<labelFont/>
+										<tickLabelFont/>
+									</axisFormat>
+								</categoryAxisFormat>
+								<valueAxisFormat>
+									<axisFormat>
+										<labelFont/>
+										<tickLabelFont/>
+									</axisFormat>
+								</valueAxisFormat>
+								<domainAxisMinValueExpression><![CDATA[0]]></domainAxisMinValueExpression>
+								<domainAxisMaxValueExpression><![CDATA[120]]></domainAxisMaxValueExpression>
+								<rangeAxisMinValueExpression><![CDATA[0]]></rangeAxisMinValueExpression>
+							</linePlot>
+						</lineChart>
+					</axis>
+				</multiAxisPlot>
+			</multiAxisChart>
+		</band>
+	</columnFooter>
+</jasperReport>
