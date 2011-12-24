@@ -68,17 +68,19 @@ public class PowerVmAllocationPolicyDoubleThreshold extends
 			.getUtilizationThreshold()){
 				mustMigrateLevel = 2;
 			}
-			
+			boolean migrateOut = true;
 			if ( ((PowerHost) vm.getHost()).getMaxUtilization(false) < 
 			(getUtilizationLowThreshold()-0.2)){
 				mustMigrateLevel = 2;
+				migrateOut = false;
 			}
 			else if ( ((PowerHost) vm.getHost()).getMaxUtilization(false) < 
 					(getUtilizationLowThreshold()-0.3)){
 				mustMigrateLevel = 3;
+				migrateOut = false;
 			} 
 			// find the smallest vm to migrate out
-			Vm vmToMigrate = findVmToMigrate(vmList, vm, mustMigrateLevel);
+			Vm vmToMigrate = findVmToMigrate(vmList, vm, mustMigrateLevel,migrateOut);
 			if (vmToMigrate != null) {
 				vmsToMigrate.add(vmToMigrate);
 				inMigrationHosts.put(vmToMigrate.getHost().getId(),
@@ -115,7 +117,7 @@ public class PowerVmAllocationPolicyDoubleThreshold extends
 	}
 
 	// find the smallest vm in the same host
-	private Vm findVmToMigrate(List<? extends Vm> vmList, Vm vm, int mustMigrateLevel) {
+	private Vm findVmToMigrate(List<? extends Vm> vmList, Vm vm, int mustMigrateLevel,boolean migrateOut) {
 		Vm smallestVm = vm;
 
 		for (Vm vmTmp : vmList) {
@@ -125,8 +127,11 @@ public class PowerVmAllocationPolicyDoubleThreshold extends
 				}
 			}
 		}
-
-		if (smallestVm.getLastMigrationTime()==0 || smallestVm.getRecommendMigrationInterval()/mustMigrateLevel + smallestVm.getLastMigrationTime() < CloudSim.clock())
+		
+		if (migrateOut && smallestVm.getLastMigrationTime()==0)
+			return smallestVm;
+		
+		if ( smallestVm.getRecommendMigrationInterval()/mustMigrateLevel + smallestVm.getLastMigrationTime() < CloudSim.clock())
 			return smallestVm;
 		else
 			return null;
@@ -144,15 +149,29 @@ public class PowerVmAllocationPolicyDoubleThreshold extends
 	public void setUtilizationLowThreshold(double utilizationLowThreshold) {
 		this.utilizationLowThreshold = utilizationLowThreshold;
 	}
+	@Override
+	protected double getUtilizationThreshold() {
+		double result = super.getUtilizationThreshold();
+		/*if(CloudSim.clock()<900)
+			result -= -0.2;				
+		if ( result < getUtilizationLowThreshold()+0.2) result = getUtilizationLowThreshold()+0.2;
+		*/
+		return result;
+	}
 
 	public double getUtilizationLowThreshold() {
-		return this.utilizationLowThreshold;
+		double result = utilizationLowThreshold;
+		if(CloudSim.clock()<900)
+			result = utilizationLowThreshold-0.2;				
+		
+		if (result<0.1) result = 0.1;
+		return result;
 	}
 
 	@Override
 	public String getPolicyDesc() {
 		String rst = String.format("MM%.2f-%.2f", getUtilizationThreshold(),
-				getUtilizationLowThreshold());
+				utilizationLowThreshold);
 		return rst;
 	}
 }
