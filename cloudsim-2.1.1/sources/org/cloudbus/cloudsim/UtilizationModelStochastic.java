@@ -12,8 +12,13 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
+
+import org.cloudbus.cloudsim.distributions.ZipfDistr;
 
 /**
  * The UtilizationModelStochastic class implements a model, according to which
@@ -25,20 +30,30 @@ import java.util.Map;
 public class UtilizationModelStochastic implements UtilizationModel {
 
 	/** The history. */
-	private Map<Double, Double> history;
+	private Map<String, Double> history;
+	private long seed;
+	private Random rnd;
 
 	/**
 	 * Instantiates a new utilization model stochastic.
 	 */
 	public UtilizationModelStochastic() {
-		setHistory(new HashMap<Double, Double>());
+		setHistory(new HashMap<String, Double>());
+		zipf = new ZipfDistr(0.5, 10); 
+		seed = (long)(Math.random() * 1000000);
+		rnd = new Random(seed);
 	}
+	
+	transient private ZipfDistr zipf = null;
+	
+		
 
 	/* (non-Javadoc)
 	 * @see cloudsim.power.UtilizationModel#getUtilization(double)
 	 */
 	@Override
 	public double getUtilization(double time) {
+		String key = String.format("%d", (int)time);
 		if (getHistory().containsKey(time)) {
 			return getHistory().get(time);
 		}
@@ -46,12 +61,17 @@ public class UtilizationModelStochastic implements UtilizationModel {
 		if (time==0){
 			return 1;
 		}
-
-		double utilization = Math.random();
+		
+		double utilization = rnd.nextGaussian()/4 + 0.5;
+		//double utilization = zipf.sample();
 		if (utilization< 0.001){
 			utilization = 0.05;
 		}
-		getHistory().put(time, utilization);
+		
+		if (utilization> 1){
+			utilization = 1;
+		}
+		getHistory().put(String.format("%d", (int)time), utilization);
 		return utilization;
 	}
 
@@ -60,7 +80,7 @@ public class UtilizationModelStochastic implements UtilizationModel {
 	 *
 	 * @return the history
 	 */
-	protected Map<Double, Double> getHistory() {
+	protected Map<String, Double> getHistory() {
 		return history;
 	}
 
@@ -69,7 +89,7 @@ public class UtilizationModelStochastic implements UtilizationModel {
 	 *
 	 * @param history the history
 	 */
-	protected void setHistory(Map<Double, Double> history) {
+	protected void setHistory(Map<String, Double> history) {
 		this.history = history;
 	}
 
@@ -80,11 +100,21 @@ public class UtilizationModelStochastic implements UtilizationModel {
 	 *
 	 * @throws Exception the exception
 	 */
-	public void saveHistory(String filename) throws Exception {
-		FileOutputStream fos = new FileOutputStream(filename);
-		ObjectOutputStream oos = new ObjectOutputStream(fos);
-		oos.writeObject(getHistory());
-		oos.close();
+		public void saveHistory(String filename) throws Exception {
+			String LINE_SEPARATOR = System.getProperty("line.separator");
+		    Writer out = new OutputStreamWriter(new FileOutputStream(filename), "utf8");
+		    try {
+		    	for (int i=0;i<3700;i++){
+		    		String key = String.format("%d", i);
+		    		if (history.containsKey(key)){
+		    			String message = String.format("%d,%d,%.2f",Log.getLogSimId(), i,history.get(key)) + LINE_SEPARATOR;
+			    		out.write(message);
+		    		}		    		
+		    	}
+		    }
+		    finally {
+		      out.close();
+		    }		
 	}
 
 	/**
@@ -96,10 +126,7 @@ public class UtilizationModelStochastic implements UtilizationModel {
 	 */
 	@SuppressWarnings("unchecked")
 	public void loadHistory(String filename) throws Exception {
-		FileInputStream fis = new FileInputStream(filename);
-		ObjectInputStream ois = new ObjectInputStream(fis);
-		setHistory((Map<Double, Double>) ois.readObject());
-        ois.close();
+		throw new Exception("not implemented");
 	}
 
 }
