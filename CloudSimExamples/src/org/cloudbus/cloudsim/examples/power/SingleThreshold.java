@@ -37,6 +37,8 @@ import org.cloudbus.cloudsim.power.models.PowerModelLinear;
 import org.cloudbus.cloudsim.provisioners.BwProvisionerSimple;
 import org.cloudbus.cloudsim.provisioners.PeProvisionerSimple;
 import org.cloudbus.cloudsim.provisioners.RamProvisionerSimple;
+import org.cloudbus.cloudsim.examples.UtilizationModelUniform;
+import org.cloudbus.cloudsim.examples.UtilizationModelZipfDistr;
 
 /**
  * An example of a power aware data center. In this example the placement of VMs
@@ -54,13 +56,15 @@ public class SingleThreshold {
 	/** The vm list. */
 	protected static List<Vm> vmList;
 
-	protected static double utilizationThreshold = 0.8;
+	protected static double utilizationThreshold = 0.7;
 
 	protected static double hostsNumber = 10;
 	protected static double vmsNumber = 20;
 	protected static double cloudletsNumber = 20;
 
-	protected static UtilizationModelStochastic utilizationModelWorkHour;
+	//protected static UtilizationModelStochastic utilizationModelWorkHour;
+	protected static UtilizationModelUniform utilizationModelUniform;
+	protected static UtilizationModelStochastic utilizationModelStochastic;
 
 	/**
 	 * Creates main() to run this example.
@@ -101,7 +105,7 @@ public class SingleThreshold {
 			broker.submitVmList(vmList);
 
 			// Fifth step: Create one cloudlet
-			utilizationModelWorkHour = new UtilizationModelWorkHour();
+
 			cloudletList = createCloudletList(brokerId);
 
 			// submit cloudlet list to the broker
@@ -164,7 +168,7 @@ public class SingleThreshold {
 					(double) sla.size() * 100 / numberOfAllocations,
 					averageSla,
 					datacenter.getPower() / (3600 * 1000));
-			utilizationModelWorkHour.saveHistory("c:\\users\\n7682905\\simWorkload.txt");
+			utilizationModelStochastic.saveHistory("c:\\users\\n7682905\\simWorkload.txt");
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -172,6 +176,7 @@ public class SingleThreshold {
 		}
 
 		Log.printLine("SingleThreshold finished!");
+		System.out.println("DoubleThreshold finished!");
 	}
 
 	/**
@@ -182,6 +187,11 @@ public class SingleThreshold {
 	 * @return the cloudlet list
 	 */
 	protected static List<Cloudlet> createCloudletList(int brokerId) {
+		
+		//utilizationModelStochastic = new UtilizationModelWorkHour();
+		utilizationModelStochastic = new UtilizationModelStochastic();
+		utilizationModelUniform = new UtilizationModelUniform() ;
+		
 		List<Cloudlet> list = new ArrayList<Cloudlet>();
 
 		long length = 150000; // 10 min on 250 MIPS
@@ -190,7 +200,12 @@ public class SingleThreshold {
 		long outputSize = 300;
 
 		for (int i = 0; i < cloudletsNumber; i++) {
-			Cloudlet cloudlet = new Cloudlet(i, length, pesNumber, fileSize, outputSize, utilizationModelWorkHour, new UtilizationModelStochastic(), new UtilizationModelStochastic());
+			Cloudlet cloudlet = null;
+			if (i==0){
+				cloudlet = new Cloudlet(i, length, pesNumber, fileSize, outputSize, utilizationModelStochastic, new UtilizationModelStochastic(), new UtilizationModelStochastic());
+			}else{
+				cloudlet = new Cloudlet(i, length, pesNumber, fileSize, outputSize, new UtilizationModelStochastic(), new UtilizationModelStochastic(), new UtilizationModelStochastic());
+			}
 			cloudlet.setUserId(brokerId);
 			cloudlet.setVmId(i);
 			cloudlet.setCloudletDuration(simLength); // 20 minutes
@@ -245,7 +260,8 @@ public class SingleThreshold {
 		double maxPower = 250; // 250W
 		double staticPowerPercent = 0.7; // 70%
 
-		int[] mips = { 1000, 2000, 3000 };
+		//int[] mips = { 1000, 2000, 3000 };
+		int[] mips = { 2000, 2000, 2000 };
 		int ram = 10000; // host memory (MB)
 		long storage = 1000000; // host storage
 		int bw = 100000;
