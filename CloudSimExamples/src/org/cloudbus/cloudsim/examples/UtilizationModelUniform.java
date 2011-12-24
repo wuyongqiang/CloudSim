@@ -3,7 +3,7 @@ package org.cloudbus.cloudsim.examples;
 import org.cloudbus.cloudsim.UtilizationModel;
 import org.cloudbus.cloudsim.distributions.UniformDistr;
 
-class UtilizationModelUniform implements UtilizationModel {
+public class UtilizationModelUniform implements UtilizationModel {
 
 	transient private UniformDistr ud = null;
 	
