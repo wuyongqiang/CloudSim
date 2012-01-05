@@ -79,3 +79,9 @@ how are they changed?
 
 	increasing from 8 clock - 18 clock. any difference between peak time and idle time?
 how to judge the effect of the change.
+
+2) 2-d
+3) real world, constraint of live migration
+4) innovation ? new solution, new problem, 
+
+adaptive migration policy,245
