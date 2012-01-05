@@ -12,6 +12,7 @@ import org.cloudbus.cloudsim.DatacenterBroker;
 import org.cloudbus.cloudsim.DatacenterCharacteristics;
 import org.cloudbus.cloudsim.Log;
 import org.cloudbus.cloudsim.Storage;
+import org.cloudbus.cloudsim.UtilizationModelStochastic;
 import org.cloudbus.cloudsim.UtilizationModelWorkHour;
 import org.cloudbus.cloudsim.VmSchedulerTimeShared;
 import org.cloudbus.cloudsim.core.CloudSim;
@@ -33,6 +34,11 @@ public class DoubleThreshold extends SingleThreshold {
 
 		Log.setOutputFile("C:\\Users\\n7682905\\sim.txt");
 		Log.printLine("Starting SingleThreshold example...");
+		
+		if ( args.length >=2){
+			utilizationThreshold = Double.parseDouble(args[0]);
+			utilizationLowThreshold = Double.parseDouble(args[1]);
+		}
 
 		try {
 			// First step: Initialize the CloudSim package. It should be called
@@ -62,7 +68,6 @@ public class DoubleThreshold extends SingleThreshold {
 			broker.submitVmList(vmList);
 
 			// Fifth step: Create one cloudlet
-			utilizationModelWorkHour = new UtilizationModelWorkHour();
 			cloudletList = createCloudletList(brokerId);
 
 			// submit cloudlet list to the broker
@@ -127,13 +132,14 @@ public class DoubleThreshold extends SingleThreshold {
 					(double) sla.size() * 100 / numberOfAllocations,
 					averageSla,
 					datacenter.getPower() / (3600 * 1000));
-			utilizationModelWorkHour.saveHistory("c:\\users\\n7682905\\simWorkload.txt");
+			utilizationModelStochastic.saveHistory("c:\\users\\n7682905\\simWorkload.txt");
 		} catch (Exception e) {
 			e.printStackTrace();
 			Log.printLine("Unwanted errors happen");
 		}
 
 		Log.printLine("DoubleThreshold finished!");
+		System.out.println("DoubleThreshold finished!");
 	}
 	
 	protected static PowerDatacenter createDatacenter(String name) throws Exception {

@@ -49,6 +49,8 @@ mincom-102 is with migration emergency level for workload pickup)
 mincom-103 is with migration emergency level for workload pickup and going down)
 mincom-104 is adding average cpu utilization
 mincom-106 is adding more recent cpu utilization for comparing with the upper threshold
+mincom-108 is adding lowering threshold -0.2 during the ramp up time
+mincom-1xx is adding the migrateout control parameter
 99	MM0.80-0.40	3600	92	17.04	15.68	1.343
 100	MM0.80-0.40	3600	124	13.51	15.65	1.4383
 101	MM0.80-0.40	3600	157	11.83	12.1	1.439
@@ -56,6 +58,8 @@ mincom-106 is adding more recent cpu utilization for comparing with the upper th
 103	MM0.80-0.40	3600	160	15.3	16.77	1.4015
 104	MM0.80-0.40	3600	116	14.56	20.23	1.4594
 106	MM0.80-0.40	3600	119	14.73	20.26	1.3749
+108	MM0.80-0.20	3600	119	13.2	15.29	1.3796
+
 reason analysis for high percentage of viloation, is the unbalance of allocation of the workload
 
 things to do:
@@ -80,8 +84,114 @@ how are they changed?
 	increasing from 8 clock - 18 clock. any difference between peak time and idle time?
 how to judge the effect of the change.
 
+<<<<<<< HEAD
 2) 2-d
 3) real world, constraint of live migration
 4) innovation ? new solution, new problem, 
 
 adaptive migration policy,245
+=======
+2011-12-21
+uniform workload
+------------------------------------------------------------------
+112	MM0.80-0.20uf	3600	64	6.83	12.92	1.77
+113	MM0.80-0.30uf	3600	94	14.74	16.54	1.5858
+114	MM0.80-0.40uf	3600	112	10.25	13.2	1.4581
+115	MM0.60-0.20uf	3600	124	5.78	10.17	1.8041
+116	MM0.80-0.50uf	3600	128	11.67	12.68	1.3112
+117	MM0.80-0.60uf	3600	125	12.18	13.45	1.2762
+118	MM0.80-0.70uf	3600	139	14.06	14.17	1.296
+119	MM0.70-0.40uf	3600	144	10.57	11.22	1.4115
+120	MM0.60-0.40uf	3600	164	8.95	9.54	1.5715 (*)
+121	MM0.50-0.40uf	3600	204	10.01	10.17	1.9072
+
+zipf
+------------------------------------------------------------------
+123	MM0.80-0.20zf	3600	84	13.92	21.69	1.9072
+124	MM0.80-0.30zf	3600	110	19.56	27.85	1.7764
+125	MM0.80-0.40zf	3600	132	12.08	14.19	1.5655
+126	MM0.80-0.50zf	3600	154	27.27	23.18	1.3451
+127	MM0.80-0.60zf	3600	142	24.1	21.88	1.3844
+128	MM0.80-0.70zf	3600	168	19.26	17.44	1.5003
+129	MM0.70-0.40zf	3600	166	13.72	13.66	1.6049
+130	MM0.60-0.40zf	3600	171	12.82	13.5	1.7723
+131	MM0.50-0.40zf	3600	180	11.79	12.79	1.8892
+132	MM0.60-0.20zf	3600	135	9.12	12.85	1.9257 (*)
+-------------------------------------------------------------------
+every vm have its own utilization instance
+137	MM0.60-0.20rd	3600	126	6.64	10.79	1.8278
+138	MM0.60-0.20wh	3600	125	8.15	11.9	1.6749
+139	MM0.80-0.40wh	3600	127	14.54	16.18	1.3994
+140	MM0.70-0.40wh	3600	132	9.69	12.32	1.4959
+
+148	MM0.80-0.20wh	3600	109	12.62	17.09	1.4279
+149	MM0.80-0.30wh	3600	100	11.97	16.87	1.4203
+150	MM0.80-0.40wh	3600	113	11.2	16.75	1.3752
+151	MM0.60-0.20wh	3600	97	7.8	13.64	1.8214
+152	MM0.80-0.50wh	3600	139	14.78	13.85	1.4159
+153	MM0.80-0.60wh	3600	137	14.14	16.51	1.4068
+154	MM0.80-0.70wh	3600	128	9.87	9.99	1.4874 (*)
+155	MM0.70-0.40wh	3600	128	13.69	21.77	1.4692
+156	MM0.60-0.40wh	3600	148	13.95	17.5	1.6184
+157	MM0.50-0.40wh	3600	177	10.63	11.01	1.7816
+158	MM0.60-0.20wh	3600	109	9.15	12.9	1.7419
+
+------------------------------------------------------------------
+178	MM0.80-0.20gs	3600	75	6.78	12.33	1.9651
+179	MM0.80-0.30gs	3600	107	13.03	14.43	1.5973
+180	MM0.80-0.40gs	3600	137	15.93	14.12	1.4599
+181	MM0.60-0.20gs	3600	128	6.04	9.92	1.894
+182	MM0.80-0.50gs	3600	113	12.18	15.21	1.3015
+183	MM0.80-0.60gs	3600	183	25.05	18.93	1.3647
+184	MM0.80-0.70gs	3600	137	10.76	11.55	1.3194
+185	MM0.70-0.40gs	3600	132	9.3	11.87	1.4648
+186	MM0.60-0.40gs	3600	166	7.91	9.85	1.5987 (*)
+187	MM0.50-0.40gs	3600	187	9.39	10.45	1.8544
+188	MM0.60-0.20gs	3600	126	6.7	10.39	1.8081
+
+ utilization = rnd.nextGaussian()/4 + 0.5;
+189	MM0.80-0.20gs	3600	78	6.16	10.1	1.783
+190	MM0.80-0.30gs	3600	108	10.87	13.22	1.728
+191	MM0.80-0.40gs	3600	117	13.75	12.83	1.4302
+192	MM0.60-0.20gs	3600	118	5.48	9.77	2.0391
+193	MM0.80-0.50gs	3600	116	10.4	12.82	1.3483
+194	MM0.80-0.60gs	3600	111	9.17	11.91	1.3233
+195	MM0.80-0.70gs	3600	126	8.55	10.92	1.3124 (*)
+196	MM0.70-0.40gs	3600	132	7.25	9.81	1.4351
+197	MM0.60-0.40gs	3600	160	7.52	9.88	1.6287
+198	MM0.50-0.40gs	3600	184	8.81	9.93	1.9624
+199	MM0.60-0.20gs	3600	114	5.49	10.44	1.9804
+------------------------------------------------------------------
+all hosts are them same with 2000 mips
+200	MM0.80-0.20	3600	34	2.03	10.09	2.0955
+201	MM0.80-0.30	3600	93	10.7	11.97	1.6443
+202	MM0.80-0.40	3600	108	10.86	13.05	1.5697
+203	MM0.60-0.20	3600	113	4.87	10.1	1.8804
+204	MM0.80-0.50	3600	107	7.36	10.98	1.3461 (*)
+205	MM0.80-0.60	3600	142	11.62	12.49	1.3509
+206	MM0.80-0.70	3600	123	11.18	11.35	1.283
+207	MM0.70-0.40	3600	136	8.2	10.67	1.4894 (**)
+208	MM0.60-0.40	3600	150	6.81	9.85	1.6797
+209	MM0.50-0.40	3600	207	10.26	9.92	1.8547
+210	MM0.60-0.20	3600	108	4.78	9.75	1.8474
+
+2011-12-24
+idea1: PID ( P I ) usage in the controlling problem
+idea2: garbage collection in the energy preservation
+
+how to control:  lower the upper threshold can reduce the violation rate, but increase energy cost
+                 increase the lower threshold, can reduce the violation rate, but ...
+
+		P : parallel
+                I : integral
+		D : differential
+
+                feedback is the current utilization rate
+	the setting value is the utilization rate.  75% -70%
+	input value is the consolidation threshold, low utilization threshold.
+	output: strategies:
+	1) low utilization --> consolidation( quick, normal, slow)
+	2) high utilization --> spreading(quick, normal, slow)
+	3) 
+	
+>>>>>>> b52cbcebfe590dcf51b0cf0cf307068eb5e97368

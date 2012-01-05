@@ -2,13 +2,14 @@ package org.cloudbus.cloudsim.examples;
 
 import org.cloudbus.cloudsim.UtilizationModel;
 import org.cloudbus.cloudsim.distributions.UniformDistr;
+import org.cloudbus.cloudsim.distributions.ZipfDistr;
 
-public class UtilizationModelUniform implements UtilizationModel {
+public class UtilizationModelZipfDistr implements UtilizationModel {
 
-	transient private UniformDistr ud = null;
+	transient private ZipfDistr zipf = null;
 	
-	public UtilizationModelUniform() {
-		ud = new UniformDistr(0, 1); 
+	public UtilizationModelZipfDistr() {
+		zipf = new ZipfDistr(0.5, 100); 
 	}
 	
 	/* (non-Javadoc)
@@ -16,7 +17,7 @@ public class UtilizationModelUniform implements UtilizationModel {
 	 */
 	@Override
 	public double getUtilization(double time) {
-		return ud.sample() ;
+		return zipf.sample() ;
 	}
 
 }

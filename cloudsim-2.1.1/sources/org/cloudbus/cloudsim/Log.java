@@ -74,7 +74,7 @@ public class Log {
 			try {
 				getOutput().write(message.getBytes());
 				if (getOutput() != System.out){
-					System.out.write(message.getBytes());
+					//System.out.write(message.getBytes());
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
