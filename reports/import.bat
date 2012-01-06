@@ -1,7 +1,9 @@
 
 set WORKPATH=c:\users\n7682905
 
-set CLOUDPATH="C:\Documents and Settings\t9gw5733\CloudSimSrc\CloudSimExamples"\bin;"C:\Documents and Settings\t9gw5733\CloudSimSrc\CloudSim"\bin
+set CLOUDPATH1="C:\Documents and Settings\t9gw5733\CloudSimSrc\CloudSimExamples"\bin;"C:\Documents and Settings\t9gw5733\CloudSimSrc\CloudSim"\bin
+
+set CLOUDPATH="c:\users\n7682905\CloudSimSrc\CloudSimExamples"\bin;"c:\users\n7682905\CloudSimSrc\CloudSim"\bin
 
 cd %WORKPATH%
 if  not "%1"=="" java -cp %CLOUDPATH%  org.cloudbus.cloudsim.examples.power.DoubleThreshold %1 %2
@@ -19,5 +21,6 @@ mysqlimport --local -r -f --verbose  --fields-terminated-by=,    --ignore-lines=
 
 mysqlimport --local -r -f --verbose  --fields-terminated-by=,    --ignore-lines=0 --lines-terminated-by="\r\n" --columns=simid,time,vm,host,req_utilization,aloc_utilization test  c:\users\n7682905\simviolation.txt
 
-cd "C:\Documents and Settings\t9gw5733\CloudSimSrc"\reports
+rem cd "C:\Documents and Settings\t9gw5733\CloudSimSrc"\reports
+cd "c:\users\n7682905\CloudSimSrc"\reports
 

@@ -117,7 +117,7 @@ public class PowerVmAllocationPolicyDoubleThreshold extends
 	}
 
 	// find the smallest vm in the same host
-	private Vm findVmToMigrate(List<? extends Vm> vmList, Vm vm, int mustMigrateLevel,boolean migrateOut) {
+	private Vm findVmToMigrate(List<? extends Vm> vmList, Vm vm, double mustMigrateLevel,boolean migrateOut) {
 		Vm smallestVm = vm;
 
 		for (Vm vmTmp : vmList) {
@@ -131,10 +131,35 @@ public class PowerVmAllocationPolicyDoubleThreshold extends
 		if (migrateOut && smallestVm.getLastMigrationTime()==0)
 			return smallestVm;
 		
+		if (migrateOut){
+			mustMigrateLevel = 1;
+			double consolidationRatio = getHostConsolidationRatio(vm) ; 
+			if (consolidationRatio<=1)
+				mustMigrateLevel = 0.01 ; // no need to migrate
+			else
+				mustMigrateLevel *= consolidationRatio;
+		}
 		if ( smallestVm.getRecommendMigrationInterval()/mustMigrateLevel + smallestVm.getLastMigrationTime() < CloudSim.clock())
 			return smallestVm;
 		else
 			return null;
+	}
+	
+	private double getHostConsolidationRatio(Vm vm){
+		Double result = 1.0;
+		
+		PowerHost host = ((PowerHost) vm.getHost());
+		
+		Double mipsAllVms = 0.0;
+		for( Vm vmTmp : host.getVmList()){					 
+			mipsAllVms += vmTmp.getMips();
+		}
+		
+		result = mipsAllVms / host.getTotalMips();
+		
+		if(result < 0.05) result = 0.05;
+		
+		return result;
 	}
 
 	private boolean IsOntheSameHost(Vm vmTmp, Vm vm) {
