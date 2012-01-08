@@ -84,6 +84,13 @@ how are they changed?
 	increasing from 8 clock - 18 clock. any difference between peak time and idle time?
 how to judge the effect of the change.
 
+
+2) 2-d
+3) real world, constraint of live migration
+4) innovation ? new solution, new problem, 
+
+adaptive migration policy,245
+
 2011-12-21
 uniform workload
 ------------------------------------------------------------------
@@ -200,4 +207,35 @@ how to control:  lower the upper threshold can reduce the violation rate, but in
    the performance metrics is the violation rate, the energy controller is the utilization rate.
 
    modeling the controlled system.
+
 	
+2012-01-05
+	idea1: consoliation ratio && utilization rate
+	idea2: keep 1 machine at online backup status
+
+considering the consolidation ratio
+129	MM0.80-0.20	3600	11	0.61	10	2.2953
+130	MM0.80-0.30	3600	57	4.73	10.61	1.7357
+131	MM0.80-0.40	3600	128	9.9	10.56	1.4746
+132	MM0.60-0.20	3600	69	3.2	10.05	2.0035
+133	MM0.80-0.50	3600	138	11.02	11.79	1.3037
+134	MM0.80-0.60	3600	135	8.96	11.4	1.2979
+135	MM0.80-0.70	3600	156	8.89	10	1.3214
+136	MM0.70-0.40	3600	93	4.44	10.01	1.5717
+137	MM0.60-0.40	3600	131	6.22	10.24	1.6718
+138	MM0.50-0.40	3600	106	4.46	10	1.8441
+139	MM0.60-0.20	3600	57	2.38	10	1.9157
+================================================================
+set migrationlevel=1, before applying consolidation ration
+140	MM0.80-0.20	3600	44	5.37	12.81	1.901
+141	MM0.80-0.30	3600	60	7.6	11.86	1.6713
+142	MM0.80-0.40	3600	80	12.85	12.66	1.4761
+143	MM0.60-0.20	3600	38	1.81	10.07	1.8929
+144	MM0.80-0.50	3600	99	16.54	12.16	1.3424
+145	MM0.80-0.60	3600	96	13.57	13.54	1.2736
+146	MM0.80-0.70	3600	96	10.95	11.76	1.2756
+147	MM0.70-0.40	3600	91	7.61	10.47	1.3824
+148	MM0.60-0.40	3600	56	3.38	9.85	1.6191
+149	MM0.50-0.40	3600	76	4.11	10.25	1.6914
+150	MM0.60-0.20	3600	37	2.06	9.61	1.9276
+
