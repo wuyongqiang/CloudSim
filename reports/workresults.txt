@@ -167,6 +167,14 @@ all hosts are them same with 2000 mips
 208	MM0.60-0.40	3600	150	6.81	9.85	1.6797
 209	MM0.50-0.40	3600	207	10.26	9.92	1.8547
 210	MM0.60-0.20	3600	108	4.78	9.75	1.8474
+-----------------------------------------------------------------
+PID controller
+
+245	PID0.90-0.00	3600	41	59.83	26.57	1.0094
+246	PID0.80-0.00	3600	90	20.92	13.64	1.3076
+247	PID0.70-0.00	3600	119	7.9	9.68	1.3801
+248	PID0.60-0.00	3600	144	8.47	11.42	1.5907
+249	PID0.50-0.00	3600	161	7.75	9.9	1.8111
 
 2011-12-24
 idea1: PID ( P I ) usage in the controlling problem
@@ -185,5 +193,11 @@ how to control:  lower the upper threshold can reduce the violation rate, but in
 	output: strategies:
 	1) low utilization --> consolidation( quick, normal, slow)
 	2) high utilization --> spreading(quick, normal, slow)
-	3) 
+	3)
+
+   the outer loop is the performance contoller, the inner is the energy controller
+
+   the performance metrics is the violation rate, the energy controller is the utilization rate.
+
+   modeling the controlled system.
 	
