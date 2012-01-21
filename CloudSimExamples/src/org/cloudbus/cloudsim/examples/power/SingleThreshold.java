@@ -188,8 +188,8 @@ public class SingleThreshold {
 	 */
 	protected static List<Cloudlet> createCloudletList(int brokerId) {
 		
-		//utilizationModelStochastic = new UtilizationModelWorkHour();
-		utilizationModelStochastic = new UtilizationModelStochastic();
+		utilizationModelStochastic = new UtilizationModelWorkHour();
+		//utilizationModelStochastic = new UtilizationModelStochastic();
 		utilizationModelUniform = new UtilizationModelUniform() ;
 		
 		List<Cloudlet> list = new ArrayList<Cloudlet>();
@@ -204,7 +204,7 @@ public class SingleThreshold {
 			if (i==0){
 				cloudlet = new Cloudlet(i, length, pesNumber, fileSize, outputSize, utilizationModelStochastic, new UtilizationModelStochastic(), new UtilizationModelStochastic());
 			}else{
-				cloudlet = new Cloudlet(i, length, pesNumber, fileSize, outputSize, new UtilizationModelStochastic(), new UtilizationModelStochastic(), new UtilizationModelStochastic());
+				cloudlet = new Cloudlet(i, length, pesNumber, fileSize, outputSize, new UtilizationModelWorkHour(), new UtilizationModelStochastic(), new UtilizationModelStochastic());
 			}
 			cloudlet.setUserId(brokerId);
 			cloudlet.setVmId(i);
