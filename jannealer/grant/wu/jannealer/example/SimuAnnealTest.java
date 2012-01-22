@@ -24,7 +24,7 @@ public class SimuAnnealTest {
 	
 	static double initialTemperature = 1000;
 	static double temperature = 1000;
-	static final double coldingRate = 5;
+	static double coldingRate = 5;
 	
 	static double recentBest = Double.MAX_VALUE - 1;
 	static double sofarBest = Double.MAX_VALUE - 1;
@@ -106,6 +106,7 @@ public class SimuAnnealTest {
 
 
 	private static void anneal(int scale) {
+		print("annealing method 1: random assigment with group annealing");
 		initAssign();
 		while( temperature > 0){
 			int staleMateCount = 0;
@@ -151,6 +152,7 @@ public class SimuAnnealTest {
 	}
 	
 	private static void anneal_old(int scale) {
+		print("annealing method 1: random assignment");
 		initAssign();
 		while( temperature > 0){
 			int staleMateCount = 0;
@@ -298,9 +300,49 @@ public class SimuAnnealTest {
 		
 		if (lastGroupNum!=-1 && lastGroupNum!=curGroupNum){
 			getLastRoundBestAssign();
+			generateInitialGroupAssign(curGroupNum);			
 		}
+		else{		
+			fluctuateSediment(curGroupNum);
+		}
+		
 		lastGroupNum = curGroupNum;
-		fluctuateSediment(curGroupNum);
+	}
+
+	private static void generateInitialGroupAssign(int grpNum) {
+		double[] pLeftCPU = new double[pNum];
+		for (int i=0;i<pNum;i++){
+			pLeftCPU[i] = pCPU[i];
+		}
+		
+		//computeLeftCPU
+		for (int i=0;i<grpNum;i++){
+			
+			ArrayList<Integer> curGroup = sedimentGroups.get(i);								
+			
+			for (int j=0;j<curGroup.size();j++)
+			{
+				int iVM = curGroup.get(j);
+				int iPM = vAssign[iVM];								
+				pLeftCPU[iPM] -= vCPU[iVM] ;			
+			}						
+		}
+		
+		//generate initial assignment for this group
+		ArrayList<Integer> curGroup = sedimentGroups.get(grpNum);								
+		
+		for (int j=0;j<curGroup.size();j++)
+		{
+			int iVM = curGroup.get(j);
+			for (int k = 0; k< pNum; k++){
+												
+				if ( pLeftCPU[k] >= vCPU[iVM])
+				{
+					 vAssign[iVM] = k;	
+					 pLeftCPU[k] -= vCPU[iVM] ;	
+				}
+			}
+		}			
 	}
 
 	private static void getLastRoundBestAssign() {
@@ -329,18 +371,58 @@ private static void fluctuateSediment(int grpNum) {
 			vAssignOld[i] = vAssign[i];
 		}
 		
-		rnd = rnd % curGroup.size();
-		for (int k=0;k<rnd;k++){
-			// pick up the vm
-			int grpInx = Math.abs(random.nextInt()) % curGroup.size();
-			// pick up the pm
+		int vmNumMax = curGroup.size()<3?curGroup.size():3; // we don't want to change many vm assignment at a time
+		int vmNum = rnd % vmNumMax;
+		if (vmNum==0) vmNum=1;
+		
+		
+		
+		//pickVMFromGroups(grpNum, vNum);
+		
+		pickVMFromCurGroup(grpNum, vNum);
+	}
 
-			int vm = curGroup.get(grpInx);
+private static void pickVMFromGroups(int grpNum, int vmNum) {
+	ArrayList<Integer> curGroup = sedimentGroups.get((int) grpNum);
+	
+	for (int k=0;k<vmNum;k++){
+		// pick up the group first, current group with the most probability
+		int sqareNum = (grpNum+1)*(grpNum+1);
+		int rnd = Math.abs( random.nextInt()) % sqareNum;
+		int selGrp = grpNum;
+		for(int i = 0; i<= grpNum ; i++){
+			if (rnd<=i){
+				selGrp = i;
+				break;
+			}
+		}
+		
+		ArrayList<Integer> selGroup = sedimentGroups.get(selGrp);
+		int grpInx = Math.abs( random.nextInt()) % selGroup.size();
+		if (grpInx >= 0 && grpInx < selGroup.size()) {
+				int vm = selGroup.get(grpInx);
 
-			int pm = Math.abs(random.nextInt()) % pNum;
-			vAssign[vm] = pm;
+				int pm = Math.abs(random.nextInt()) % pNum;
+				vAssign[vm] = pm;
 		}
 	}
+}
+
+private static void pickVMFromCurGroup(int grpNum, int vmNo) {
+	
+	ArrayList<Integer> curGroup = sedimentGroups.get((int) grpNum);
+	for (int k=0;k<vmNo;k++){
+		// pick up the vm
+			int grpInx = Math.abs(random.nextInt()) % curGroup.size();
+		// pick up the pm
+			if (grpInx >= 0 && grpInx < curGroup.size()) {
+				int vm = curGroup.get(grpInx);
+
+				int pm = Math.abs(random.nextInt()) % pNum;
+				vAssign[vm] = pm;
+			}
+	}
+}
 	
 	private static void swapSediment(int grpNum) {
 		
@@ -379,7 +461,7 @@ private static void fluctuateSediment(int grpNum) {
 		int grpNum = curGroupNum;
 		double energy = 0;
 		for (int i=grpNum+1;i<sedimentGroupNum;i++){
-			energy += 100000;
+			energy += 1000000;
 		}
 		double[] uPM = new double[pNum];
 		
@@ -539,8 +621,8 @@ private static void fluctuateSediment(int grpNum) {
 		return ( curEnergy < recentBest );
 	}
 	
-	private static void generateProblem(int scale){
-		int capacityIndexPM = 4;
+	private static void generateProblem(int scale,int capacityIndexPM){
+		
 		vNum = scale;
 		vNum = vNum <=0? 1: vNum;
 		vCPU = new double[vNum];
@@ -602,11 +684,13 @@ private static void fluctuateSediment(int grpNum) {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		
-		generateProblem(24);
+		sedimentGroupNum=5;
+		coldingRate = 5;
+		generateProblem(195,4);
 		print("started");
-		anneal_old(100);
-		//anneal(20);
+		//anneal_old(100);		
+		anneal(100);
+		
 		print("finished");
 		
 
