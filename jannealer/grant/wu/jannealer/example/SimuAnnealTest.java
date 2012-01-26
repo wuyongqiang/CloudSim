@@ -1,5 +1,10 @@
 package grant.wu.jannealer.example;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -16,9 +21,11 @@ public class SimuAnnealTest {
 	static transient int vNum = 15;
 	static transient int pNum = 9;
 	
-	static transient double vCPU[]={600,700,800,900,1100,600,700,800,900,1100,1200,1300,1400,1500,1600};
-	static transient double pCPU[]={1000, 2000, 2500, 3000, 3000, 3000, 3000,2500,2500};
-	static transient double ePM[]={100, 180, 200, 230.00, 230.01, 230.02, 230.03,230.01,230.02};
+	static transient double vCPU[]=null;
+	static transient double vMEM[]= null;
+	static transient double pCPU[]=null;
+	static transient double pMEM[]= null;
+	static transient double ePM[]= null;
 	static transient double idleEnergyRatio = 0.7;
 	
 	
@@ -50,10 +57,24 @@ public class SimuAnnealTest {
 	
 	
 	private static void initAssign(){
-		vAssign= new int[vNum];
-		vAssignOld = new int[vNum];		
+		if (vAssign==null) vAssign= new int[vNum];
+		if (vAssignOld==null) vAssignOld = new int[vNum];		
+		
+		print("best Fit");
+		bestFit();
+		print("first Fit");
 		firstFit();
 	}	
+	
+	private static void initAssignRandom(){
+		if (vAssign==null) vAssign= new int[vNum];
+		if (vAssignOld==null) vAssignOld = new int[vNum];		
+		
+		print("radom assignment initially");
+		randomFit();
+		
+	}	
+	
 	
 	private static void sortVM() {
 		for (int i=0;i<vNum;i++){
@@ -63,6 +84,11 @@ public class SimuAnnealTest {
 					vCPU[i] = vCPU[j];
 					vCPU[j] = prevMax;
 					prevMax = vCPU[i]; 
+					
+					//swap the mem usage attribute
+					double tmp = vMEM[i];
+					vMEM[i] = vMEM[j];
+					vMEM[j] = tmp;
 				}
 			}			
 		}			
@@ -76,21 +102,107 @@ public class SimuAnnealTest {
 					pCPU[i] = pCPU[j];
 					pCPU[j] = prevMax;
 					prevMax = pCPU[i]; 
+					
+					//swap the mem usage attribute
+					double tmp = pMEM[i];
+					pMEM[i] = pMEM[j];
+					pMEM[j] = tmp;
 				}
 			}			
 		}			
 	}
+	
+	private static void randomFit() {
+		double[] pLeftCPU = new double[pNum];
+		double[] pLeftMEM = new double[pNum];
+		for (int i=0;i<pNum;i++){
+			pLeftCPU[i] = pCPU[i];
+			pLeftMEM[i] = pMEM[i];
+		}
+		for (int i=0;i<vNum;i++){
+			
+			int selectedPM = -1;
+			
+			Random r = new Random();	
+			while(selectedPM == -1){
+				int j = Math.abs( r.nextInt()) % pNum;
+				
+				if (pLeftCPU[j]>vCPU[i] && pLeftMEM[j]>vMEM[i] ){					
+						selectedPM = j;
+				}
+			}	
+			vAssign[i] = selectedPM;
+			pLeftCPU[selectedPM] -= vCPU[i];
+			pLeftMEM[selectedPM] -= vMEM[i];			
+		}		
+		
+		sofarBest = stateEnergy(vAssign);
+		fftCost = sofarBest;
+		saveResult();
+		
+		sofarBest= Double.MAX_VALUE;
+	}
+
+	
+	private static void bestFit() {
+		double[] pLeftCPU = new double[pNum];
+		double[] pLeftMEM = new double[pNum];
+		for (int i=0;i<pNum;i++){
+			pLeftCPU[i] = pCPU[i];
+			pLeftMEM[i] = pMEM[i];
+		}
+		for (int i=0;i<vNum;i++){
+			double lowestIncreaseEnergy = Double.MAX_VALUE;
+			int selectedPM = 0;
+			for (int j = 0;j<pNum;j++){
+				
+				
+				if (pLeftCPU[j]>vCPU[i] && pLeftMEM[j]>vMEM[i] ){
+					
+					double oldEnergy = getEngergy(j,pCPU[j]-pLeftCPU[j]);
+					double increaseEnergy = getEngergy(j,pCPU[j]-pLeftCPU[j] + vCPU[i]);
+					
+					if (increaseEnergy<lowestIncreaseEnergy){
+						lowestIncreaseEnergy = increaseEnergy;
+						selectedPM = j;
+					}
+					
+				}
+			}	
+			vAssign[i] = selectedPM;
+			pLeftCPU[selectedPM] -= vCPU[i];
+			pLeftMEM[selectedPM] -= vMEM[i];			
+		}		
+		
+		sofarBest = stateEnergy(vAssign);
+		fftCost = sofarBest;
+		saveResult();
+		
+		sofarBest= Double.MAX_VALUE;
+	}
+
+	private static double getEngergy(int pmNo, double cpuUsage) {
+		double u = cpuUsage / pCPU[pmNo];
+		double energy = 0;
+		if (u > 0.00001)
+			energy = u * (1- idleEnergyRatio ) * ePM[pmNo] + idleEnergyRatio * ePM[pmNo];
+		
+		return energy;
+	}
 
 	private static void firstFit() {
 		double[] pLeftCPU = new double[pNum];
+		double[] pLeftMEM = new double[pNum];
 		for (int i=0;i<pNum;i++){
 			pLeftCPU[i] = pCPU[i];
+			pLeftMEM[i] = pMEM[i];
 		}
 		for (int i=0;i<vNum;i++){
 			for (int j = 0;j<pNum;j++){
-				if (pLeftCPU[j]>vCPU[i]){
+				if (pLeftCPU[j]>vCPU[i] && pLeftMEM[j]>vMEM[i] ){
 					vAssign[i] = j;
 					pLeftCPU[j] -= vCPU[i];
+					pLeftMEM[j] -= vMEM[i];
 					break;
 				}
 			}			
@@ -151,9 +263,14 @@ public class SimuAnnealTest {
 		}		
 	}
 	
-	private static void anneal_old(int scale) {
+	private static void anneal_old(int scale, boolean initFFD) {
 		print("annealing method 1: random assignment");
-		initAssign();
+		if (initFFD){
+			initAssign();
+		}else{
+			initAssignRandom();
+		}
+		
 		while( temperature > 0){
 			int staleMateCount = 0;
 			for (int iT = 0; iT< iTeration ; iT++){
@@ -311,8 +428,10 @@ public class SimuAnnealTest {
 
 	private static void generateInitialGroupAssign(int grpNum) {
 		double[] pLeftCPU = new double[pNum];
+		double[] pLeftMEM = new double[pNum];
 		for (int i=0;i<pNum;i++){
 			pLeftCPU[i] = pCPU[i];
+			pLeftMEM[i] = pMEM[i];
 		}
 		
 		//computeLeftCPU
@@ -324,7 +443,8 @@ public class SimuAnnealTest {
 			{
 				int iVM = curGroup.get(j);
 				int iPM = vAssign[iVM];								
-				pLeftCPU[iPM] -= vCPU[iVM] ;			
+				pLeftCPU[iPM] -= vCPU[iVM] ;
+				pLeftMEM[iPM] -= vMEM[iVM] ;
 			}						
 		}
 		
@@ -336,7 +456,7 @@ public class SimuAnnealTest {
 			int iVM = curGroup.get(j);
 			for (int k = 0; k< pNum; k++){
 												
-				if ( pLeftCPU[k] >= vCPU[iVM])
+				if ( pLeftCPU[k] >= vCPU[iVM] && pLeftMEM[k] >= vMEM[iVM])
 				{
 					 vAssign[iVM] = k;	
 					 pLeftCPU[k] -= vCPU[iVM] ;	
@@ -464,7 +584,7 @@ private static void pickVMFromCurGroup(int grpNum, int vmNo) {
 			energy += 1000000;
 		}
 		double[] uPM = new double[pNum];
-		
+		double[] usedMEM = new double[pNum];
 		for (int i=0;i<=grpNum;i++){
 				
 			ArrayList<Integer> curGroup = sedimentGroups.get(i);								
@@ -478,10 +598,11 @@ private static void pickVMFromCurGroup(int grpNum, int vmNo) {
 					return Double.MAX_VALUE;
 				}				
 				uPM[iPM] += vCPU[iVM] / pCPU[iPM];			
+				usedMEM[iPM] += vMEM[iVM];			
 			}						
 		}
 		for (int k = 0;k< pNum; k++){
-			if (uPM[k]>1){
+			if (uPM[k]>1 || usedMEM[k] > pMEM[k]){
 				return Double.MAX_VALUE;
 			}
 			double energyPM = 0;
@@ -585,12 +706,39 @@ private static void pickVMFromCurGroup(int grpNum, int vmNo) {
 	
 	private static void print(String s){
 		Date dt = new Date();		
-		System.out.println(dt.toString() +": "+s);
+		s = dt.toString() +": "+s;
+		System.out.println(s);
+		writeText("C:\\users\\n7682905\\simulatonAnneal.txt",s);
+	}
+	
+	private static void writeText(String fFileName,String message) {
+
+		try {
+			createFileIfNotExist(fFileName);
+
+			Writer out = new OutputStreamWriter(
+					new FileOutputStream(fFileName, true), "utf8");
+			try {
+				out.append(message);
+			} finally {
+				out.close();
+			}
+		} catch (Exception e) {
+		}
+	}
+
+	private static void createFileIfNotExist(String filePath) throws IOException {
+		File f;
+		f = new File(filePath);
+		if (!f.exists()){
+			f.createNewFile();
+		}
 	}
 	
 	private static double stateEnergy(int[] assignment){
 		double energy = 0;
 		double[] uPM = new double[pNum];
+		double[] usedMEM = new double[pNum];
 		for (int i=0;i<assignment.length;i++)
 		{
 			int iPM = assignment[i];
@@ -599,11 +747,12 @@ private static void pickVMFromCurGroup(int grpNum, int vmNo) {
 				return Double.MAX_VALUE;
 			}
 			
-			uPM[iPM] += vCPU[i] / pCPU[iPM];			
+			uPM[iPM] += vCPU[i] / pCPU[iPM];
+			usedMEM[iPM] += vMEM[i];
 		}
 		
 		for (int i = 0;i< pNum; i++){
-			if (uPM[i]>1){
+			if (uPM[i]>1 || pMEM[i]<usedMEM[i]){
 				return Double.MAX_VALUE;
 			}
 			double energyPM = 0;
@@ -621,38 +770,58 @@ private static void pickVMFromCurGroup(int grpNum, int vmNo) {
 		return ( curEnergy < recentBest );
 	}
 	
-	private static void generateProblem(int scale,int capacityIndexPM){
+	private static void generateProblem(int scale,int capacityIndexPM) throws Exception{
 		
 		vNum = scale;
 		vNum = vNum <=0? 1: vNum;
 		vCPU = new double[vNum];
+		vMEM = new double[vNum];
 		vNum = scale;
 		pNum = scale *2 / 2 / capacityIndexPM;
 		pNum = pNum <=0 ? 1:pNum;
-		pCPU = new double[pNum];		
+		pCPU = new double[pNum];
+		pMEM = new double[pNum];
 		ePM= new double[pNum];
 		
 		
 		Random r = new Random();
 		r.setSeed(2000);
+		Random rMem = new Random();
+		rMem.setSeed(3000);
 		for (int i=0;i<vNum;i++){
 			double randomRequirement = Math.abs( r.nextInt()% 20 ) * 100 ;
 			vCPU[i] = randomRequirement;
+			
+			randomRequirement = Math.abs( rMem.nextInt()% 20 ) * 100 ;
+			vMEM[i] = randomRequirement;
 		}
 		
 		sortVM();
 		
 		int capacity[] = { 1000, 1200, 1500, 1800, 2000, 2300, 2400, 2500, 2700, 3000};
 		for (int i=0;i<pNum;i++){			
-			pCPU[i] = capacity[i%10] * capacityIndexPM;			
+			pCPU[i] = capacity[i%10] * capacityIndexPM;		
+			pMEM[i] = 3000 * capacityIndexPM;
 		}
 		
 		sortPM();
 		
-		for (int i=0;i<pNum;i++){
+		/*for (int i=0;i<pNum;i++){
 			ePM[i]= (pCPU[i]/10) * ( 1 - 1000/pCPU[i]); // 1000-> 100, 3000-> 300 * (1-1/3)
-		}
-		 
+		}*/
+		for (int i=0;i<pNum;i++){
+			double energyTimes = 1;
+			if (pCPU[i]/1000 < 100){
+				//10 times capacity, 5 times of energy
+				//100 times capacity, 20 times of energy
+				energyTimes =( 1 - Math.log10( pCPU[i]/1000)*0.4); 
+			}else{
+				print("wrong capacity: " + pCPU[i]);
+				throw new Exception();
+			}
+			
+			ePM[i]= (pCPU[i]/10) * energyTimes; // 1000-> 100*(1-0), 3000-> 300 * (1-1/3)
+		} 
 		 
 		idleEnergyRatio = 0.7;
 		printProblem();
@@ -682,14 +851,16 @@ private static void pickVMFromCurGroup(int grpNum, int vmNo) {
 
 	/**
 	 * @param args
+	 * @throws Exception 
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
 		sedimentGroupNum=5;
-		coldingRate = 5;
-		generateProblem(195,4);
+		coldingRate = 2;
+		int scale = 100;
+		generateProblem(scale,1);
 		print("started");
-		//anneal_old(100);		
-		anneal(100);
+		anneal_old(scale,true);		
+		//anneal(100);
 		
 		print("finished");
 		
