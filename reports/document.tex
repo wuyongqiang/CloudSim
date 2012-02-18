@@ -1,15 +1,17 @@
 % %This is a very basic article template.
 % %There is just one section and two subsections.
 \documentclass[10pt, conference, compsocconf]{IEEEtran}
-\usepackage{algorithm2e}
+\usepackage[lined,commentsnumbered]{algorithm2e}
+\usepackage{threeparttable}
+
 \hyphenation{op-tical net-works semi-conduc-tor}
 
 
 \begin{document}
 
 \setcounter{page}{1}
-\pagestyle{headings}
-\pagenumbering {roman}
+\pagestyle{plain}
+\pagenumbering {arabic}
 
 \title{A Simulated Annealing Algorithm for Energy Efficient Virtual Machine Placement }
 
@@ -17,11 +19,11 @@
 % author names and affiliations use a multiple column layout for up to two
 % different affiliations
 
-\author{\IEEEauthorblockN{ Yongqaiang Wu, Maoling Tang}
+\author{\IEEEauthorblockN{ Yongqiang Wu and Maoling Tang}
 \IEEEauthorblockA{Faculty of Science and Engineering\\
 Queensland University of Technology\\
 Brisbane, Australia\\
-Email: \{yongqiang.wu\}@student.qut.edu.au\\
+Email: \{yongqiang.wu\}@student.qut.edu.au,
 \{maolin.tang\}@qut.edu.au} \and
 \IEEEauthorblockN{Warren Fraser}
 \IEEEauthorblockA{Information Infrastructure Service\\
@@ -35,7 +37,16 @@ Email: \{warren.fraser\}@qut.edu.au} }
 
 
 \begin{abstract}
-Virtual machine placement algorithms are the key issue for the energy-efficient resource management in the data center environment. The placement problem is often modeled as bin packing problem. Due to the NP hard nature of the problem, there are only heuristic solutions, among which First Fit and Best Fit algorithms have been used widely and have generally good results. However, their simplicity leaves room to be further improved. In this paper we propose an algorithm based on simulated the annealing theory, which enables continuous improvement from any feasible state. Experiment results show that this algorithm can generate better results, saving 0-25 percentage more energy than FFD in an acceptable time amount.
+Virtual machine placement algorithms are the key issue for the energy-efficient
+resource management in the data center environment. The placement problem is
+often modeled as bin packing problem. Due to the NP hard nature of the problem,
+there are only heuristic solutions, among which First Fit and Best Fit
+algorithms have been used widely and have generally good results. However, their
+simplicity leaves room to be further improved. In this paper we propose an
+algorithm based on the simulated annealing theory, which enables continuous
+improvement from any feasible state. Experiment results show that this
+algorithm can generate better results, saving 0-25 percentage more energy than
+FFD in an acceptable time amount.
 
 \end{abstract}
 
@@ -48,12 +59,12 @@ simulated annealing; virtual machine placement; energy optimization;
 % no \IEEEPARstart
 Energy saving in data centers has become an increasingly urgent problem when
 they have been growing larger and larger, consuming tremendous amount of
-electricity. It is quoted in [1] that the capacity demand of data centers has
-been increasing by 12 percentages annually with the electricity prices
+electricity. It is quoted in \cite{judge08} that the capacity demand of data
+centers has been increasing by 12 percentages annually with the electricity prices
 increasing by 4.4 percentages per year, and the electricity cost in data centers
 in USA is estimated at \$3.3 billion in 2008. Virtualization technology like
-VmWare[2] and Xen[3], which consolidate multiple logic servers into smaller
-number of Physical Machines has been used to make better use of hardware and
+VmWare\cite{vmware01} and Xen\cite{xen01}, which consolidate multiple logic
+servers into smaller number of Physical Machines has been used to make better use of hardware and
 save energy. Instead of having its own dedicated physical host, each logic
 server runs on the Virtual Machine (VM) hosted on the Physical Machine (PM).
 Besides the static consolidation, live VM migration technique has also been
@@ -67,16 +78,17 @@ decisions. Ideally, there is a complete solution, which provides the best result
 of the optimized objective. However, this is NP hard problem which has $M^{N}$
 ways of placement, where N is the physical node number and M the virtual machine
 number. Therefore, heuristic solutions are usually used to solve this type of
-problem, as shown in the literature [4-8].
+problem, as shown in the literature
+\cite{verma08}\cite{verma09}\cite{wood09}\cite{kusic09}\cite{stillwell10}\cite{yao80}.
 
- First Fit Decreasing (FFD);, Best Fit (BF); for Bin Packing problems are the
+ First Fit Decreasing (FFD), Best Fit (BF) for Bin Packing problems are the
  well known types of them. In FFD algorithm, the balls are sorted by size in the
  descending order - largest first. The balls are then packed in the first
  available bin that can accommodate them. The bins are also ordered based on
  their efficiency, with the most efficient one in the head of the list. They
  have low complexity, good scalability and generally good results in
- practice[9]. However, their main drawback is the over simplicity that overlooks
- the large amount of combinatory possibility that may have significantly better
+ practice\cite{yao80}. However, their main drawback is the over simplicity that
+ overlooks the large amount of combinatory possibility that may have significantly better
  result. Furthermore, it only sorts the bins in one dimension; this will reduce
  their performance when the characteristics of other dimensions disrupt the
  ordering and undermine the fundamental optimization logic.
@@ -85,7 +97,7 @@ Best Fit has the poor performance in providing an overall placement, because it
 only aims to find the best placement for the current VM. This local optimization
 strategy makes it perform poorly in the global VM assignment in the clusters.
 However it has been used often in dynamic placement when only one or several VMs
-need to be adjusted like in the works [10, 11].
+need to be adjusted like in the works \cite{calheiros11}\cite{beloglazov10}.
 
 Genetic algorithms have the potential to take into account several dimensions in
 its fitness function, and are believed to be able to generate a promising result
@@ -93,11 +105,11 @@ after a certain number of generations, but there have not been very successful
 attempts in tackling the VM machine placement problem so far to our best
 knowledge.
 
-In this paper, we propose the Simulated Annealing Virtual Machine Placement
-algorithm (SAVMP); based on simulated annealing theory to solve this problem.
-Simulated Annealing (SA); was proposed by Kirkpatrick et al to be a general
-framework of heuristic solutions to NP complete optimization problems [12]. The
-theory is based on the insightful analysis of connection between statistical
+In this paper, we propose the Simulated Annealing Virtual Machine Placement(SAVMP)
+algorithm; based on simulated annealing theory to solve this problem.
+Simulated Annealing (SA); was proposed by Kirkpatrick et al\cite{kirkpatrick83}
+to be a general framework of heuristic solutions to NP complete optimization problems.
+The theory is based on the insightful analysis of connection between statistical
 mechanics and multivariate or combinatorial optimization. The effectiveness of
 SA comes from its extension of two basic heuristic techniques: 1) divide and
 conquer approach; 2) iterative improvement scheme. It separates large changes
@@ -106,61 +118,69 @@ temperatures while deferring small changes to low temperatures. It iteratively
 moves the configuration by small steps from one state to another while
 preventing from being stuck by allowing large changes at high temperatures.
 
-To evaluate the performance of SAVMPA, we compare the test results of it with
-those of First Fit Decreasing. Experiment results show SAVMPA has the better
+To evaluate the performance of SAVMP, we compare the test results of it with
+those of First Fit Decreasing and a random searching approach. Experiment results show that SAVMP has the better
 performance at the cost of more time than FFD, outperforming FFD with 0-25
-percentage more energy saving.
+percentage more energy saving; SAVMP is also better than the random searching, which only performs well in small sized problems.
 
 \section{Related Work}
 
 Many researchers have proposed solutions to increase the energy efficiency of
 the physical machines based on virtual machine technologies in data centers
-[4-8]. Most of them make use of the ordering algorithm to generate a VM
-placement. However, due to the live VM migration cost is not trivial, the FFD
-cannot be used to remap all the VMs to PMs every interval. For example,
-`pMapper' uses FFD to generate an initial assignment of VMs and later re-assign
-VMs picked from PMs which violate resource constraints using Best Fit [4]; in
-MFR algorithm, the prediction techniques are applied to deal with variable
-demand proactively and FFD is applied according to the predicted demand [13];
-Sandpiper introduces `grey box', `black box' technique to solve the hot spot in
-clusters [6]. Our work differs from theirs in that they use the FFD as the basic
-algorithm to come up solutions to meet resource requirement of the dynamic VM
+\cite{verma08}\cite{verma09}\cite{wood09}\cite{kusic09}\cite{stillwell10}. 
+Most of them make use of the ordering algorithm to generate a VM
+placement. However, due to the non-trivial live VM migration cost, the First
+Fit Decreasing (FFD) is not suitable to be used to re-map all the VMs to PMs every time interval.
+For example, `pMapper' uses FFD to generate an initial assignment of VMs and later re-assign
+VMs picked from PMs which violate resource constraints using Best Fit
+\cite{verma08}; in MFR algorithm\cite{Bobroff07}, the prediction techniques are applied to deal
+with variable demand proactively and FFD is applied according to the predicted
+demand ; Sandpiper introduces `grey box', `black box' technique
+to solve the hot spot in clusters \cite{wood09}. Our work differs from theirs in that they use the FFD as
+the basic algorithm to come up solutions to meet resource requirement of the dynamic VM
 workloads while conserving energy, but we are proposing an algorithm potential
 to replace FFD or combine with FFD to generate a better VM placement.
 
-Mishira et al point out the `anomalies' in some existing VM packing algorithms,
-after observing some abnormal placement results by the algorithms[14]. They
-propose a vector based approach in order to make use of different resources of
-PMs in a more proportional way. In comparison, our proposed approach aims at
+Mishira et al\cite{mashira11} point out the `anomalies' in some existing VM packing algorithms,
+after observing some abnormal placement results by the
+algorithms . They propose a vector based approach in order to
+make use of different resources of PMs in a more proportional way. In comparison, our proposed approach aims at
 optimization of the objective function rather than achieving the balanced usage
-of different resources, although the results found by our methodology should be
-able to use the resources in a reasonable way.
+of different resources directly, although the results found by our methodology should be
+able to use the resources in a reasonably balanced way, otherwise it would lead
+to higher energy cost.
 
 Besides the ordering placement algorithms, Constraint Programming (CP) , a
 software technology for solving combinatorial problems especially in areas of
-planning and scheduling [15], is also used to allocate resources on PMs to VMs.
-Entropy, for example, formulates the VM resource allocation problem firstly as a
-constraint satisfaction problem then solve it by a constraint solver to get the
-optimization solution. In the first step of Entropy, it finds the minimum number
-of PMs, and finds a `best' migration configuration to the new state. Although CP
-is a complete method, it is used here in a heuristic way because it probably
-cannot finish searching in the limited time. Entropy has a certain similarity to
-our proposed approach in that it can stop the searching at any time and use the
-best result achieved so far.
+planning and scheduling \cite{nakada09}, is also used to allocate resources on
+PMs to VMs.
+Entropy\cite{hermenier09}, for example, formulates the VM resource allocation
+problem firstly as a constraint satisfaction problem then solve it by a
+constraint solver to get the optimization solution in a homogeneous PM
+environment. In the first step of Entropy, it finds the minimum number of PMs,
+and searches for a `best' migration configuration to the new state in the second
+step.
+Although CP is a complete method, it is used by Entropy in a heuristic way
+because it probably cannot finish searching in the limited time. It has a
+certain similarity to our proposed approach in that it can stop the searching at
+any time and use the best result achieved so far. However, the main limitation
+of Entropy lies in the assumption that all the PMs should be identical.
+
 
 Genetic Algorithm has been used widely as an effective heuristic way of solving
-NP hard problem. It has also been applied in the VM placement problem [15, 16].
-However, in the published literature, there has not been adequate proof that it
-performs very well in the resource allocation problem. Campegiani et al only
-used a small number of VMs and PMs in evaluation of their GA based solution ,
-and Nakada et al did not use data to explain how well their algorithm performed
-in their test environment. Therefore we cannot compare our proposed approach
+NP hard problems. It has also been applied in the VM placement problem
+\cite{nakada09}\cite{campegiani09}.
+However, in the published literature, there has not been much work in which it
+performs very well in the resource allocation problem. Campegiani et
+al\cite{campegiani09} only used a small number of VMs and PMs in evaluation of their GA based solution ,
+and Nakada et al\cite{nakada09} did not use data to explain how well their
+algorithm performed in their test environment. Therefore we cannot compare our proposed approach
 with GA due to the lack of detail data about the GA application in the VM
 placement problem.
 
-Finally, SA is mentioned in Hser et al's work in which they designed a modified
+Finally, SA is mentioned in Hser et al's work\cite{hyser07} in which they designed a modified
 Simulation Annealing solver to allocate VMs among PMs, but they did not provide
-detail information about their SA based methodology [17].
+detail information about their SA based methodology .
 
 \section{Problem Formulation}
 To formulate this problem we are dealing with in the mathematical form, let's
@@ -180,64 +200,77 @@ $e_{idle}^j$	the energy consumption of $p_j$ when $u_j$=0\%\\
 $v_{cpu}^i$	the CPU demand of $v_i$\\
 $v_{mem}^i$ the RAM demand of $v_i$\\
 $v_{net}^i$	the Network Bandwidth capacity of $v_i$\\
-\\
 $p_{cpu}^j$	 the CPU capacity of  $p_j$\\
 $p_{mem}^j$ the RAM capacity of  $p_j$\\
 $p_{net}^i$	the Network Bandwidth capacity of $p_j$\\
 $VP$	the assignment of $V$ to $P$, represented by
 
 
-$\left(
+\begin{equation}\label{1}
+    \left(
   \begin{array}{ccc}
     vp_{11} & \ldots & vp_{1M} \\
-    \cdots & \ddots & \cdots \\
+    \vdots & \ddots & \vdots \\
     vp_{N1} & \ldots & vp_{NM} \\
   \end{array}
-\right)$\\
+\right)
+\end{equation}\\
 where\\
-$vp_{ij}=\{(1,if v_i  is assigned to p_j  @ 0,otherwise)\};1\leq i\leq N and 1\leq j\leq M$ \\
+\begin{equation}\label{2}
+    vp_{ij}=\Bigg\lbrace \begin{array}{cl}    
+     1, & if\, v_i\, is\, assigned\,to\, p_j \\ 
+    0, & otherwise \\
+    \end{array} \\
+    1\leq i\leq N \, , \, 1\leq j\leq M     
+\end{equation}
 
 
-$vp_{ij}=\left(
-\begin{array}{c}
-1,if v_i  is assigned to p_j   \\
-0,otherwise\\
-  \end{array}
- \right) $
 
  For a given assignment $VP$, the $CPU$ utilization of $p_j$ can be calculated by\\
- $u_j=\left(
+ \begin{equation}\label{3}
+ u_j=\frac{
 \sum_{i=1}^Nv_{cpu}^i*vp_{ij}
- \right)/p_cpu^j $ \\
+ }{p_{cpu}^j} \\
+\end{equation}\\
 
- The energy consumption of $p_j$when turned on can be computed by\\
+ The energy consumption of $p_j$ can be computed by\\
 
- $e_j=\left(
-\begin{array}{c}
-0,when \sum_{i=1}^Nvp_{ij}=0  \\
-(e_{max}^j-e_{idle}^j)*\frac{u_j}{100}+e_{idle}^j,otherwise\\
-  \end{array}
- \right) $ \\
+\begin{equation}\label{4}
+    e_j=\Bigg\lbrace \begin{array}{ll}    
+     0,& when \, \sum_{i=1}^Nvp_{ij}=0  \\
+(e_{max}^j-e_{idle}^j)*\frac{u_j}{100}+e_{idle}^j,& otherwise\\
+    \end{array} \\   
+\end{equation}
+
 
  When $\sum_{i=1}^Nvp_{ij} =0$, it means that no virtual machine is assigned to
- $p_j$, so it can be turned off and cost no energy. \\
+ $p_j$, so it can be turned off and cost no energy. This
+ linear power model is summarized and formulated in \cite{beloglazov10}.
+ \\
 
  The objective of the research is to find an assignment $VP$ that minimizes: \\
-$\sum_{j=1}^Me_j$  \\
+\begin{equation}\label{5}
+\sum_{j=1}^Me_j  \\
+\end{equation}
 
 Subject to: \\
+\begin{equation}\label{6}
+\forall i,\sum_{j=1}^Mvp_{ij}=1  \\
+\end{equation}
 
-$\forall i,\sum_{j=1}^Mvp_{ij}=1$  \\
+\begin{equation}\label{7}
+\forall j \sum_{i=1}^Nv_{mem}^i*vp_{ij}\leq p_{mem}^j \\
+\end{equation}
 
+\begin{equation}\label{8}
+\forall j \sum_{i=1}^Nv_{cpu}^i*vp_{ij}\leq p_{cpu}^j \\
+\end{equation}
 
-$\forall j \sum_{i=1}^Nv_{mem}^i*vp_{ij}\leq p_{mem}^j$ \\
-
-$\forall j \sum_{i=1}^Nv_{cpu}^i*vp_{ij}\leq p_{cpu}^j$ \\
-
-$\forall j \sum_{i=1}^Nv_{net}^i*vp_{ij}\leq p_{net}^j$ \\
-
-Constraint (5) means one virtual machine can only be assigned to physical
-machine; constraints (6,7,8) requires that the total assigned CPU, RAM, or
+\begin{equation}\label{9}
+\forall j \sum_{i=1}^Nv_{net}^i*vp_{ij}\leq p_{net}^j \\
+\end{equation}
+Constraint (6) means one virtual machine can only be assigned to physical
+machine; constraints (7,8,9) requires that the total assigned CPU, RAM, or
 network resources cannot exceed the respective capacity on one host. Here we
 implicitly assume that the overall resources on the Physical Machines (PMs) are
 enough to accommodate the guest virtual machines, so we can ensure every guest
@@ -252,46 +285,86 @@ heuristic way.
 \section{Algorithm description}
 
 As the authors of SA suggests, there are basically four components in the
-algorithm: 1) configuration of the system; 2) a random generator of the new
-configuration;3) the objective function for the optimization problem; 4) a
-schedule of the temperatures and length of times to evolve [12].In SAVMPA, the
-four components are clearly defined to follow this methodology.
+algorithm: 1) configuration of the system; 2) a generator of the new
+configuration; 3) the objective function for the optimization problem; 4) a
+schedule of the temperatures and length of times to evolve
+\cite{kirkpatrick83}.In SAVMP, the four components are clearly defined to follow this methodology.
 
-The assignment of virtual machines V to physical machines P is the
+\subsection{Configuration of the problem}
+The assignment of virtual machines $V$ to physical machines $P$ is the
 configuration. Making use of constraint that one VM can only assigned to one PM,
 and for the convenience of implementation of the algorithm, we use an integer
-array to represent the assignment rather than the matrix as in (0). \\
-$VM=\{vm_0,vm_1,\ldots,vm_i,\ldots,vm_{n-1}\}$\\
+array to represent the assignment rather than the matrix as in Equation (1). \\
+\begin{equation}\label{10}
+VM=\{vm_1,vm_2,\ldots,vm_i,\ldots,vm_{n}\} \\
+\end{equation}\\
 The index of the array is the VM number, and the value indexed by the VM number
-in the array is the PM number to which the VM is assigned.
+in the array is the PM number to which the VM is assigned. For example, we have
+10 VMs indexed from 1 to 10 and 3 PMs numbered from 1 to 3.
+$VM=\{1,2,1,3,2,1,3,2,1,2\}$ means that $vm_1,vm_3,vm_6 \, $and$ \, vm_9$ are
+assigned to $pm_1$; $vm_5,vm_8 \,$ and $\, vm_{10}$ are assigned to $pm_2$;$vm_4
+\, and \, vm_7$ are assigned to $pm_3$.
 
-At every evolution step, the configuration needs to be changed into a
-``neighborhood'' state, so the configurations remain largely the unchanged
-moving toward better configuration by searching in the neighborhood states. We
-define a new neighborhood state as the new VM assignment array changed by
-picking a small random number (from 1 to 3 in this implementation) of VMs and
-changing their host machines to randomly selected PMs or swapping a pair of VM
-assignment. These two types of rearrangement of VMs to create new configurations
-reflect the basic operations of doing bin-packing to get a better result.
+\subsection{Generator of new configurations }
+The aim of the algorithm is to search better configurations in term of objective
+function, but the search space is very large. Which way is the economical path
+toward better solutions? SA recommends searching in the neighbourhood states for
+better results. At every evolution step, the configuration needs to be changed
+into a neighborhood state, so the configurations change slowly moving toward
+better configurations. We define a new neighborhood state as the new VM
+assignment array changed by picking a small random number (from 1 to 3 in this
+implementation) of VMs and changing their host machines to randomly selected PMs
+or swapping a pair of VM assignment.
+These two types of rearrangement of VMs to create new configurations reflect the
+basic operations of doing bin-packing to get a better result.
 
-When a new configuration is feasible and have lower energy consumption, it will
-be accepted as the new state. The criterion is the energy cost computed by the
-total energy expressed the function (4). When the neighborhood searching gets
-into a stalemate, we allow the new state cost more energy than the previous one,
-so the algorithm would not be stuck in a local optimization. How much more
-energy can be allowed is decided by the temperature. We define it as $e_l$:\\
-$e_l=Max(e_{max}^j)*\frac{t_c}{t_0}$\\
+\subsection{ Acceptance criteria of new configurations}
+While generating new configurations provides the candidate solutions, the
+acceptance criteria decide which solutions are favoured. In the proposed
+algorithm, if a new configuration is feasible, namely satisfying all constraints
+specified by Equation (6,7,8,9), and has lower energy consumption than the
+previous state, it will be accepted as the new state.
+The energy cost expressed in Equation (5) is computed for each state. To be
+simple, during the energy computation, if a solution is found to be infeasible,
+the ernergy value will be assigned a huge number, which will not pass the
+acceptance criteria. Therefore the energy comparison is the only factor in the
+acceptance decision. When the neighborhood searching gets into a stalemate, we
+allow the new state to cost more energy than the previous one by a certain
+amount, called $deivationEngergy$ in our algorithm, so the algorithm would not
+be stuck in a local optimization.
+The $deivationEngergy$ is decided by the temperature. We define it as $e_l$:\\
+\begin{equation}\label{11}
+e_l=Max(e_{max}^j)*\frac{t_c}{t_0} \\
+\end{equation}\\
 Where $t_c$ is the current temperature and $t_0$ is the initial temperature.
-The temperature starts from 1000 degree and reduces gradually to 0 by 5 degrees
-each time, at which new temperature there are 10,000 times of evolutions.
+Hence at a high temperature, the energy increase by the next state can be large,
+but when the temperature is low, the energy of accepted states will become
+stable.
 
-Simulated Annealing VM placement Algorithm Description
+\subsection{ Temperature Scheduling}
+Temperature controlling is a very important apsect in annealing( metal
+processing), so it is in the simulation annealing methodology. It determines how
+the searching are arranged. How many iterations are allowed at each temperature
+and the range of temperature, for example, is part of temperature scheduling.
+However, adusting the scheduling of the temperature is not detailed in the SA
+methodolody. We tried several settings and selected the best parameters of
+the scheduling as follows. The temperature starts from 1000 degree and reduces
+gradually to 0 by 5 degrees each time, at which new temperature there are $10,000*N$ times
+of evolutions.
+
+\subsection{SAVMP alogrithm pseudocode and complexity analysis }
+
+The main steps of Simulated Annealing VM placement algorithm are quite
+straightforward as described in the pseudocode program below. As the energy
+calculation needs $C*M$ times of computaiton, where $C$ is a const, the
+complexity is $1,000*10,000*N*C*M$, which can be expressed as $O(N*M)$.
 
 \begin{algorithm}
 \SetAlgoLined
-\KwData{this text}
-\KwResult{Simulated Annealing Virtual Machine Placement Algorithm }
-%\caption{How to write algorithms}
+\LinesNumbered
+%\KwData{this text}
+%\KwResult{Simulated Annealing Virtual Machine Placement Algorithm }
+\caption{Simulated Annealing Virtual Machine Placement Algorithm}
 \SetKwInOut{Input}{input}
 \SetKwInOut{Output}{output}
 \Input{VM requirements, PM capacities}
@@ -299,22 +372,22 @@ Simulated Annealing VM placement Algorithm Description
 	Generated Initial Assignment using FFD\; 
 	$Temperature\leftarrow 1000$ \;
 	\While{ Temperature $>$ 0 }{
-	Set deviationEnergy = 0\;
-	    \For{$i\leftarrow 1$ \KwTo 10000 }{
+	Compute the $deviationEnergy$ allowed by the current
+	                 temperature\;
+	    \For{$i\leftarrow 1$ \KwTo $10000*N$ }{
 	        Create a random neighbor placement\;
-	        \eIf{ the new placement is feasible \KwSty{and} incremental energy $<$
-	        deviationEnergy\;}{ 
-	               Set the placement as the new state\;
-	               Set deviationEnergy = 0\;
+	        Calculate the incremental energy compared to previous placement\;
+	        \eIf{ incremental energy $<$ 0}{ 
+	               Set the placement as the new state\;	               
 	        }{
-	             \eIf{ it is in stalemate }{
-	                 Compute a deviation energy allowed by the current
-	                 temperature\; } {}
+	             \eIf{ evolution in stalemate \KwSty{and} incremental energy $<\;
+	             deviationEnergy$}{ 
+	             	 Set the placement as the new state\;
+	             	 } {}
 	        }
 	    }
 	    Decrease $Temperature$\;
 	}
-
 \end{algorithm}
 
 
@@ -324,7 +397,9 @@ To test the performance of SAVMP, we design the tests with different numbers of
 VMs and PMs. In the tests, for the same number of VMs, PM sizes are varied with
 capacity changed accordingly. Specifically, VM numbers are 20, 50, 100 or 200.
 To show the size of containers, we introduce Capacity Index:\\
-$CI=\frac{\sum_{j=1}^Mp_{cpu}^j / M)}{\sum_{i=1}^Nv_{cpu}^i / N}$ \\
+\begin{equation}\label{12}
+CI=\frac{\sum_{j=1}^Mp_{cpu}^j / M}{\sum_{i=1}^Nv_{cpu}^i / N} \\
+\end{equation} 
 If $CI$ is 1, that means the number of PMs needed is the same as the number of
 VMs, and $CI=5$ means the PM number is only one fifth of that of VMs. In the
 following experiment, for every number of VM, CI values are multiple, trying
@@ -339,8 +414,10 @@ memory requirements to test the performance of the SAVMP on one dimensional and
 two dimensional packing respectively. The requirement of memory is generated in
 the same way as CPU, but the two requirements are most probably not the same
 value for the same VM because of the random nature.
-Each PMâ€™s maximum energy $e_j$ is given by the equation:\\
-$e_j=(1-\log (p_{cpu}^j/1000)*0.4)*E*(p_{cpu}^j/1000)$
+Each PM's maximum energy $e_j$ is given by the equation:\\
+\begin{equation}\label{13}
+e_j=(1-\log (p_{cpu}^j/1000)*0.4)*E*(p_{cpu}^j/1000) \\
+\end{equation} \\
 
 Where E is a const, set to 100 Watt in our test, representing the base energy
 which is consumed by the smallest PM when $p_{cpu}^j=1000$. When the CPU
@@ -348,10 +425,11 @@ capability is 10 times of the smallest PM, the energy cost is only 6 times as
 much. This equation reflects the energy saving method by adopting larger
 physical machines.
 
-For each physical server, the energy of idle sqtatus is set to 70% of the
-% maximum power, namely,\\
-$e_{idle}^j= e_{max}^j*0.7$.
-
+For each physical server, the energy of idle sqtatus is set to 70\% of the
+ maximum power, namely,\\
+ \begin{equation}\label{14}
+e_{idle}^j= e_{max}^j*0.7
+\end{equation} \\
 
 As to the initial placement, our proposed SAVMP does not require a specified
 state. In the following tests, we choose to start from the placement results
@@ -366,42 +444,104 @@ because it does not generate the exact same result every time as FFD does for
 the same problem. All the tests are run on a laptop with a 2.2G Hz dual core
 processor.
 
-Table1 : Simulation test results of SAVMP on diqfferent numbers of VMs and
-varied Capacity Indexes with only CPU constraints
+As the best possible solution is not avaible to be compared with, we calculate
+the low boundary of energy consumption to see how far the SAVMP result is from
+the low boundary (LB). The LB is calculated by the way described in Algorithm 2,
+which fills the most energy efficient PMs first, and otherwise finds a PM with
+the lowest energy cost to accommodate the left CPU requirement. This energy
+value is the theoretically lowest one without considering the
+constraints(7,8,9). If an alogrithm find a solution with the energy value very
+close to low boundary, we can say it is a very good result. However, it cannot
+be concluded that an algorithm performs badly when its energy value is far from
+the LB, because the constraints may be the reason for the poor energy
+efficiency.
 
-$\begin{tabular}{c|c|c|c|c|c}
-VM  & CI & Energy  & Energy   & Energy & Time (s)\\
-No & & by FFD & by SA &  Saved & \\
-  & & (Watt) & (Watt) & & \\
+\begin{algorithm}
+\SetAlgoLined
+\LinesNumbered
+\caption{Low Boundary Energy Calculation}
+\SetKwInOut{Input}{input}
+\SetKwInOut{Output}{output}
+\Input{VM requirements, PM capacities}
+\Output{energy low boundary}
+	Sort the PM by CPU capacity by decreasing order \;
+	$totalCPU\leftarrow \sum_{i=1}^Nv_{cpu}^i $ \;
+	$leftCPU\leftarrow totalCPU$\;
+	$totalEnergy\leftarrow 0$ \;
+	$lastPMEnergy\leftarrow maximum\, integer$ \;	
+	\For{$j\leftarrow 1$ \KwTo $M$ }{	
+	        \eIf{ $p_{cpu}^j$ $<=$ $leftCPU$}{ 
+	               $totalEnergy\leftarrow totalEnergy + e_j$ \;
+	               $leftCPU\leftarrow leftCPU-p_{cpu}^j $ \; 
+	        }
+	        {
+	        	$energyOfthePM \leftarrow energy\, of\, p_j\, when\, workload\, is\,
+	        	leftCPU$
+	        	\;
+	             \eIf{ $energyOfthePM$ $<$ $lastPMEnergy$}
+	             { 
+	             	 $lastPMEnergy\leftarrow energyOfthePM $ \;
+	             } { }
+	        }
+	}
+	$totalEnergy\leftarrow totalEnergy + lastPMEnergy$ \;
+\end{algorithm}
+
+Table 1 lists the testing results of FFD, SAVMP and the low boundary energy on
+24 problems with different VM and PM numbers. Each problem has one row in the
+table.  In the columns, `VM No', `PM No' show how many VMs and PMs are
+in the problems respectively; CI is the capacity index, which is explained
+before; `Energy by FFD' is the energy cost if the VMs' assignment to PMs  is
+decided by the FFD algorithm; `Energy by SA', in which SA is the short format
+for SAVPM for saving space, is energy cost of the placement by SAVPM; `Energy
+Saved' is calculated by 1 - `Energy by SA'/`Energy by FFD'; `SA from LB'
+represents how many more percentage of energy used by SAVMP than FFD; `Time' is
+the time cost for SAVPM to find the `best' solution.
+In this group of tests, only the CPU constraints and the one VM assigned to one PM
+assignment constraints(Eq 6) are considered.
+
+\begin{table*}[t]
+\begin{center}
+\caption{
+Simulation test results of SAVMP on different numbers of VMs and
+varied Capacity Indexes with only CPU constraints
+}
+\begin{tabular}
+{c|c|c|c|c|c|c|c|c}
+VM  & PM & CI & Energy  & Energy   & Energy & Time  & Low & SA\\
+No & No & & by FFD & by SA &  Saved & (s) & Boundary & from\\
+  & & & (Watt) & (Watt) & & &  & LB\\
+\hline 
+20 & 20 & 1 & 1691.8 & 1536.3 & 9.18\% & 3.18 & 1422.7 & 7.39\%\\
+20 & 10 & 2 & 1445.9 & 1351.1 & 6.56\% & 0.62 & 1278.4 & 5.38\%\\
+20 & 6  & 3 & 1491.2 & 1428.3 & 4.22\% & 0.35 & 1423.5 & 0.34\%\\
+20 & 5  & 4 & 1341.8 & 1271.8 & 5.21\% & 1.16 & 1196.7 & 5.91\%\\
+20 & 4  & 5 & 1374.9 & 1339.3 & 2.59\% & 0.60 & 1296.1 & 3.23\%\\
+20 & 2  &10 & 1219.1 & 1219.0 & 0.01\% & 0.94 & 1102.0 & 9.60\%\\
 \hline
-20 & 1 & 1691.8 & 1536.3 & 9.18\% & 3.18\\
-20 & 2 & 1445.9 & 1351.1 & 6.56\% & 0.62\\
-20 & 3 & 1491.2 & 1428.3 & 4.22\% & 0.35\\
-20 & 4 & 1341.8 & 1271.8 & 5.21\% & 1.16\\
-20 & 5 & 1374.9 & 1339.3 & 2.59\% & 0.60\\
-20 & 10 & 1219.1 & 1219.0 & 0.01\% & 0.94\\
+50 & 50 &1 & 4283.5 & 4040.8 & 5.40\% & 28.42 & 4032.3 & 0.21\%\\
+50 & 25 &2 & 3615.0 & 3507.1 & 2.99\% & 2.21 & 3470.1 & 1.05\%\\
+50 & 16 &3 & 3297.5 & 3188.0 & 3.33\% & 6.25 & 3119.6 & 2.15\%\\
+50 & 12 &4 & 3005.0 & 3004.7 & 0.01\% & 0.42 & 2710.9 & 9.78\%\\
+50 & 10 &5 & 2839.3 & 2839.1 & 0.01\% & 0.54 & 2487.7 & 12.38\%\\
+50 & 5  &10 & 2576.9 & 2576.7 & 0.01\% & 0.98 & 2275.4 & 11.69\%\\
 \hline
-50 & 1 & 4283.5 & 4040.8 & 5.40\% & 28.42\\
-50 & 2 & 3615.0 & 3507.1 & 2.99\% & 2.21\\
-50 & 3 & 3297.5 & 3188.0 & 3.33\% & 6.25\\
-50 & 4 & 3005.0 & 3004.7 & 0.01\% & 0.42\\
-50 & 5 & 2839.3 & 2839.1 & 0.01\% & 0.54\\
-50 & 10 & 2576.9 & 2576.7 & 0.01\% & 0.98\\
+100 &100 & 1 & 9399.5 & 8654.4 & 8.12\% & 282.22 & 8461.6 & 2.23\%\\
+100 &50  & 2 & 7444.7 & 7327.9 & 1.10\% & 49.02 & 7296.2 & 0.43\%\\
+100 &33  & 3 & 6880.4 & 6728.9 & 2.20\% & 8.45 & 6726.5 & 0.04\%\\
+100 &25  & 4 & 6471.1 & 6112.6 & 5.54\% & 0.61 & 5774.6 & 5.53\%\\
+100 &20  & 5 & 5774.0 & 5773.6 & 0.01\% & 20.11 & 5405.2 & 6.38\%\\
+100 &10  & 10 & 4510.5 & 4510.3 & 0.00\% & 1.01 & 3903.6 & 13.45\%\\
 \hline
-100 & 1 & 9399.5 & 8654.4 & 8.12\% & 282.22\\
-100 & 2 & 7444.7 & 7327.9 & 1.10\% & 49.02\\
-100 & 3 & 6880.4 & 6728.9 & 2.20\% & 8.45\\
-100 & 4 & 6471.1 & 6112.6 & 5.54\% & 0.61\\
-100 & 5 & 5774.0 & 5773.6 & 0.01\% & 20.11\\
-100 & 10 & 4510.5 & 4510.3 & 0.00\% & 1.01\\
-\hline
-200 & 1 & 18234.2 & 16837.6 & 7.99\% & 1830.65\\
-200 & 2 & 14516.2 & 14269.8 & 1.94\% & 1952.39\\
-200 & 3 & 13001.2 & 12853.7 & 0.57\% & 170.54\\
-200 & 4 & 11846.3 & 11845.3 & 0.01\% & 51.37\\
-200 & 5 & 11447.5 & 11269.3 & 1.68\% & 23.09\\
-200 & 10 & 8941.6 & 8941.3 & 0.00\% & 27.71
-\end{tabular}$
+200 &200 & 1 & 18234.2 & 16837.6 & 7.99\% & 1830.65 & 16446.3 & 2.32\%\\
+200 &100 & 2 & 14516.2 & 14269.8 & 1.94\% & 1952.39 & 14120.1 & 1.05\%\\
+200 &66  & 3 & 13001.2 & 12853.7 & 0.57\% & 170.54 & 12824.6 & 0.23\%\\
+200 &50  & 4 & 11846.3 & 11845.3 & 0.01\% & 51.37 & 11538.8 & 2.59\%\\
+200 &40  & 5 & 11447.5 & 11269.3 & 1.68\% & 23.09 & 10558.2 & 6.31\%\\
+200 &20  & 10 & 8941.6 & 8941.3 & 0.00\% & 27.71 & 8462.3 & 5.36\%
+\end{tabular}
+\end{center}
+\end{table*}
 
 From Table1, we can see SAVMP is able to generate better results than FFD for
 most of the situations and at least no worse results than FFD for all the tests.
@@ -411,43 +551,59 @@ and improving it little by little.
 
 However, the improvement by SAVMP varies with the VM numbers and CI. The larger
 is the VM number or CI, the less is the improvement. This can be attributed to 2
-possible reasons. One is that with the larger number of VMs, the search space
-becomes larger; another one is that the performance of FFD varies on the
+possible reasons. One is that with the larger number of VMs and PMs, the search
+space becomes larger; another one is that the performance of FFD varies on the
 different problems. In Table-2, the placement results reveal that FFD can have a
-very good result when VM number is large and CI is also big.
+very good result when VM number is 200 and CI is 10. `PM' column in Table 2 is
+the PM index number, represent one PM in the problem; `Size' is the CPU
+capacity; `CPU' is CPU utilization rate when a certain number of VMs are
+assigned to the PM. Some PMs are not assigned any VMs so the CPU usage is
+0.00\%.
+
+The energy saving improvement by SAVMP above FFD is not very significant, with
+only averagely about 5\% better than the latter, because for the CPU only
+constraint problem, FFD can generate a very good result, which can be seen by
+comparing the energy of FFD and that of LB. 
 
 Almost all the tests can achieve the best results among all the iterations in
 less than 100 seconds. For the tests with exceptionally long time to reach the
-``best'' results, we find that they can achieve very good results compared to
-the ``best'' saving value within 100 seconds after looking into the evolution
+``best'' results, we find that they can achieve very good results close to
+the ``best'' result within 100 seconds after looking into the evolution
 history records.
 
-Table 2:  VM placement results of FFD on 200 VMs (capacity index = 10)
 
+\begin{table}[h]
+\begin{center}
+\caption{VM placement results by FFD on 200 VMs
+ with capacity index = 10}
 $\begin{tabular}{c|c|c|c|c|c|c}
 PM & Size & CPU\% & & PM & Size & CPU\% \\
 \hline
-0 & 30000 & 99.67\% & & 10 & 20000 & 0.00\%\\
 1 & 30000 & 99.67\% & & 11 & 20000 & 0.00\%\\
-2 & 27000 & 99.63\% & & 12 & 18000 & 0.00\%\\
+2 & 30000 & 99.67\% & & 12 & 20000 & 0.00\%\\
 3 & 27000 & 99.63\% & & 13 & 18000 & 0.00\%\\
-4 & 25000 & 99.60\% & & 14 & 15000 & 0.00\%\\
+4 & 27000 & 99.63\% & & 14 & 18000 & 0.00\%\\
 5 & 25000 & 99.60\% & & 15 & 15000 & 0.00\%\\
-6 & 24000 & 99.58\% & & 16 & 12000 & 0.00\%\\
-7 & 24000 & 48.33\% & & 17 & 12000 & 0.00\%\\
-8 & 23000 & 0.00\% & & 18 & 10000 & 0.00\%\\
+6 & 25000 & 99.60\% & & 16 & 15000 & 0.00\%\\
+7 & 24000 & 99.58\% & & 17 & 12000 & 0.00\%\\
+8 & 24000 & 48.33\% & & 18 & 12000 & 0.00\%\\
 9 & 23000 & 0.00\% & & 19 & 10000 & 0.00\%\\
+10 & 23000 & 0.00\% & & 20 & 10000 & 0.00\%\\
 \end{tabular}$
+\end{center}
+\end{table}
 
-
-In Table-3, which contains the results by FFD and SAVMP with CPU and memory
-constraints, the columns are the same as in Table-1 except that there is an
-extra ``Energy saved by Random Search'' column in Table-3, which lists the
-energy saving effects achieved by a random search method. This method picks a PM
-randomly for each VM. If the chosen PM does not satisfy the constraints, it will
-try another randomly chosen PM until it finds a suitable one or give up
-searching and return no feasible solution after the maximum attempts have been
-used. The same process repeats until all the VMs have their assigned PMs.
+While the improvement by SAVMP for the one dimesion packing problem is not very
+impressive, the results on the 2 dimension packing show the SAVMP performs
+significantly better than FFD. In Table-3, which contains the results by FFD and
+SAVMP with CPU and memory constraints, the columns are the same as in Table-1
+except that there is an extra ``Energy saved by Random Search'' column in
+Table-3, which lists the energy saving effects achieved by a random search
+method. This method picks a PM randomly for each VM. If the chosen PM does not
+satisfy the constraints, it will try another randomly chosen PM until it finds a
+suitable one or give up searching and return no feasible solution after the
+maximum attempts have been used. The same process repeats until all the VMs have
+their assigned PMs.
 
 The Random Search performs comparable to SAVMP when there are only 20 VMs.
 However, when the VM number increases, the energy saving improvement becomes
@@ -461,6 +617,10 @@ not only because it involves random searching method to explore more assignment
 combinations than FFD, but also because the Simulation Annealing approach
 provides a guided search more than random attempts.
 
+The distances of SAVMP from the Low Boundary are averagely within 10 percentage,
+which says the simulated annealing algorithm has achieved very good energy
+saving results.
+
 The improvement effect by SAVMP for two constraints is more significant than
 that for only CPU constraint. When the VM number becomes larger, the improvement
 tends to be less because the searching space grows bigger. The relationship of
@@ -473,128 +633,122 @@ From the table, we can find another benefit of using SAVMP in the test of which
 the VM number is 20 and CI is 10. FFD or Random Search cannot find a feasible
 solution for this test, but SAVMP can find the assignment successfully.
 
-Table3 : Simulation test results of SAVMP on different numbers of VMs and varied
-Capacity Indexes with CPU and Memory constraints
+%Table3 : 
 
-$\begin{tabular}{c|c|c|c|c|c|c}
- VM  & CI & Energy  & Energy   & Time  & Energy &Energy\\
-No & & by FFD & by SA & (s)  &Saved &saved by\\
-  & & (Watt) & (Watt) & & &RS\\
-\hline 
-20 & 1 & 2090.7 & 1774.1 & 3.20 & 15.79\% & 9.23\%\\
-20 & 2 & 1682.7 & 1445.5 & 1.54 & 14.13\% & 8.35\%\\
-20 & 3 & 1688.9 & 1429.2 & 1.24 & 15.37\% & 13.91\%\\
-20 & 4 & 1800.3 & 1341.6 & 0.52 & 25.48\% & 24.45\%\\
-20 & 5 & 1627.7 & 1339.3 & 1.32 & 16.84\% & 17.40\%\\
-20 & 10 & N/A* & 1219.0 & 0.94 & N/A* & N/A*\\
-\hline 
-50 & 1 & 4834.7 & 4310.9 & 28.92 & 10.19\% & 0.17\%\\
-50 & 2 & 4256.4 & 3616.8 & 7.45 & 15.15\% & 5.81\%\\
-50 & 3 & 3856.6 & 3298.8 & 1.73 & 14.47\% & 7.02\%\\
-50 & 4 & 3365.2 & 3006.5 & 0.72 & 10.67\% & 3.82\%\\
-50 & 5 & 3304.5 & 2840.8 & 0.64 & 14.04\% & 11.43\%\\
-50 & 10 & 3057.3 & 2578.2 & 1.09 & 15.68\% & 15.65\%\\
-\hline 
-100 & 1 & 9404.8 & 8871.7 & 131.53 & 5.41\% & 0\%\\
-100 & 2 & 8159.5 & 7448.1 & 44.51 & 8.78\% & 0\%\\
-100 & 3 & 7494.9 & 6813.5 & 25.86 & 9.08\% & 0.57\%\\
-100 & 4 & 6835.5 & 6116.3 & 7.78 & 10.53\% & 0\%\\
-100 & 5 & 6704.9 & 5777.0 & 2.04 & 13.85\% & 6.37\%\\
-100 & 10 & 5247.0 & 4513.0 & 1.85 & 14.00\% & 7.41\%\\
-\hline 
-200 & 1 & 18373.2 & 17379.2 & 1250.81 & 5.46\% & 0\%\\
-200 & 2 & 15944.7 & 14514.2 & 208.13 & 8.29\% & 0\%\\
-200 & 3 & 14606.7 & 12999.5 & 215.01 & 10.14\% & 0\%\\
-200 & 4 & 13442.6 & 12253.2 & 22.45 & 8.85\% & 0\%\\
-200 & 5 & 12375.4 & 11446.7 & 17.41 & 7.50\% & 1.66\%\\
-200 & 10 & 9675.6 & 8941.3 & 23.50 & 7.59\% & 5.61\% 
-\end{tabular}$
+\begin{table*}[t]
+\begin{center}
+\begin{threeparttable}
 
-*Note: For VM number=2 and CI=10 with CPU and memory constraints, FFD cannot
+\caption{Simulation test results of SAVMP on different numbers of VMs and varied
+Capacity Indexes with CPU and Memory constraints}
+\begin{tabular}{c|c|c|c|c|c|c|c|c|c}
+ VM  & VM  & CI & Energy  & Energy&Time& Energy &Energy & Low & SA\\
+No     &No &   &  by FFD & by SA & (s) &Saved &  saved by & Boundary &
+from\\
+  & & & (Watt) & (Watt) & & by SA &RS & & LB\\
+\hline 
+20 &20 & 1 & 2090.7 & 1774.1 & 3.20 & 15.79\% & 9.23\% & 1422.7 & 19.80\%\\
+20 &20 & 2 & 1682.7 & 1445.5 & 1.54 & 14.13\% & 8.35\% & 1278.4 & 11.56\%\\
+20 &20 & 3 & 1688.9 & 1429.2 & 1.24 & 15.37\% & 13.91\% & 1423.5 & 0.40\%\\
+20 &20 & 4 & 1800.3 & 1341.6 & 0.52 & 25.48\% & 24.45\% & 1196.7 & 10.80\%\\
+20 &20 & 5 & 1627.7 & 1339.3 & 1.32 & 16.84\% & 17.40\% & 1296.1 & 3.23\%\\
+20 &20 & 10 & N/A\tnote{a} & 1219.0 & 0.94 & N/A\tnote{a} & N/A\tnote{a} &
+1102.0 & 9.60\%\\
+\hline
+50 &50 & 1 & 4834.7 & 4310.9 & 28.92 & 10.19\% & 0.17\% & 4062.3 & 5.77\%\\
+50 &25 & 2 & 4256.4 & 3616.8 & 7.45 & 15.15\% & 5.81\% & 3470.1 & 4.06\%\\
+50 &16 & 3 & 3856.6 & 3298.8 & 1.73 & 14.47\% & 7.02\% & 3119.6 & 5.43\%\\
+50 &12 & 4 & 3365.2 & 3006.5 & 0.72 & 10.67\% & 3.82\% & 2710.9 & 9.83\%\\
+50 &10 & 5 & 3304.5 & 2840.8 & 0.64 & 14.04\% & 11.43\% & 2487.7 & 12.43\%\\
+50 &5 & 10 & 3057.3 & 2578.2 & 1.09 & 15.68\% & 15.65\% & 2275.4 & 11.75\%\\
+\hline
+100 &100 & 1 & 9404.8 & 8871.7 & 131.53 & 5.41\% & 0\% & 8461.6 & 4.62\%\\
+100 &50 & 2 & 8159.5 & 7448.1 & 44.51 & 8.78\% & 0\% & 7296.2 & 2.04\%\\
+100 &33 & 3 & 7494.9 & 6813.5 & 25.86 & 9.08\% & 0.57\% & 6726.5 & 1.28\%\\
+100 &25 & 4 & 6835.5 & 6116.3 & 7.78 & 10.53\% & 0\% & 5774.6 & 5.59\%\\
+100 &20 & 5 & 6704.9 & 5777.0 & 2.04 & 13.85\% & 6.37\% & 5405.2 & 6.44\%\\
+100 &10 & 10 & 5247.0 & 4513.0 & 1.85 & 14.00\% & 7.41\% & 3903.6 & 13.50\%\\
+\hline
+200 &200 & 1 & 18373.2 & 17379.2 & 1250.81 & 5.46\% & 0\% & 16446.3 & 5.37\%\\
+200 &100 & 2 & 15944.7 & 14514.2 & 208.13 & 8.29\% & 0\% & 14120.1 & 2.72\%\\
+200 &66  & 3 & 14606.7 & 12999.5 & 215.01 & 10.14\% & 0\% & 12824.6 & 1.35\%\\
+200 &50  & 4 & 13442.6 & 12253.2 & 22.45 & 8.85\% & 0\% & 11538.8 & 5.83\%\\
+200 &40  & 5 & 12375.4 & 11446.7 & 17.41 & 7.50\% & 1.66\% & 10558.2 & 7.76\%\\
+200 &20  & 10 & 9675.6 & 8941.3 & 23.50 & 7.59\% & 5.61\% & 8462.3 & 5.36\%
+
+\end{tabular}
+\begin{tablenotes}
+\item [a] For VM number=2 and CI=10 with CPU and memory constraints, FFD cannot
 provide a feasible solution, so the ``Energy Saved'' value is not applicable.
+\end{tablenotes}
+\end{threeparttable}
+
+\end{center}
+\end{table*}
+
+%*Note: For VM number=2 and CI=10 with CPU and memory constraints, FFD cannot
+%provide a feasible solution, so the ``Energy Saved'' value is not applicable.
 
 \newpage
 It is very hard to determine the minimum energy usage among all the possible
 assignment, but we can use the resource utilization on the PMs resulted from the
 VM assignment to examine and compare the energy saving effect by different
-algorithms. In Table-4 and Table-5, the utilization of CPU and memory has been
+algorithms. In Table-4, the utilization of CPU and memory has been
 listed for each PM for the test of 200 VMs with CI set to 10 applying FFD and
-SAVMP respectively. It is clear that SAVMP achieve higher resource utilization
-than FFD, and leaves very small room for further improvement.
+SAVMP respectively. It is clear from the table that SAVMP achieve higher
+resource utilization with 2 less PMs turned on than FFD, leaving very small
+room for to be improved if there is any.
 
-Table 4 - PM resource utilization of Placement by FFD on 200 VMs with capacity index = 10
+%Table 4 - 
+\begin{table}[h]
+\caption{PM resource utilization Comparison between placement by FFD and SAVMP
+on 200 VMs with capacity index = 10}
 \begin{center}
-$\begin{tabular}{c|c|c|c}
-PM & Size & CPU & MEM \\
- &  & \% & \% \\
+$\begin{tabular}{c|c|c|c|c|c}
+\multicolumn{2}{c|}{}& \multicolumn{2}{c|}{FFD}&\multicolumn{2}{|c}{SAVMP} \\
 \hline
-0 & 30000 & 99.83\% & 54.00\% \\
-1 & 30000 & 99.83\% & 58.67\% \\
-2 & 27000 & 99.81\% & 75.93\%\\
-3 & 27000 & 99.81\% & 57.04\% \\
-4 & 25000 & 99.80\% & 83.20\% \\
-5 & 25000 & 99.80\% & 94.00\%\\
-6 & 24000 & 80.00\% & 99.58\% \\
-7 & 24000 & 51.25\% & 99.58\% \\
-8 & 23000 & 18.04\% & 99.57\% \\
-9 & 23000 & 0.43\% & 13.91\% \\
-10 & 20000 & 0.00\% & 0.00\%\\
-11 & 20000 & 0.00\% & 0.00\%\\
-12 & 18000 & 0.00\% & 0.00\%\\
-13 & 18000 & 0.00\% & 0.00\%\\
-14 & 15000 & 0.00\% & 0.00\%\\
-15 & 15000 & 0.00\% & 0.00\%\\
-16 & 12000 & 0.00\% & 0.00\%\\
-17 & 12000 & 0.00\% & 0.00\%\\
-18 & 10000 & 0.00\% & 0.00\%\\
-19 & 10000 & 0.00\% & 0.00\%
+PM & Size & CPU & MEM & CPU & MEM\\
+\hline
+1 & 30000 & 99.83\% & 54.00\% & 100.00\% & 79.00\%\\
+2 & 30000 & 99.83\% & 58.67\% & 100.00\% & 96.67\%\\
+3 & 27000 & 99.81\% & 75.93\% & 100.00\% & 82.96\%\\
+4 & 27000 & 99.81\% & 57.04\% & 100.00\% & 78.15\%\\
+5 & 25000 & 99.80\% & 83.20\% & 99.80\% & 99.20\%\\
+6 & 25000 & 99.80\% & 94.00\% & 99.80\% & 98.40\%\\
+7 & 24000 & 80.00\% & 99.58\% & 74.79\% & 85.00\%\\
+8 & 24000 & 51.25\% & 99.58\% & 73.33\% & 91.25\%\\
+9 & 23000 & 18.04\% & 99.57\% & 0.00\% & 0.00\%\\
+10 & 23000 & 0.43\% & 13.91\% & 0.00\% & 0.00\%\\
+11 & 20000 & 0.00\% & 0.00\% & 0.00\% & 0.00\%\\
+12 & 20000 & 0.00\% & 0.00\% & 0.00\% & 0.00\%\\
+13 & 18000 & 0.00\% & 0.00\% & 0.00\% & 0.00\%\\
+14 & 18000 & 0.00\% & 0.00\% & 0.00\% & 0.00\%\\
+15 & 15000 & 0.00\% & 0.00\% & 0.00\% & 0.00\%\\
+16 & 15000 & 0.00\% & 0.00\% & 0.00\% & 0.00\%\\
+17 & 12000 & 0.00\% & 0.00\% & 0.00\% & 0.00\%\\
+18 & 12000 & 0.00\% & 0.00\% & 0.00\% & 0.00\%\\
+19 & 10000 & 0.00\% & 0.00\% & 0.00\% & 0.00\%\\
+20 & 10000 & 0.00\% & 0.00\% & 0.00\% & 0.00\%
 \end{tabular}$
 
 \end{center}
-
+\end{table}
   
                  
 %\begin{center}
-Table 5 - Annealing results of 200 VMs\\ 
-(capacity index = 10, CPU and MEM constraints)
-$\begin{tabular}{c|c|c|c}
-
-PM & Size & CPU & MEM \\
- &  & \% & \%  \\
-\hline
-0 & 30000 & 100.00\% & 79.00\%\\
-1 & 30000 & 100.00\% & 96.67\%\\
-2 & 27000 & 100.00\% & 82.96\%\\
-3 & 27000 & 100.00\% & 78.15\%\\
-4 & 25000 & 99.80\% & 99.20\%\\
-5 & 25000 & 99.80\% & 98.40\% \\
-6 & 24000 & 74.79\% & 85.00\% \\
-7 & 24000 & 73.33\% & 91.25\% \\
-8 & 23000 & 0.00\% & 0.00\% \\
-9 & 23000 & 0.00\% & 0.00\%\\
-11 & 20000 & 0.00\% & 0.00\%\\
-10 & 20000 & 0.00\% & 0.00\%\\
-12 & 18000 & 0.00\% & 0.00\%\\
-13 & 18000 & 0.00\% & 0.00\%\\
-14 & 15000 & 0.00\% & 0.00\%\\
-15 & 15000 & 0.00\% & 0.00\%\\
-16 & 12000 & 0.00\% & 0.00\%\\
-17 & 12000 & 0.00\% & 0.00\%\\
-18 & 10000 & 0.00\% & 0.00\%\\
-19 & 10000 & 0.00\% & 0.00\%
-\end{tabular}$
-
+%Table 5
 %\end{center}
 
 \section{Conclusion and Future work}
 
 We propose a VM placement algorithm based on Simulated Annealing methodology to
 improve energy efficiency in data centers. The First Fit Decreasing algorithm
-for bin-packing is selected for comparison in evaluating the performance of the
-algorithm. Extensive experiment has been done with different problem
-configurations. The number of VMs varies from 20 to 200, the sizes the PMs are
-averagely one to 10 times of those of VMs, and resource constraints are CPU only
-- one dimensional, and CPU combined with memory a€“ two dimensions.
+for bin-packing and random search strategy are selected for comparison in
+evaluating the performance of the algorithm. Extensive experiment has been done
+with different problem configurations. The number of VMs varies from 20 to 200,
+the sizes of the PMs are from one to 10 times of maximum requirement of VMs, and
+resource constraints are CPU only - one dimensional, and CPU combined with
+memory - two dimensions.
 
 Experiment results show that it can generate better VM assignment than FFD,
 especially in the two dimensional constraint problems with 0-25\% more energy
@@ -603,15 +757,29 @@ from the FFD depends on a number of factors: the larger the problem size, the
 less the improvement; the better is FFD fit for the target problem, the less the
 improvement; two dimensional problems leave more room for improvement.
 
+It can also be concluded from the comparison beween SAVMP and Random
+Search that SAVMP is more efficient search strategy guided by target objective
+than random searching. SAVPM can improve energy saving in all the tests, while
+Random Search can only do so in small-scale problems and to less signifcantly
+over all.
+
 Besides the more effective optimization result, the SAVMP has another benefit:
 it generates multiple placements that have better optimization result than FFD.
 This makes the algorithm potential to be used in the dynamic VM allocation to
 minimize the migration cost while saving energy. In our future work we will
-attempt using SAVMPA in live VM migration solution and compare its effectiveness
+attempt using SAVMP in live VM migration solution and compare its effectiveness
 with existing solutions.
 
+\section*{Acknowledgment}
+This research is partially funded by Division of Technolgoy, Information and
+Learning Support of QUT.
+During the research process, Don Caruana, Adrian Yarrow and Mohammad Hassan
+shared their expertise generously on data center mainteance and containing
+energy consumption.
 
 %\newpage
-\section{Reference}
+
+\bibliographystyle{IEEETran}
+\bibliography{paper1}
 
 \end{document}
