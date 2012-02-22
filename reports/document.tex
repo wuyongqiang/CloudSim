@@ -342,13 +342,13 @@ but when the temperature is low, the energy of accepted states will become
 stable.
 
 \subsection{ Temperature Scheduling}
-Temperature controlling is a very important apsect in annealing( metal
+Temperature controlling is a very important aspect in annealing( metal
 processing), so it is in the simulation annealing methodology. It determines how
 the searching are arranged. How many iterations are allowed at each temperature
 and the range of temperature, for example, is part of temperature scheduling.
 However, adusting the scheduling of the temperature is not detailed in the SA
-methodolody. We tried several settings and selected the best parameters of
-the scheduling as follows. The temperature starts from 1000 degree and reduces
+methodolody, but explained through an emprical way. We tried several settings
+and selected the best parameters of the scheduling as follows. The temperature starts from 1000 degree and reduces
 gradually to 0 by 5 degrees each time, at which new temperature there are $10,000*N$ times
 of evolutions.
 
@@ -400,8 +400,8 @@ To show the size of containers, we introduce Capacity Index:\\
 \begin{equation}\label{12}
 CI=\frac{\sum_{j=1}^Mp_{cpu}^j / M}{\sum_{i=1}^Nv_{cpu}^i / N} \\
 \end{equation} 
-If $CI$ is 1, that means the number of PMs needed is the same as the number of
-VMs, and $CI=5$ means the PM number is only one fifth of that of VMs. In the
+If $CI$ is 1, that means the number of PMs in the problem is the same as the
+number of VMs, and $CI=5$ means the PM number is only one fifth of that of VMs. In the
 following experiment, for every number of VM, CI values are multiple, trying
 each in the set$ [1, 2, 3, 4, 5, 10]$.
 The VM CPU requirement is generated randomly from the value 0 to 2000. This is
@@ -417,8 +417,7 @@ value for the same VM because of the random nature.
 Each PM's maximum energy $e_j$ is given by the equation:\\
 \begin{equation}\label{13}
 e_j=(1-\log (p_{cpu}^j/1000)*0.4)*E*(p_{cpu}^j/1000) \\
-\end{equation} \\
-
+\end{equation} 
 Where E is a const, set to 100 Watt in our test, representing the base energy
 which is consumed by the smallest PM when $p_{cpu}^j=1000$. When the CPU
 capability is 10 times of the smallest PM, the energy cost is only 6 times as
@@ -429,7 +428,7 @@ For each physical server, the energy of idle sqtatus is set to 70\% of the
  maximum power, namely,\\
  \begin{equation}\label{14}
 e_{idle}^j= e_{max}^j*0.7
-\end{equation} \\
+\end{equation} 
 
 As to the initial placement, our proposed SAVMP does not require a specified
 state. In the following tests, we choose to start from the placement results
@@ -605,7 +604,7 @@ suitable one or give up searching and return no feasible solution after the
 maximum attempts have been used. The same process repeats until all the VMs have
 their assigned PMs.
 
-The Random Search performs comparable to SAVMP when there are only 20 VMs.
+The Random Search performs comparably to SAVMP when there are only 20 VMs.
 However, when the VM number increases, the energy saving improvement becomes
 worse. This is especially obvious when the number is greater than 50. The Random
 Search can only improve by a small percentage to FFD when CI is 5 or 10. In all
