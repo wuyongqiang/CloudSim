@@ -123,7 +123,7 @@ public class Vm {
 		setCurrentAllocatedRam(0);
 		setCurrentAllocatedSize(0);
 		
-		setEstimatedMigrationDuration(getRam() / 128 *20 + 10);
+		setEstimatedMigrationDuration(getRam() / 128 *10 + 10);
 		setRecommendMigrationInterval(10 * getEstimatedMigrationDuration());
 		 
 	}

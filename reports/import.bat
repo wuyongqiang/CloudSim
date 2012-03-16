@@ -6,7 +6,7 @@ set CLOUDPATH1="C:\Documents and Settings\t9gw5733\CloudSimSrc\CloudSimExamples"
 set CLOUDPATH="c:\users\n7682905\CloudSimSrc\CloudSimExamples"\bin;"c:\users\n7682905\CloudSimSrc\CloudSim"\bin
 
 cd %WORKPATH%
-if  not "%1"=="" java -cp %CLOUDPATH%  org.cloudbus.cloudsim.examples.power.DoubleThreshold %1 %2
+if  not "%1"=="" java -cp %CLOUDPATH%  org.cloudbus.cloudsim.examples.power.PowerPID %1 %2
 
 
 cd C:\Program Files\MySQL\MySQL Server 5.5\bin
