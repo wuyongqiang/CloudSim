@@ -99,7 +99,7 @@ public class NonPowerAware {
 			broker.submitVmList(vmList);
 
 			// Fifth step: Create one cloudlet
-			utilizationModelWorkHour = new UtilizationModelWorkHour();
+			utilizationModelWorkHour = new UtilizationModelWorkHour(5);
 			cloudletList = createCloudletList(brokerId);
 
 			// submit cloudlet list to the broker
@@ -187,7 +187,7 @@ public class NonPowerAware {
 		long outputSize = 300;
 
 		for (int i = 0; i < cloudletsNumber; i++) {
-			Cloudlet cloudlet = new Cloudlet(i, length, pesNumber, fileSize, outputSize, utilizationModelWorkHour, new UtilizationModelStochastic(), new UtilizationModelStochastic());
+			Cloudlet cloudlet = new Cloudlet(i, length, pesNumber, fileSize, outputSize, utilizationModelWorkHour, new UtilizationModelStochastic(5), new UtilizationModelStochastic(5));
 			cloudlet.setUserId(brokerId);
 			cloudlet.setVmId(i);
 			cloudlet.setCloudletDuration(simLength); // 20 minutes

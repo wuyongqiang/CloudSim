@@ -17,8 +17,8 @@ public class UtilizationModelWorkHour extends UtilizationModelStochastic {
 
 	private Map<String, Double> history;
 	
-	public UtilizationModelWorkHour(){
-		super();
+	public UtilizationModelWorkHour(int roughIndex){
+		super(roughIndex);		
 		history = new HashMap<String, Double>();
 	}
 	
@@ -68,7 +68,7 @@ public class UtilizationModelWorkHour extends UtilizationModelStochastic {
 		id.hashCode();
 		Random r = new Random(id.hashCode());
 		double rn = ((double)Math.abs(r.nextInt())%100)/100;
-		double randomUtilization = ( rn -0.5)/1.5;		
+		double randomUtilization = ( rn -0.5)/1.5*(roughIndex/5.0);		
 		double utilization = baseUtilization + randomUtilization;
 		if (utilization<0){
 			utilization = 0.05;

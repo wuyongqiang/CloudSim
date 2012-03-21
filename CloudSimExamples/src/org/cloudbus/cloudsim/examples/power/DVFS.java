@@ -172,7 +172,7 @@ public class DVFS {
 		long outputSize = 300;
 
 		for (int i = 0; i < cloudletsNumber; i++) {
-			Cloudlet cloudlet = new Cloudlet(i, length, pesNumber, fileSize, outputSize, new UtilizationModelStochastic(), new UtilizationModelStochastic(), new UtilizationModelStochastic());
+			Cloudlet cloudlet = new Cloudlet(i, length, pesNumber, fileSize, outputSize, new UtilizationModelStochastic(5), new UtilizationModelStochastic(5), new UtilizationModelStochastic(5));
 			cloudlet.setUserId(brokerId);
 			cloudlet.setVmId(i);
 			list.add(cloudlet);

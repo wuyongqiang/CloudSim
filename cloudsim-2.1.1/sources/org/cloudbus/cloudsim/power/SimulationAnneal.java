@@ -20,7 +20,7 @@ public class SimulationAnneal {
 	private int initialTemperature = 100;
 	private int totalIteration;
 	private int coldingRate = 2;
-	private int iTeration = 1000;
+	private int iTeration = 10000;
 	private Date beginTime;
 	private int[] vAssignBest;
 	private int[] vAssignOldTmp;
@@ -130,7 +130,7 @@ public class SimulationAnneal {
 	}
 
 	public void anneal() {
-
+		if (pNum<=1) return;
 		int scale = vCPU.length;
 		iTeration = scale;
 			beginTime = new Date();
@@ -140,11 +140,12 @@ public class SimulationAnneal {
 			totalIteration = 0;
 			recentBest = Double.MAX_VALUE;
 			
+			double dE = dievationEnergy();
 			firstFit();
 
 			while( temperature > 0){
 				int staleMateCount = 0;
-				double dE = dievationEnergy();
+				dE = dievationEnergy();
 				for (int iT = 0; iT< iTeration * scale ; iT++){
 					if (getTicksFromStart()> 30) break;
 					totalIteration++;
@@ -201,11 +202,12 @@ public class SimulationAnneal {
 
 	private double dievationEnergy() {
 		//double largestPMEnergy = 0;
+		largestPMEnergy = 0;
 		for (int i = 0;i< pNum; i++){			
 			largestPMEnergy +=  ePM[i];			
 		}
 		//double energy = largestPMEnergy * temperature / initialTemperature + 0.1 ;
-		double energy = largestPMEnergy * temperature * vNum / initialTemperature  ;
+		double energy = largestPMEnergy * temperature / (initialTemperature * pNum)  ;
 		return energy;
 	}
 
@@ -230,7 +232,7 @@ public class SimulationAnneal {
 		migrations = getMigrationCost(vAssign2);
 		
 		if (energyCost < Double.MAX_VALUE)
-			energyCost = migrations *  largestPMEnergy ;
+			energyCost = migrations *  100000 ;
 		return energyCost;
 	}
 
@@ -385,6 +387,11 @@ public class SimulationAnneal {
 	}
 	
 	private void firstFit() {
+		
+		for (int i=0; i< vNum; i++){
+			vAssignOldTmp[i] = vAssign[i];
+		}
+		
 		double[] pLeftCPU = new double[pNum];
 		//double[] pLeftMEM = new double[pNum];
 		for (int i=0;i<pNum;i++){
@@ -404,12 +411,20 @@ public class SimulationAnneal {
 			}			
 		}		
 		
-		sofarBest = stateEnergy(vAssign);
+		sofarBest =  stateEnergy(vAssignOldTmp);
+		recentBest = stateEnergy(vAssign);
+		
+		if ( recentBest < sofarBest)
+			sofarBest = recentBest;
+		else
+			revertFluctuate();
+		
+		saveRecentBestAssign();
 		
 		fftCost = sofarBest;
 		saveResult();
 		
-		sofarBest= Double.MAX_VALUE;
+		//sofarBest= Double.MAX_VALUE;
 	}
 	
 	

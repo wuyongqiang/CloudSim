@@ -34,17 +34,18 @@ public class UtilizationModelStochastic implements UtilizationModel {
 	private Map<String, Double> history;
 	private long seed;
 	private Random rnd;
-
+	protected int roughIndex;
 	/**
 	 * Instantiates a new utilization model stochastic.
 	 */
-	public UtilizationModelStochastic() {
+	public UtilizationModelStochastic(int roughIndex) {
 		setHistory(new HashMap<String, Double>());
 		zipf = new ZipfDistr(0.5, 10); 
 		UUID id = UUID.randomUUID();
 		seed = id.hashCode();
 		rnd = new Random(seed);
-	}
+		this.roughIndex = roughIndex;
+	}	
 	
 	transient private ZipfDistr zipf = null;
 	
@@ -64,7 +65,7 @@ public class UtilizationModelStochastic implements UtilizationModel {
 			return 1;
 		}
 		
-		double utilization = rnd.nextGaussian()/4 + 0.5;
+		double utilization = rnd.nextGaussian()/4*(roughIndex/5.0) + 0.5;
 		//double utilization = zipf.sample();
 		if (utilization< 0.001){
 			utilization = 0.05;

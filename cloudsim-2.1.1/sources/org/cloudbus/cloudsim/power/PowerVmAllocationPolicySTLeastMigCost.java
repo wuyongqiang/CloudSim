@@ -22,7 +22,7 @@ public class PowerVmAllocationPolicySTLeastMigCost extends
 			List<? extends PowerHost> list, double utilizationThreshold) {
 		super(list, utilizationThreshold);
 		_lastReshuffleTime = 0;
-		setReshuffleInterval(300);
+		setReshuffleInterval(600);
 	}
 	
 	private int _reshuffleInterval = 60;
