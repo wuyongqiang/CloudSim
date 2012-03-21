@@ -32,6 +32,7 @@ import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.power.PowerDatacenter;
 import org.cloudbus.cloudsim.power.PowerHost;
 import org.cloudbus.cloudsim.power.PowerPe;
+import org.cloudbus.cloudsim.power.PowerVmAllocationPolicySTLeastMigCost;
 import org.cloudbus.cloudsim.power.PowerVmAllocationPolicySingleThreshold;
 import org.cloudbus.cloudsim.power.models.PowerModelLinear;
 import org.cloudbus.cloudsim.provisioners.BwProvisionerSimple;
@@ -56,7 +57,7 @@ public class SingleThreshold {
 	/** The vm list. */
 	protected static List<Vm> vmList;
 
-	protected static double utilizationThreshold = 0.7;
+	protected static double utilizationThreshold = 0.6;
 
 	protected static double hostsNumber = 10;
 	protected static double vmsNumber = 20;
@@ -176,7 +177,7 @@ public class SingleThreshold {
 		}
 
 		Log.printLine("SingleThreshold finished!");
-		System.out.println("DoubleThreshold finished!");
+		System.out.println("SingleThreshold finished!");
 	}
 
 	/**
@@ -188,8 +189,8 @@ public class SingleThreshold {
 	 */
 	protected static List<Cloudlet> createCloudletList(int brokerId) {
 		
-		utilizationModelStochastic = new UtilizationModelWorkHour();
-		//utilizationModelStochastic = new UtilizationModelStochastic();
+		//utilizationModelStochastic = new UtilizationModelWorkHour();
+		utilizationModelStochastic = new UtilizationModelStochastic();
 		utilizationModelUniform = new UtilizationModelUniform() ;
 		
 		List<Cloudlet> list = new ArrayList<Cloudlet>();
@@ -204,7 +205,8 @@ public class SingleThreshold {
 			if (i==0){
 				cloudlet = new Cloudlet(i, length, pesNumber, fileSize, outputSize, utilizationModelStochastic, new UtilizationModelStochastic(), new UtilizationModelStochastic());
 			}else{
-				cloudlet = new Cloudlet(i, length, pesNumber, fileSize, outputSize, new UtilizationModelWorkHour(), new UtilizationModelStochastic(), new UtilizationModelStochastic());
+				//cloudlet = new Cloudlet(i, length, pesNumber, fileSize, outputSize, new UtilizationModelWorkHour(), new UtilizationModelStochastic(), new UtilizationModelStochastic());
+				cloudlet = new Cloudlet(i, length, pesNumber, fileSize, outputSize, new UtilizationModelStochastic(), new UtilizationModelStochastic(), new UtilizationModelStochastic());
 			}
 			cloudlet.setUserId(brokerId);
 			cloudlet.setVmId(i);
@@ -260,8 +262,8 @@ public class SingleThreshold {
 		double maxPower = 250; // 250W
 		double staticPowerPercent = 0.7; // 70%
 
-		//int[] mips = { 1000, 2000, 3000 };
-		int[] mips = { 2000, 2000, 2000 };
+		int[] mips = { 1000, 2000, 3000 };
+		//int[] mips = { 2000, 2000, 2000 };
 		int ram = 10000; // host memory (MB)
 		long storage = 1000000; // host storage
 		int bw = 100000;
@@ -309,7 +311,8 @@ public class SingleThreshold {
 			powerDatacenter = new PowerDatacenter(
 					name,
 					characteristics,
-					new PowerVmAllocationPolicySingleThreshold(hostList, utilizationThreshold),
+					//new PowerVmAllocationPolicySingleThreshold(hostList, utilizationThreshold),
+					new PowerVmAllocationPolicySTLeastMigCost(hostList, utilizationThreshold),
 					new LinkedList<Storage>(),
 					5.0);
 		} catch (Exception e) {

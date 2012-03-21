@@ -17,6 +17,7 @@ import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.UUID;
 
 import org.cloudbus.cloudsim.distributions.ZipfDistr;
 
@@ -40,7 +41,8 @@ public class UtilizationModelStochastic implements UtilizationModel {
 	public UtilizationModelStochastic() {
 		setHistory(new HashMap<String, Double>());
 		zipf = new ZipfDistr(0.5, 10); 
-		seed = (long)(Math.random() * 1000000);
+		UUID id = UUID.randomUUID();
+		seed = id.hashCode();
 		rnd = new Random(seed);
 	}
 	
