@@ -25,5 +25,7 @@ public interface UtilizationModel {
 	 * @return utilization percentage
 	 */
 	double getUtilization(double time);
+	
+	double getAvgUtilization(double time);
 
 }

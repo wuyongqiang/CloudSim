@@ -22,7 +22,7 @@ public class PowerVmAllocationPolicySTLeastMigCost extends
 			List<? extends PowerHost> list, double utilizationThreshold) {
 		super(list, utilizationThreshold);
 		_lastReshuffleTime = 0;
-		setReshuffleInterval(600);
+		setReshuffleInterval(100);
 	}
 	
 	private int _reshuffleInterval = 60;
@@ -34,8 +34,14 @@ public class PowerVmAllocationPolicySTLeastMigCost extends
 			return migrationMap;
 		}
 		
-		if ( CloudSim.clock() - _lastReshuffleTime < _reshuffleInterval){
+		if ( _lastReshuffleTime!=0 )
+		{
+			if (CloudSim.clock() - _lastReshuffleTime < _reshuffleInterval)
 			return migrationMap;
+		}
+		{
+			if (CloudSim.clock() - _lastReshuffleTime < 30)
+				return migrationMap;
 		}
 		_lastReshuffleTime = (long) CloudSim.clock();
 		saveAllocation(vmList);
@@ -139,7 +145,7 @@ public class PowerVmAllocationPolicySTLeastMigCost extends
 			pCPU[i] = getHostList().get(i).getAvailableMips();
 		}
 		for (int i=0;i<pVM.length;i++){
-			pVM[i] = vmsToMigrate.get(i).getCurrentRequestedTotalMips();
+			pVM[i] = vmsToMigrate.get(i).getAvgCurrentRequestedTotalMips();
 		}
 		for (int i=0;i<oldVmAssign.length;i++){
 			oldVmAssign[i] = -1;

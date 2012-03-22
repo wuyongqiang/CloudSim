@@ -19,5 +19,10 @@ public class UtilizationModelZipfDistr implements UtilizationModel {
 	public double getUtilization(double time) {
 		return zipf.sample() ;
 	}
+	
+	@Override
+	public double getAvgUtilization(double time) {
+		return zipf.sample() ;
+	}
 
 }

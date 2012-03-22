@@ -175,6 +175,15 @@ public class CloudletSchedulerDynamicWorkload extends CloudletSchedulerTimeShare
 		}
 		return totalUtilization;
 	}
+	
+	@Override
+	public double getAvgTotalUtilizationOfCpu(double time) {
+		double totalUtilization = 0;
+		for (ResCloudlet rcl : getCloudletExecList()) {
+			totalUtilization += rcl.getCloudlet().getAvgUtilizationOfCpu(time);
+		}
+		return totalUtilization;
+	}
 
 	/**
 	 * Gets the current mips.
@@ -199,6 +208,23 @@ public class CloudletSchedulerDynamicWorkload extends CloudletSchedulerTimeShare
 
 		return currentMips;
 	}
+	
+	@Override
+	public List<Double> getAvgCurrentRequestedMips() {
+		
+		List<Double> currentMips = new ArrayList<Double>();
+		double totalMips = getAvgTotalUtilizationOfCpu(getPreviousTime()) * getTotalMips();
+		double mipsForPe = totalMips / getPesNumber();
+
+		for (int i = 0; i < getPesNumber(); i++) {
+			currentMips.add(mipsForPe);
+		}
+
+		setCachePreviousTime(getPreviousTime());
+		setCacheCurrentRequestedMips(currentMips);
+
+		return currentMips;
+	}
 
 	/**
 	 * Gets the current mips.
@@ -211,6 +237,11 @@ public class CloudletSchedulerDynamicWorkload extends CloudletSchedulerTimeShare
 	@Override
 	public double getTotalCurrentRequestedMipsForCloudlet(ResCloudlet rcl, double time) {
 		return rcl.getCloudlet().getUtilizationOfCpu(time) * getTotalMips();
+	}
+	
+	@Override
+	public double getAvgTotalCurrentRequestedMipsForCloudlet(ResCloudlet rcl, double time) {
+		return rcl.getCloudlet().getAvgUtilizationOfCpu(time) * getTotalMips();
 	}
 
 	/**

@@ -15,11 +15,11 @@ import java.util.UUID;
 
 public class UtilizationModelWorkHour extends UtilizationModelStochastic {
 
-	private Map<String, Double> history;
+	//private Map<String, Double> history;
 	
 	public UtilizationModelWorkHour(int roughIndex){
 		super(roughIndex);		
-		history = new HashMap<String, Double>();
+		//history = new HashMap<String, Double>();
 	}
 	
 	@Override
@@ -32,6 +32,7 @@ public class UtilizationModelWorkHour extends UtilizationModelStochastic {
 		double utilization = geWorkHourWorkLoad(time);
 		utilization = addRandomVariation(utilization);
 		history.put(String.format("%.0f", time), utilization);
+				
 		return utilization;
 	}
 	

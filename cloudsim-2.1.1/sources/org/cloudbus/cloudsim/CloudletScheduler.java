@@ -259,4 +259,17 @@ public abstract class CloudletScheduler {
 		return currentMipsShare;
 	}
 
+	public double getAvgTotalCurrentRequestedMipsForCloudlet(ResCloudlet rcl,
+			double time) {
+		return getTotalCurrentRequestedMipsForCloudlet(rcl,time);
+	}
+
+	public double getAvgTotalUtilizationOfCpu(double time) {		
+		return getTotalUtilizationOfCpu(time);
+	}
+
+	public List<Double> getAvgCurrentRequestedMips() {		
+		return getCurrentRequestedMips();
+	}
+
 }

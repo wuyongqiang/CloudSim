@@ -18,5 +18,10 @@ public class UtilizationModelUniform implements UtilizationModel {
 	public double getUtilization(double time) {
 		return ud.sample() ;
 	}
+	
+	@Override
+	public double getAvgUtilization(double time) {
+		return ud.sample() ;
+	}
 
 }

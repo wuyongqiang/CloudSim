@@ -11,6 +11,7 @@ import java.util.Random;
 
 public class SimulationAnneal {
 	
+	private static final int migrationCost = 100000;
 	private double[] pCPU;
 	private double[] vCPU;
 	private int[] vAssign;
@@ -47,7 +48,7 @@ public class SimulationAnneal {
 		this.vAssignOld = vAssignOld;
 		
 		//pNum = pCPU.length;
-		pNum = pmInUse    ;
+		pNum = pmInUse +1   ;
 		if (pNum>pCPU.length) pNum = pCPU.length;
 		vNum = pVM.length;
 		this.vAssign = new int[vNum];
@@ -207,7 +208,8 @@ public class SimulationAnneal {
 			largestPMEnergy +=  ePM[i];			
 		}
 		//double energy = largestPMEnergy * temperature / initialTemperature + 0.1 ;
-		double energy = largestPMEnergy * temperature / (initialTemperature * pNum)  ;
+		//double energy = largestPMEnergy * temperature / (initialTemperature * pNum)  ;
+		double energy = migrationCost * vNum * temperature / (initialTemperature) ;
 		return energy;
 	}
 
@@ -232,7 +234,7 @@ public class SimulationAnneal {
 		migrations = getMigrationCost(vAssign2);
 		
 		if (energyCost < Double.MAX_VALUE)
-			energyCost = migrations *  100000 ;
+			energyCost = migrations *  migrationCost ;
 		return energyCost;
 	}
 
@@ -262,7 +264,7 @@ public class SimulationAnneal {
 		}
 		
 		for (int i = 0;i< pNum; i++){
-			if (uPM[i]>targetUtilization
+			if (uPM[i]>targetUtilization + 0.1
 					//|| usedMEM[i]>1 
 					){
 				return Double.MAX_VALUE;
@@ -299,6 +301,11 @@ public class SimulationAnneal {
 	public int[] getAssignment() {
 		if (migrations>0)
 			print("migrations = " + migrations);
+		String  s = "pmInUseOld=" + pmInUseOld + " pmInUse=" + pmInUse + " initial vm assignment:";
+		for (int i=0; i< vNum; i++){
+			s += String.format("%2d,", vAssignBest[i]) ;
+		}
+		System.out.println(s);
 		return vAssignBest;
 	}
 	
@@ -449,6 +456,21 @@ public class SimulationAnneal {
 						+ String.format("%.2f%%|%.2f%%,", pUtilization[i]*100,pUtilizationMem[i]*100);
 			}
 		}
+		
+		
+			for (int i = 0; i < vNum; i++) {
+				strResult += "\n";
+				strResult = strResult + String.format("%.0f",vCPU[i]) + ",";
+						
+			}
+			
+			for (int i = 0; i < pNum; i++) {
+				strResult += "\n";
+				strResult = strResult + String.format("%.0f",pCPU[i]) + ",";
+						
+			}
+		
+		
 		
 		print(strResult);
 		/*

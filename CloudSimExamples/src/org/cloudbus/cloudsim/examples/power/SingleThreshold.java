@@ -63,9 +63,9 @@ public class SingleThreshold {
 	protected static double hostsNumber = 10;
 	protected static double vmsNumber = 20;
 	protected static double cloudletsNumber = 20;
-	protected static boolean workHourLoad = false;
+	protected static boolean workHourLoad = true;
 	protected static boolean useSA = true;
-	protected static int roughIndex = 7;
+	protected static int roughIndex = 5;
 
 	//protected static UtilizationModelStochastic utilizationModelWorkHour;
 	protected static UtilizationModelUniform utilizationModelUniform;

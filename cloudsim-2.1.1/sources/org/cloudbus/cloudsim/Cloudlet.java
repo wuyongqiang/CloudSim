@@ -1527,6 +1527,11 @@ public class Cloudlet {
 	public double getUtilizationOfCpu(final double time) {
 		return getUtilizationModelCpu().getUtilization(time);
 	}
+	
+	
+	public double getAvgUtilizationOfCpu(final double time) {
+		return getUtilizationModelCpu().getAvgUtilization(time);
+	}
 
 	/**
 	 * Gets the utilization of memory.

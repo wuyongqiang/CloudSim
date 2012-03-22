@@ -30,11 +30,13 @@ import org.cloudbus.cloudsim.distributions.ZipfDistr;
  */
 public class UtilizationModelStochastic implements UtilizationModel {
 
+	private static final int _averageDuration = 50;
 	/** The history. */
-	private Map<String, Double> history;
+	protected Map<String, Double> history;
 	private long seed;
 	private Random rnd;
 	protected int roughIndex;
+	protected boolean _averageUtilization = true;
 	/**
 	 * Instantiates a new utilization model stochastic.
 	 */
@@ -75,7 +77,22 @@ public class UtilizationModelStochastic implements UtilizationModel {
 			utilization = 1;
 		}
 		getHistory().put(String.format("%d", (int)time), utilization);
+		
+		
 		return utilization;
+	}
+	
+	public double getAvgUtilization(double time){
+		int utilizations = 0;
+		double tUtilization = 0;
+		for(int i=(int)time;i>=0&&i>(int)time-_averageDuration;i--){
+			Double u = getHistory().get(String.format("%d", i));
+			if (u!=null){
+				utilizations++;
+				tUtilization += u;
+			}
+		}
+		return tUtilization/utilizations;
 	}
 
 	/**

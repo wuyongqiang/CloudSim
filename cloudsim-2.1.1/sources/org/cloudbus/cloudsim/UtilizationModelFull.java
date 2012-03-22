@@ -24,5 +24,10 @@ public class UtilizationModelFull implements UtilizationModel {
 	public double getUtilization(double time) {
 		return 1;
 	}
+	
+	@Override
+	public double getAvgUtilization(double time) {
+		return 1;
+	}
 
 }
