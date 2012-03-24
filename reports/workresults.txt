@@ -552,7 +552,7 @@ Average SLA violation: 11.70%
 Average SLA violation: 17.74%
 
 -----------------------------------------
-sa 0.7,  roughindex = 5; workhour workload ,interval=100
+sa 0.7,  roughindex = 5; workhour workload ,avg_interval=100
 30 secs avg 
 
 
@@ -564,7 +564,7 @@ SLA violation percentage: 14.63%
 Average SLA violation: 14.24%
 
 
-sa 0.7,  roughindex = 5; workhour workload ,interval=1005
+sa 0.7,  roughindex = 5; workhour workload ,avg_interval=100
 50 secs avg 
 
 Total simulation time: 3610.00 sec
@@ -574,3 +574,88 @@ Number of SLA violations: 1421
 SLA violation percentage: 11.81%
 Average SLA violation: 13.41%
 
+
+sa 0.7,  roughindex = 5; workhour workload ,avg_interval=100
+50 secs avg, more iterations for SA 
+temprature from 100 -> 200
+coldingRate from 2 -> 1
+iteration from 10,000 -> 50,000
+
+
+Total simulation time: 3610.00 sec
+Energy consumption: 1.2204 kWh
+Number of VM migrations: 58
+Number of SLA violations: 877
+SLA violation percentage: 6.80%
+Average SLA violation: 19.68%
+
+
+
+sa 0.7,  roughindex = 5; workhour workload ,avg_interval=100
+50 secs avg, more iterations for SA 
+temprature from 100 -> 200
+coldingRate from 2 -> 1
+iteration from 10,000 -> 50,000
+//add early return condition if (curEnergy/migrationCost <= vNum*0.2) break;
+
+simid=320
+
+Total simulation time: 3610.00 sec
+Energy consumption: 1.1246 kWh
+Number of VM migrations: 71
+Number of SLA violations: 814
+SLA violation percentage: 6.28%
+Average SLA violation: 18.36%
+
+
+migration=13
+migration=0
+migration=4
+migration=4
+migration=4
+migration=4
+migration=0
+migration=0
+migration=0
+migration=5
+migration=4
+migration=0
+migration=0
+migration=0
+migration=0
+migration=0
+migration=0
+migration=9
+migration=6
+migration=0
+migration=0
+migration=0
+migration=0
+migration=0
+migration=0
+migration=4
+migration=0
+migration=0
+migration=6
+migration=8
+migration=0
+migration=0
+migration=0
+migration=0
+migration=0
+migration=0
+SingleThreshold finished!
+
+
+sa 0.6,  roughindex = 5; workhour workload ,avg_interval=100
+50 secs avg, more iterations for SA 
+temprature from 100 -> 200
+coldingRate from 2 -> 1
+iteration from 10,000 -> 50,000
+//add early return condition if (curEnergy/migrationCost <= vNum*0.2) break;
+Total simulation time: 3610.00 sec
+Energy consumption: 1.4027 kWh
+Number of VM migrations: 69
+Number of SLA violations: 666
+SLA violation percentage: 4.92%
+Average SLA violation: 16.09%

@@ -18,10 +18,10 @@ public class SimulationAnneal {
 	private int pmInUse;
 	private int pmInUseOld;
 	private String resultFolder="cloudSimSA";
-	private int initialTemperature = 100;
+	private int initialTemperature = 200;
 	private int totalIteration;
-	private int coldingRate = 2;
-	private int iTeration = 10000;
+	private int coldingRate = 1;
+	private int iTeration = 50000;
 	private Date beginTime;
 	private int[] vAssignBest;
 	private int[] vAssignOldTmp;
@@ -48,7 +48,7 @@ public class SimulationAnneal {
 		this.vAssignOld = vAssignOld;
 		
 		//pNum = pCPU.length;
-		pNum = pmInUse +1   ;
+		pNum = pmInUse  ;
 		if (pNum>pCPU.length) pNum = pCPU.length;
 		vNum = pVM.length;
 		this.vAssign = new int[vNum];
@@ -153,6 +153,7 @@ public class SimulationAnneal {
 					fluctuate();			
 					double curEnergy = stateEnergy(vAssign);
 					
+					if (curEnergy/migrationCost <= vNum*0.2) break;
 					if (hasLowerEnergy(curEnergy )){
 						recentBest = curEnergy;
 						saveRecentBestAssign();
@@ -214,6 +215,8 @@ public class SimulationAnneal {
 	}
 
 	private boolean hasLowerEnergy(double curEnergy) {
+		//if(curEnergy < Double.MAX_VALUE)
+		//	print("curEnergy "+curEnergy );
 		return ( curEnergy < recentBest );
 	}
 
@@ -301,7 +304,7 @@ public class SimulationAnneal {
 	public int[] getAssignment() {
 		if (migrations>0)
 			print("migrations = " + migrations);
-		String  s = "pmInUseOld=" + pmInUseOld + " pmInUse=" + pmInUse + " initial vm assignment:";
+		String  s = "pmInUseOld=" + pmInUseOld + " pmInUse=" + pmInUse + " final vm assignment:";
 		for (int i=0; i< vNum; i++){
 			s += String.format("%2d,", vAssignBest[i]) ;
 		}
@@ -322,14 +325,20 @@ public class SimulationAnneal {
 	
 	private void saveBestAssign() {
 		print("save a best assign " + this.totalIteration);
+		
 		if (vAssignBest==null){
 			vAssignBest = new int [vNum];
 		}
+		
+		String s = "";
 		if (vRecentAssignBest!=null){
 			for (int i=0; i< vNum; i++){
 				vAssignBest[i] = vRecentAssignBest[i] ;
+				s +=vAssignBest[i] + ","; 
 			}
 		}
+		
+		print(s);
 	}
 	
 	private Random getRandom(){
@@ -444,12 +453,12 @@ public class SimulationAnneal {
 		}	
 
 		strResult = (String.format("%.1f", tick)+"\t"+totalIteration +"\t " + String.format("%.2f", sofarBest)
-				+"\t" +String.format("%.2f%%", (fftCost-sofarBest)*100/fftCost) +" assignment " + strResult);
+				+"\t" +String.format("%.2f%%", (fftCost-sofarBest)*100/fftCost) +" \nassignment " + strResult);
 		
 		
 		saveBestAssign();
 		
-		strResult += " ";
+		strResult += "\n ";
 		if (pUtilization != null) {
 			for (int i = 0; i < pNum; i++) {
 				strResult = strResult + pCPU[i] + "-"
@@ -466,7 +475,7 @@ public class SimulationAnneal {
 			
 			for (int i = 0; i < pNum; i++) {
 				strResult += "\n";
-				strResult = strResult + String.format("%.0f",pCPU[i]) + ",";
+				strResult = strResult + String.format("%.2f",pCPU[i]) + ",";
 						
 			}
 		
