@@ -29,9 +29,14 @@ import org.cloudbus.cloudsim.provisioners.RamProvisionerSimple;
 public class DoubleThreshold extends SingleThreshold {
 
 	private static double utilizationLowThreshold = 0.4;
+	
 
 	public static void main(String[] args) throws IOException {
-
+		
+		utilizationThreshold = 0.7;
+		useAverageUtilization = true;
+		workHourLoad = true;
+		
 		Log.setOutputFile("C:\\Users\\n7682905\\sim.txt");
 		Log.printLine("Starting SingleThreshold example...");
 		

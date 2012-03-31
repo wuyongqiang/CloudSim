@@ -140,12 +140,14 @@ public class PowerVmAllocationPolicySTLeastMigCost extends
 		double[] pCPU = new double[getHostList().size()];
 		double[] pVM = new double[vmsToMigrate.size()];
 		int[] oldVmAssign = new int[vmsToMigrate.size()];
+		String[] vmNames = new String[vmsToMigrate.size()];
 		
 		for (int i=0;i<pCPU.length;i++){
 			pCPU[i] = getHostList().get(i).getAvailableMips();
 		}
 		for (int i=0;i<pVM.length;i++){
 			pVM[i] = vmsToMigrate.get(i).getAvgCurrentRequestedTotalMips();
+			vmNames[i] = vmsToMigrate.get(i).getUid();
 		}
 		for (int i=0;i<oldVmAssign.length;i++){
 			oldVmAssign[i] = -1;
@@ -158,7 +160,7 @@ public class PowerVmAllocationPolicySTLeastMigCost extends
 			}
 		}
 		
-		SimulationAnneal anneal = new SimulationAnneal(pCPU, pVM, oldVmAssign, oldPMInUse, newPMInUse, getUtilizationThreshold());
+		SimulationAnneal anneal = new SimulationAnneal(pCPU, pVM, oldVmAssign, oldPMInUse, newPMInUse, getUtilizationThreshold(),vmNames);
 		anneal.anneal();
 		int[] vmAssign = anneal.getAssignment();
 		
@@ -246,6 +248,11 @@ protected Map<Integer,Host> getHostInUse(List<? extends Vm> vmList) {
 		}
 
 		return allocatedHost;
+	}
+	
+	public String getPolicyDesc() {
+		String rst = String.format("SA%.2f Interval%d", getUtilizationThreshold(),_reshuffleInterval);
+		return rst;
 	}
 
 }

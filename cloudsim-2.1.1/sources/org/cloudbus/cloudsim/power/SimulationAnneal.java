@@ -9,7 +9,10 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Random;
 
-public class SimulationAnneal {
+import org.cloudbus.cloudsim.power.migration.MigrationSchedule;
+import org.cloudbus.cloudsim.util.LogPrint;
+
+public class SimulationAnneal implements MigrationSchedule {
 	
 	private static final int migrationCost = 100000;
 	private double[] pCPU;
@@ -39,6 +42,7 @@ public class SimulationAnneal {
 	private double recentBest;
 	private int migrations;
 	private int largestPMEnergy;
+	private  String[] vmNames;
 
 	public SimulationAnneal(double[] pCPU, double[] pVM, int[] vAssignOld, int oldPMInUse, int newPMInUse, double targetUtilization) {
 		this.pCPU = pCPU;
@@ -74,60 +78,20 @@ public class SimulationAnneal {
 		System.out.println(s);
 	}
 	
+	public SimulationAnneal(double[] pCPU, double[] pVM, int[] vAssignOld, int oldPMInUse, int newPMInUse, double targetUtilization, String[] vmNames) {
+		this(pCPU,pVM, vAssignOld,oldPMInUse, newPMInUse,targetUtilization);
+		this.vmNames = vmNames;
+	}
+	
 	private void initPMPower() {
 		for (int i=0;i<pNum;i++){
 			ePM[i] = pCPU[i]/10;
 		}		
 	}
 
-	private void print(String s){
-		Date now = new Date();		
-		
-		s = now.toString() +": "+s;
-		//System.out.println(s);
-		
-		SimpleDateFormat fmt = new SimpleDateFormat("yyMMdd-hhmmss");
-		
-		String st = fmt.format(beginTime);
-		String fName = "simulatonAnneal.txt";
-		writeText(fName,s);
-	}
-	
-	private void createFileIfNotExist(String filePath) throws IOException {
-		File f;
-		f = new File(filePath);
-		if (!f.exists()){
-			f.createNewFile();
-		}
-	}
-	
-	private void createFolderIfNotExist(String filePath) throws IOException {
-		File f;
-		f = new File(filePath);
-		if (!f.exists()){
-			f.mkdir();
-		}
-	}
-	
-	private void writeText(String fFileName,String message) {
-		String folder = "C:\\users\\n7682905\\" + resultFolder+"\\";
-	
-		try {
-			createFolderIfNotExist(folder);
-			
-			fFileName = folder +"\\" +  fFileName;
-			
-			createFileIfNotExist(fFileName);
-
-			Writer out = new OutputStreamWriter(
-					new FileOutputStream(fFileName, true), "utf8");
-			try {
-				out.append(message+"\r\n");
-			} finally {
-				out.close();
-			}
-		} catch (Exception e) {
-		}
+	LogPrint logPrint = new LogPrint(this.getClass().getName());
+	void print(String message){
+		logPrint.print(message,LogPrint.PrintMode.PrintLog);
 	}
 
 	public void anneal() {
@@ -309,7 +273,24 @@ public class SimulationAnneal {
 			s += String.format("%2d,", vAssignBest[i]) ;
 		}
 		System.out.println(s);
+		print(s);
+		showMigrationRoute();
 		return vAssignBest;
+	}
+	
+	private void showMigrationRoute(){
+		String s = "";
+		for (int i=0;i<vNum;i++){
+			if (vAssignOld[i]!=vAssignBest[i]){
+				if (vmNames!=null && i<vmNames.length && vmNames[i]!=null)
+					s += vmNames[i];
+				else
+					s += "vm["+i+"]" ;
+				s += " migrate from " + vAssignOld[i] +" to "+ vAssignBest[i] + "\n"; 
+			}
+		}
+		System.out.println(s);
+		print(s);
 	}
 	
 	private double getTicksFromStart() {
@@ -486,6 +467,19 @@ public class SimulationAnneal {
 		resultAssign.add("");
 		results.add(0);
 		*/		
+	}
+
+	@Override
+	public void scheduleMigration() {
+		anneal();
+		
+	}
+
+	@Override
+	public void initScheduler(double[] pCPU, double[] pVM, int[] vAssignOld,
+			int oldPMInUse, int newPMInUse, double targetUtilization,
+			String[] vmNames) {
+		
 	}
 
 }

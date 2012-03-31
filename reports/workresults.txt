@@ -659,3 +659,47 @@ Number of VM migrations: 69
 Number of SLA violations: 666
 SLA violation percentage: 4.92%
 Average SLA violation: 16.09%
+
+sa 0.6,  roughindex = 5; uniform workload ,avg_interval=100
+50 secs avg, more iterations for SA 
+simid=328
+
+Total simulation time: 3615.00 sec
+Energy consumption: 1.2813 kWh
+Number of VM migrations: 39
+Number of SLA violations: 408
+SLA violation percentage: 2.84%
+Average SLA violation: 8.07%
+
+
+dt 0.4-0.7,  roughindex = 5; workhour workload ,
+
+Total simulation time: 3610.00 sec
+Energy consumption: 1.2207 kWh
+Number of VM migrations: 66
+Number of SLA violations: 282
+SLA violation percentage: 2.34%
+Average SLA violation: 9.74%
+Turn On times: 14
+Turn Off times: 13
+
+second - run , simid=326
+Total simulation time: 3610.00 sec
+Energy consumption: 1.5576 kWh
+Number of VM migrations: 92
+Number of SLA violations: 902
+SLA violation percentage: 6.66%
+Average SLA violation: 14.41%
+Turn On times: 18
+Turn Off times: 17
+
+dt 0.4-0.7,  roughindex = 5; uniform workload ,
+simid=325
+Total simulation time: 3610.00 sec
+Energy consumption: 1.4686 kWh
+Number of VM migrations: 124
+Number of SLA violations: 740
+SLA violation percentage: 5.15%
+Average SLA violation: 10.61%
+Turn On times: 18
+Turn Off times: 16

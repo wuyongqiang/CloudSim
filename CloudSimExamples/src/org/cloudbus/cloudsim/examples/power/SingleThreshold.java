@@ -66,6 +66,7 @@ public class SingleThreshold {
 	protected static boolean workHourLoad = true;
 	protected static boolean useSA = true;
 	protected static int roughIndex = 5;
+	protected static boolean useAverageUtilization = true;
 
 	//protected static UtilizationModelStochastic utilizationModelWorkHour;
 	protected static UtilizationModelUniform utilizationModelUniform;
