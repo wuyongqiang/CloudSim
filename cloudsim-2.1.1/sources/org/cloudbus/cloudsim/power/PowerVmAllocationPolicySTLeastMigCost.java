@@ -14,6 +14,7 @@ import org.cloudbus.cloudsim.core.SimEntity;
 import org.cloudbus.cloudsim.core.SimEvent;
 import org.cloudbus.cloudsim.power.lists.PowerHostList;
 import org.cloudbus.cloudsim.power.lists.PowerVmList;
+import org.cloudbus.cloudsim.power.migration.MigrationSchedulerFFD;
 
 public class PowerVmAllocationPolicySTLeastMigCost extends
 		PowerVmAllocationPolicySingleThreshold {
@@ -27,6 +28,9 @@ public class PowerVmAllocationPolicySTLeastMigCost extends
 	
 	private int _reshuffleInterval = 60;
 	private long _lastReshuffleTime = 0;
+	private boolean _normalFFD = false;
+	private boolean _incrementalFFD = false;
+	private boolean _usingSA = false;
 	@Override
 	public List<Map<String, Object>> optimizeAllocation(List<? extends Vm> vmList) {
 		List<Map<String, Object>> migrationMap = new ArrayList<Map<String, Object>>();
@@ -61,6 +65,10 @@ public class PowerVmAllocationPolicySTLeastMigCost extends
 				inMigrationHosts.put(vm.getHost().getId(),inMigrationVmsOnTheHost+1);
 				continue;
 			}			
+			
+			if (_incrementalFFD){
+				//don't know what to do with this
+			}
 			
 			/*if ( inMigrationVmsOnTheHost >= 2 ){				
 				continue;
@@ -125,8 +133,8 @@ public class PowerVmAllocationPolicySTLeastMigCost extends
 			if (vm.getHost()!=null)
 			vm.getHost().vmDestroy(vm);
 		}
-		
-		migrationMap = findCostLeastMigration(vmsToMigrate,oldPMInUse, newPMInUse);
+		if (!_normalFFD)
+			migrationMap = findCostLeastMigration(vmsToMigrate,oldPMInUse, newPMInUse);
 		
 		System.out.println("migration="+	migrationMap.size());
 		restoreAllocation(vmsToRestore, getHostList());
@@ -160,9 +168,17 @@ public class PowerVmAllocationPolicySTLeastMigCost extends
 			}
 		}
 		
-		SimulationAnneal anneal = new SimulationAnneal(pCPU, pVM, oldVmAssign, oldPMInUse, newPMInUse, getUtilizationThreshold(),vmNames);
-		anneal.anneal();
-		int[] vmAssign = anneal.getAssignment();
+		int[] vmAssign = null;
+		if (_usingSA){
+			SimulationAnneal anneal = new SimulationAnneal(pCPU, pVM, oldVmAssign, oldPMInUse, newPMInUse, getUtilizationThreshold(),vmNames);
+			anneal.anneal();
+			vmAssign = anneal.getAssignment();
+		}else{		
+			MigrationSchedulerFFD scheduler = new MigrationSchedulerFFD();
+			scheduler.initScheduler(pCPU, pVM, oldVmAssign, oldPMInUse, newPMInUse, getUtilizationThreshold(),vmNames);
+			scheduler.scheduleMigration();
+			vmAssign = scheduler.getAssignment();
+		}
 		
 		for (int i=0;i<vmAssign.length;i++){
 			if( vmAssign[i] != oldVmAssign[i]) {				

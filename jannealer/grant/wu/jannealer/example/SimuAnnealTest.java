@@ -938,8 +938,8 @@ private static void pickVMFromCurGroup(int grpNum, int vmNo) {
 		String resultFile = "st_result"+beginTime.getHours()+beginTime.getMinutes() +".txt";
 		sedimentGroupNum=10;
 		coldingRate = 50;
-		int problemScales[] = {20, 50,100 }; //200 20, 50, 50,51,52,53,54,55,56,57,58,59,60
-		int problemCapacityIndexes[] = {1, 2, 3, 4, 5, 10};
+		int problemScales[] = {20 }; //200 20, 50, 50,51,52,53,54,55,56,57,58,59,60
+		int problemCapacityIndexes[] = { 2};
 		boolean initWithFFD = true;
 		for (int experimentTime=40;experimentTime<50;experimentTime++){
 			resultFolder = "st-mem-" + String.format("%02d", experimentTime);
