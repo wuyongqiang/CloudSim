@@ -140,6 +140,7 @@ public class PM{
 		newPm.number = number;
 		newPm.ePM = ePM;
 		newPm.mem = mem;
+		newPm.targetUtilization = targetUtilization;
 		
 		for (int i=0;i<assignedVmList.size();i++){			
 			newPm.addVm(getVm(i).clone());

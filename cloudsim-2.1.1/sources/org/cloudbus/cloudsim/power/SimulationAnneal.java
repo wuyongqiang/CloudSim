@@ -46,6 +46,7 @@ public class SimulationAnneal implements MigrationScheduleInt {
 	protected String[] vmNames;
 
 	protected boolean init = false;
+	Random random = new java.util.Random();
 
 	protected MigrationProblem originalProblem;
 	protected int annealTimeLimit = 200;
@@ -329,7 +330,7 @@ public class SimulationAnneal implements MigrationScheduleInt {
 		result.setSeed(tick);
 		return result;
 	}
-	static Random random = new java.util.Random();
+	
 	protected void fluctuate() {
 
 		//Random random = getRandom();

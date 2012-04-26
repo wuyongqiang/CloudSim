@@ -173,7 +173,7 @@ public class TestEnergySimAnneal {
 	
 	@Test
 	public void testSolution2(){
-		generateProblem(200, 5, false);
+		generateProblem(100, 5, false);
 		MigrationProblem problem = getMigrationProblem();
 		CoEvSimAnneal sa = new CoEvSimAnneal(true,50,2);
 		sa.initScheduler(problem);
@@ -186,6 +186,17 @@ public class TestEnergySimAnneal {
 	@Test
 	public void testSolutionWithMem() {
 		generateProblem(1000,5,true);
+		EnergySimulationAnneal sa = new EnergySimulationAnneal();
+		sa.setAnnealTime(64);
+		sa.initScheduler(pCPU, vCPU, vAssignOld, oldInUse, newInUse, targetUtilization, vmNames);
+		sa.initMemory(vMEM);
+		sa.scheduleMigration();
+		int[] vAssign = sa.getAssignment();
+	}
+	
+	@Test
+	public void testSolutionWithMem500() {
+		generateProblem(500,10,true);
 		EnergySimulationAnneal sa = new EnergySimulationAnneal();
 		sa.setAnnealTime(64);
 		sa.initScheduler(pCPU, vCPU, vAssignOld, oldInUse, newInUse, targetUtilization, vmNames);
@@ -208,7 +219,7 @@ public class TestEnergySimAnneal {
 	
 	@Test
 	public void testCoEvSolutionWithMem1000(){
-		generateProblem(1000, 10, true);
+		generateProblem(1000, 5, true);
 		MigrationProblem problem = getMigrationProblem();
 		CoEvSimAnneal sa = new CoEvSimAnneal(false,100,3);
 		sa.initScheduler(problem);
@@ -220,9 +231,21 @@ public class TestEnergySimAnneal {
 	
 	@Test
 	public void testCoEvSolutionWithMem200(){
-		generateProblem(200, 5, true);
+		generateProblem(200, 10, true);
 		MigrationProblem problem = getMigrationProblem();
-		CoEvSimAnneal sa = new CoEvSimAnneal(false,100,4);
+		CoEvSimAnneal sa = new CoEvSimAnneal(false,100,3);
+		sa.initScheduler(problem);
+		sa.scheduleMigration();
+		MigrationProblem sol = sa.getSolution();
+		String s = sol.getProblemInfo();
+		System.out.println(s);
+	}
+	
+	@Test
+	public void testCoEvSolutionWithMem500(){
+		generateProblem(500, 10, true);
+		MigrationProblem problem = getMigrationProblem();
+		CoEvSimAnneal sa = new CoEvSimAnneal(false,100,3);
 		sa.initScheduler(problem);
 		sa.scheduleMigration();
 		MigrationProblem sol = sa.getSolution();

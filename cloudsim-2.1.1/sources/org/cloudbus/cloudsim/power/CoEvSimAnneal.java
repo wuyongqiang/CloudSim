@@ -20,6 +20,8 @@ public class CoEvSimAnneal extends MigrationScheduler {
 	private boolean confSimpleCombine = false;
 	private int groupNum = 50;
 	private int grEvTimeLimit = 2;
+	private volatile boolean task1Finished = false;
+	private volatile boolean task2Finished = false;
 
 	public CoEvSimAnneal(boolean confSimpleCombine,int groupNum,int grEvTimeLimit){
 		super();
@@ -29,10 +31,12 @@ public class CoEvSimAnneal extends MigrationScheduler {
 	}
 	@Override
 	public void scheduleMigration() {
-
+		task1Finished = false;
+		task2Finished = false;
+		
 		devideProblem();
 
-		executeSubTasks();
+		executeTasks();
 
 		combineSolution();
 	}
@@ -40,14 +44,65 @@ public class CoEvSimAnneal extends MigrationScheduler {
 	public void setSimpleCombine(boolean v){
 		confSimpleCombine = v;
 	}
-
+	
+	private void executeTasks(){
+		if (task1 != null &&  task2 != null) {
+			executeSubThreadTasks();
+		}else{
+			executeSubTasks();
+		}
+			
+	}
+	
 	private void executeSubTasks() {
 		if (task1 != null) {
 			task1.scheduleMigration();
 		}
+
+		task1Finished = true;
+		
 		if (task2 != null) {
 			task2.scheduleMigration();
 		}
+		
+		task2Finished = true;
+		
+	}
+
+	private void executeSubThreadTasks() {
+		if (task1 != null) {
+			runTask1();
+		}else{
+			task1Finished = true;
+		}
+		
+		if (task2 != null) {
+			runTask2();
+		}
+		else{
+			task2Finished = true;
+		}
+	}
+	
+	private void runTask1(){		
+		new Thread(){
+			public void run() {			
+				System.out.println(originalProblem.getName() +" task1 thread start");
+				task1.scheduleMigration();
+				System.out.println(originalProblem.getName() +" task1 thread exit");				
+				}
+		}.start();
+	}
+	
+	private void runTask2(){
+		task2Finished = false;
+		new Thread(){
+			public void run() {			
+				System.out.println(originalProblem.getName() +" task2 thread start");
+				task2.scheduleMigration();
+				System.out.println(originalProblem.getName() +" task2 thread exit");
+				}
+		}.start();
 	}
 
 	private void combineSolution() {
@@ -58,7 +113,7 @@ public class CoEvSimAnneal extends MigrationScheduler {
 			// System.out.println("solution1:"+solution1.getPmCount());
 			MigrationProblem solution2 = task2.getSolution();
 			// System.out.println("solutions2:"+solution2.getPmCount());
-			simplyCombineSolutions(solution1, solution2);
+			simplyCombineSolutions(solution1, solution2);			
 
 			if (!confSimpleCombine) {
 				// to find the low-utilization PMs and to re-assign
@@ -106,8 +161,10 @@ public class CoEvSimAnneal extends MigrationScheduler {
 				// System.out.println("solutions2-2:"+solution2.getPmCount());
 				simplyCombineSolutions(solution1, solution2);
 			}
-			solution = solution1;
+			solution = solution1;			
 		}
+		task1Finished = true;
+		task2Finished = true;
 	}
 
 	private void simplyCombineSolutions(MigrationProblem solution1,
@@ -148,8 +205,7 @@ public class CoEvSimAnneal extends MigrationScheduler {
 				problems[i % 2].addNonAssignedVm(vm);
 			}
 		} else {
-			problem1 = originalProblem;
-			System.out.println(problem1.getName());
+			problem1 = originalProblem.clone();			
 		}
 
 		initSubProblems();
@@ -170,6 +226,13 @@ public class CoEvSimAnneal extends MigrationScheduler {
 
 	@Override
 	public MigrationProblem getSolution() {
+		while(!task1Finished || !task2Finished){
+			try {
+				Thread.sleep(2000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}		
 		return solution;
 	}
 }
