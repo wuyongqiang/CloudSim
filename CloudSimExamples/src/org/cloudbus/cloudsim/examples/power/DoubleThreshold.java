@@ -21,6 +21,7 @@ import org.cloudbus.cloudsim.power.PowerHost;
 import org.cloudbus.cloudsim.power.PowerPe;
 import org.cloudbus.cloudsim.power.PowerVmAllocationPolicyDoubleThreshold;
 import org.cloudbus.cloudsim.power.PowerVmAllocationPolicySingleThreshold;
+import org.cloudbus.cloudsim.power.PowerVmAllocationPolicyTrading;
 import org.cloudbus.cloudsim.power.models.PowerModelLinear;
 import org.cloudbus.cloudsim.provisioners.BwProvisionerSimple;
 import org.cloudbus.cloudsim.provisioners.PeProvisionerSimple;
@@ -204,7 +205,8 @@ public class DoubleThreshold extends SingleThreshold {
 			powerDatacenter = new PowerDatacenter(
 					name,
 					characteristics,
-					new PowerVmAllocationPolicyDoubleThreshold(hostList, utilizationThreshold,utilizationLowThreshold),
+					//new PowerVmAllocationPolicyDoubleThreshold(hostList, utilizationThreshold,utilizationLowThreshold),
+					new PowerVmAllocationPolicyTrading(hostList, utilizationThreshold,utilizationLowThreshold),
 					new LinkedList<Storage>(),
 					5.0);
 		} catch (Exception e) {

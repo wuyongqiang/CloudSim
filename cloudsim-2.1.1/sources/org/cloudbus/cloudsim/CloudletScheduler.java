@@ -185,6 +185,8 @@ public abstract class CloudletScheduler {
 	 * @return total utilization
 	 */
 	public abstract double getTotalUtilizationOfCpu(double time);
+	
+	public abstract double getTotalUtilizationOfRam(double time);
 
 	/**
 	 * Gets the current requested mips.
@@ -192,6 +194,8 @@ public abstract class CloudletScheduler {
 	 * @return the current mips
 	 */
 	public abstract List<Double> getCurrentRequestedMips();
+	
+	public abstract double getCurrentRequestedRam();
 
 	/**
 	 * Gets the total current mips for the Cloudlet.

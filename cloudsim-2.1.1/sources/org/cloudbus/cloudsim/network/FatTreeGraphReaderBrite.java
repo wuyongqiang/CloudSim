@@ -26,7 +26,7 @@ import java.util.StringTokenizer;
  * @author		Thomas Hohnstein
  * @since		CloudSim Toolkit 1.0
  */
-public class GraphReaderBrite implements GraphReaderIF {
+public class FatTreeGraphReaderBrite implements GraphReaderIF {
 
 	protected static final int PARSE_NOTHING = 0;
 	protected static final int PARSE_NODES = 1;
@@ -103,7 +103,7 @@ public class GraphReaderBrite implements GraphReaderIF {
 		StringTokenizer tokenizer = new StringTokenizer(nodeLine);
 
 		//number of node parameters to parse (counts at linestart)
-		int parameters = 3;
+		int parameters = 4;
 
 		//first test to step to the next parsing-state (edges)
 		if(nodeLine.contains("Edges:")){
@@ -126,7 +126,7 @@ public class GraphReaderBrite implements GraphReaderIF {
 		String nodeLabel = "";
 		int xPos = 0;
 		int yPos = 0;
-
+		int nodeType = 0;
 		for(int actualParam = 0; tokenizer.hasMoreElements() && actualParam < parameters; actualParam++){
 			String token = tokenizer.nextToken();
 			switch(actualParam){
@@ -143,12 +143,17 @@ public class GraphReaderBrite implements GraphReaderIF {
 				case 2:	//Log.printLine("y-Pos: "+token);
 						yPos = Integer.valueOf(token);
 						break;
+				case 3: 
+						nodeType = Integer.valueOf(token);
+						break;
 			}
 		}
 
 		//instanciate an new node-object with previous parsed parameters
-		TopologicalNode topoNode = new TopologicalNode(nodeID, nodeLabel, xPos, yPos);
+		FatTreeTopologicalNode topoNode = new FatTreeTopologicalNode(nodeID, nodeLabel, xPos, yPos);
+		topoNode.setNodeType(FatTreeTopologicalNode.FatTreeNodeType(nodeType));
 		graph.addNode(topoNode);
+		topoNode.setGraph(graph);
 
 
 	}//parseNodeString-END

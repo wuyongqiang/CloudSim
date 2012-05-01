@@ -39,6 +39,8 @@ public class CloudletSchedulerDynamicWorkload extends CloudletSchedulerTimeShare
 	private double cachePreviousTime;
 
 	private List<Double> cacheCurrentRequestedMips;
+	
+	private double ram;
 
 	/**
 	 * Instantiates a new vM scheduler time shared.
@@ -46,13 +48,14 @@ public class CloudletSchedulerDynamicWorkload extends CloudletSchedulerTimeShare
 	 * @param pesNumber the pes number
 	 * @param mips the mips
 	 */
-	public CloudletSchedulerDynamicWorkload(double mips, int pesNumber) {
+	public CloudletSchedulerDynamicWorkload(double mips, int pesNumber, int ram) {
 		super();
 		setMips(mips);
 		setPesNumber(pesNumber);
 		setTotalMips(getPesNumber() * getMips());
 		setUnderAllocatedMips(new HashMap<String, Double>());
 		setCachePreviousTime(-1);
+		setRam(ram);
 	}
 
 	/**
@@ -177,6 +180,15 @@ public class CloudletSchedulerDynamicWorkload extends CloudletSchedulerTimeShare
 	}
 	
 	@Override
+	public double getTotalUtilizationOfRam(double time) {
+		double totalUtilization = 0;
+		for (ResCloudlet rcl : getCloudletExecList()) {
+			totalUtilization += rcl.getCloudlet().getUtilizationOfRam(time);
+		}
+		return totalUtilization;
+	}
+	
+	@Override
 	public double getAvgTotalUtilizationOfCpu(double time) {
 		double totalUtilization = 0;
 		for (ResCloudlet rcl : getCloudletExecList()) {
@@ -209,6 +221,11 @@ public class CloudletSchedulerDynamicWorkload extends CloudletSchedulerTimeShare
 		return currentMips;
 	}
 	
+	@Override
+	public double getCurrentRequestedRam() {		
+		double totalRam = getTotalUtilizationOfCpu(getPreviousTime()) * getRam();	
+		return totalRam;
+	}
 	@Override
 	public List<Double> getAvgCurrentRequestedMips() {
 		
@@ -411,6 +428,14 @@ public class CloudletSchedulerDynamicWorkload extends CloudletSchedulerTimeShare
 	protected void setCacheCurrentRequestedMips(
 			List<Double> cacheCurrentRequestedMips) {
 		this.cacheCurrentRequestedMips = cacheCurrentRequestedMips;
+	}
+
+	public double getRam() {
+		return ram;
+	}
+
+	public void setRam(double ram) {
+		this.ram = ram;
 	}
 
 }

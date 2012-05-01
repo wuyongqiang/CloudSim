@@ -201,7 +201,7 @@ public class DVFS {
 
 		for (int i = 0; i < vmsNumber; i++) {
 			vms.add(
-				new Vm(i, brokerId, mips[i % mips.length], pesNumber, ram, bw, size, vmm, new CloudletSchedulerDynamicWorkload(mips[i % mips.length], pesNumber))
+				new Vm(i, brokerId, mips[i % mips.length], pesNumber, ram, bw, size, vmm, new CloudletSchedulerDynamicWorkload(mips[i % mips.length], pesNumber,ram))
 			);
 		}
 

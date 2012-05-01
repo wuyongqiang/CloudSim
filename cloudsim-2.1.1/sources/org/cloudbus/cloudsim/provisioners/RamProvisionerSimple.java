@@ -46,7 +46,7 @@ public class RamProvisionerSimple extends RamProvisioner {
 		if (ram >= maxRam) {
 			ram = maxRam;
 		}
-
+	
 		deallocateRamForVm(vm);
 
 		if (getAvailableRam() >= ram) {

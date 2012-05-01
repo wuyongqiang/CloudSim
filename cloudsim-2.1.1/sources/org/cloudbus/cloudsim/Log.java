@@ -57,8 +57,12 @@ public class Log {
 	private static FileOutputStream outputHostOnOff;
 
 	private static FileOutputStream outputViolation;
+	
+	private static FileOutputStream outputMemViolation;
 
 	private static String violationFilePath;
+
+	private static String violationMemFilePath;
 
 	
 
@@ -258,6 +262,11 @@ public class Log {
 		createFileIfNotExist(violationFilePath);
 		outputViolation = new FileOutputStream(violationFilePath);
 		
+		// create vm  output stream for importing to database
+		violationMemFilePath = addFileSuffix(filePath, "violationMem");
+		createFileIfNotExist(violationFilePath);
+		outputMemViolation = new FileOutputStream(violationMemFilePath);
+		
 		String idText = readText(logSimIdFilePath).replaceAll(LINE_SEPARATOR, "");
 		if (idText==null || idText.length()==0 || idText.equals(LINE_SEPARATOR)){
 			logSimId = 1;
@@ -359,6 +368,19 @@ public class Log {
 	    }	    
 	    return text.toString();
 	  }
+
+	public static void printLineToMemViolationFile(int time, int vm, int host,
+			double totalRequestedMem, double totalAllocatedMem) {
+		if (!isDisabled()) {
+			String message = String.format("%d,%d,%d,%d,%.2f,%.2f", logSimId, time, vm, host, totalRequestedMem, totalAllocatedMem) + LINE_SEPARATOR;			
+			try {
+				outputMemViolation.write(message.getBytes());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		
+	}
 
 
 }

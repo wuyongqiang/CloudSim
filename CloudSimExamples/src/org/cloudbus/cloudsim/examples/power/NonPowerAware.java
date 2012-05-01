@@ -217,7 +217,7 @@ public class NonPowerAware {
 
 		for (int i = 0; i < vmsNumber; i++) {
 			vms.add(
-				new Vm(i, brokerId, mips[i % mips.length], pesNumber, rams[i % mips.length] , bw, size, vmm, new CloudletSchedulerDynamicWorkloadFixedTime(mips[i % mips.length], pesNumber))
+				new Vm(i, brokerId, mips[i % mips.length], pesNumber, rams[i % mips.length] , bw, size, vmm, new CloudletSchedulerDynamicWorkloadFixedTime(mips[i % mips.length], pesNumber,rams[i % mips.length]))
 			);
 		}
 

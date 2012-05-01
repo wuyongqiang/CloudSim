@@ -8,8 +8,8 @@ import org.cloudbus.cloudsim.core.CloudSim;
 public class CloudletSchedulerDynamicWorkloadFixedTime extends
 		CloudletSchedulerDynamicWorkload {
 
-	public CloudletSchedulerDynamicWorkloadFixedTime(double mips, int pesNumber) {
-		super(mips, pesNumber);
+	public CloudletSchedulerDynamicWorkloadFixedTime(double mips, int pesNumber, int ram) {
+		super(mips, pesNumber,ram);
 		// TODO Auto-generated constructor stub
 	}
 	

@@ -238,7 +238,11 @@ public class Vm {
 	 * @return the current requested ram
 	 */
 	public int getCurrentRequestedRam() {
-		return getRam();
+		return (int) getCloudletScheduler().getCurrentRequestedRam();
+	}
+	
+	public double getTotalUtilizationOfRam(double time) {
+		return getCloudletScheduler().getTotalUtilizationOfRam(time);
 	}
 
 	/**

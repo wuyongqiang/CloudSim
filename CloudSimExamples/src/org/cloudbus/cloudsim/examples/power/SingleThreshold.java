@@ -34,6 +34,7 @@ import org.cloudbus.cloudsim.power.PowerDatacenter;
 import org.cloudbus.cloudsim.power.PowerHost;
 import org.cloudbus.cloudsim.power.PowerPe;
 import org.cloudbus.cloudsim.power.PowerVmAllocationPolicySTLeastMigCost;
+import org.cloudbus.cloudsim.power.PowerVmAllocationPolicySimAnneal;
 import org.cloudbus.cloudsim.power.PowerVmAllocationPolicySingleThreshold;
 import org.cloudbus.cloudsim.power.models.PowerModelLinear;
 import org.cloudbus.cloudsim.provisioners.BwProvisionerSimple;
@@ -239,14 +240,14 @@ public class SingleThreshold {
 		// VM description
 		int[] mips = { 250, 500, 750, 1000 }; // MIPSRating
 		int pesNumber = 1; // number of cpus
-		int[] rams = {128, 256, 374, 512 }; // vm memory (MB)
+		int[] rams =    { 250, 500, 750, 1000 };//{128, 256, 374, 512 }; // vm memory (MB)
 		long bw = 2500; // bandwidth
 		long size = 2500; // image size (MB)
 		String vmm = "Xen"; // VMM name
 
 		for (int i = 0; i < vmsNumber; i++) {
 			vms.add(
-				new Vm(i, brokerId, mips[i % mips.length], pesNumber, rams[i % mips.length], bw, size, vmm, new CloudletSchedulerDynamicWorkloadFixedTime(mips[i % mips.length], pesNumber))
+				new Vm(i, brokerId, mips[i % mips.length], pesNumber, rams[i % mips.length], bw, size, vmm, new CloudletSchedulerDynamicWorkloadFixedTime(mips[i % mips.length], pesNumber,rams[i % mips.length]))
 			);
 		}
 
@@ -288,7 +289,7 @@ public class SingleThreshold {
 			hostList.add(
 				new PowerHost(
 					i,
-					new RamProvisionerSimple(ram),
+					new RamProvisionerSimple(mips[i % mips.length]), //ram
 					new BwProvisionerSimple(bw),
 					storage,
 					peList,
@@ -319,7 +320,7 @@ public class SingleThreshold {
 		try {
 			VmAllocationPolicy vmAllocationPolicy = null;
 			if (useSA)
-				vmAllocationPolicy = new PowerVmAllocationPolicySTLeastMigCost(hostList, utilizationThreshold);
+				vmAllocationPolicy = new PowerVmAllocationPolicySimAnneal(hostList, utilizationThreshold);
 			else
 				vmAllocationPolicy = new PowerVmAllocationPolicySingleThreshold(hostList, utilizationThreshold);
 			

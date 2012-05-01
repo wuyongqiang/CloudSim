@@ -1,10 +1,8 @@
 package org.cloudbus.cloudsim.power;
 
-import org.cloudbus.cloudsim.power.migration.MigrationProblem;
 
 public class EnergySimulationAnneal extends SimulationAnneal {
-
-	private volatile boolean threadFinished = false;
+	
 	public EnergySimulationAnneal(double[] pCPU, double[] pVM, int[] vAssignOld,
 			int oldPMInUse, int newPMInUse, double targetUtilization,
 			String[] vmNames) {
@@ -15,45 +13,6 @@ public class EnergySimulationAnneal extends SimulationAnneal {
 		super();
 		migrationCost = 1;
 	}	
-	/*
-	@Override
-	public void scheduleMigration() {
-		threadFinished = false;
-		new Thread(){
-			public void run() {			
-				System.out.println(originalProblem.getName() +" thread start");
-				anneal();
-				System.out.println(originalProblem.getName() +" thread exit");
-				threadFinished = true;
-				}
-		}.start();
-		
-	}
-	
-	
-	@Override
-	public MigrationProblem getSolution() {
-		while(!threadFinished){
-			try {
-				Thread.sleep(2000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
-		return super.getSolution();
-	}
-	
-	@Override
-	public int[] getAssignment(){
-		while(!threadFinished){
-			try {
-				Thread.sleep(2000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
-		return super.getAssignment();
-	}*/
 	
 	public EnergySimulationAnneal(int timeLimit) {
 		super();
