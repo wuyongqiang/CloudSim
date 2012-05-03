@@ -133,6 +133,7 @@ public class DoubleThreshold extends SingleThreshold {
 			Log.printLine(String.format("Average SLA violation: %.2f%%", averageSla));
 			Log.printLine(String.format("Turn On times: %d", datacenter.getTurnOnTimes()));
 			Log.printLine(String.format("Turn Off times: %d", datacenter.getTurnOffTimes()));
+			Log.printLine(String.format("satisfaction rate: %.2f%%", totalTotalAllocated*1.0/totalTotalRequested*100));
 			Log.printLine();
 			
 			Log.printLineToInfoFile(datacenter.getVmAllocationPolicy().getPolicyDesc(),simLength, 
