@@ -14,6 +14,7 @@ import org.cloudbus.cloudsim.Log;
 import org.cloudbus.cloudsim.Storage;
 import org.cloudbus.cloudsim.UtilizationModelStochastic;
 import org.cloudbus.cloudsim.UtilizationModelWorkHour;
+import org.cloudbus.cloudsim.VmAllocationPolicy;
 import org.cloudbus.cloudsim.VmSchedulerTimeShared;
 import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.power.PowerDatacenter;
@@ -30,6 +31,7 @@ import org.cloudbus.cloudsim.provisioners.RamProvisionerSimple;
 public class DoubleThreshold extends SingleThreshold {
 
 	private static double utilizationLowThreshold = 0.4;
+	private static boolean useTrading = true;
 	
 
 	public static void main(String[] args) throws IOException {
@@ -201,12 +203,16 @@ public class DoubleThreshold extends SingleThreshold {
 
 		// 6. Finally, we need to create a PowerDatacenter object.
 		PowerDatacenter powerDatacenter = null;
+		VmAllocationPolicy policy =null;
+		if (!useTrading)
+			policy = new PowerVmAllocationPolicyDoubleThreshold(hostList, utilizationThreshold,utilizationLowThreshold);
+		else
+			policy =new PowerVmAllocationPolicyTrading(hostList, utilizationThreshold,utilizationLowThreshold);
 		try {
 			powerDatacenter = new PowerDatacenter(
 					name,
 					characteristics,
-					//new PowerVmAllocationPolicyDoubleThreshold(hostList, utilizationThreshold,utilizationLowThreshold),
-					new PowerVmAllocationPolicyTrading(hostList, utilizationThreshold,utilizationLowThreshold),
+					policy,
 					new LinkedList<Storage>(),
 					5.0);
 		} catch (Exception e) {

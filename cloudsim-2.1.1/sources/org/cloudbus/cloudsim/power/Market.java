@@ -25,8 +25,8 @@ public class Market {
 					buyer = bidder;
 				}
 			}
-			
-			soldSuccess = (price > 0);
+			if (saleItem.getOwner()==null || saleItem.getOwner().accept(price))
+				soldSuccess = (price > 0);
 			soldItem = soldSuccess ? saleItem : null;
 		}
 		return soldSuccess;
@@ -52,6 +52,7 @@ public class Market {
 		if( item != null)
 			items.add(item);
 	}
+		
 	
 	public void addBidder(Bidder bidder){
 		if (bidder != null)

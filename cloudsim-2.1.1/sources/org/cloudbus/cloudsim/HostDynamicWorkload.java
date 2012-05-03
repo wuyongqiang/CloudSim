@@ -106,7 +106,7 @@ public class HostDynamicWorkload extends Host {
 			}
 			if (vm.isInMigration()) {
 				Log.printLine("VM #" + vm.getId() + " is in migration");
-				totalAllocatedMips /= 0.9; // performance degradation due to migration - 10%
+				totalAllocatedMips /= 0.99; // performance degradation due to migration - 10%
 			}
 
 			setUtilizationMips(getUtilizationMips() + totalAllocatedMips);
@@ -138,7 +138,7 @@ public class HostDynamicWorkload extends Host {
 			}
 			if (vm.isInMigration()) {
 				Log.printLine("VM #" + vm.getId() + " is in migration");
-				totalAllocatedMem /= 0.9; // performance degradation due to migration - 10%
+				totalAllocatedMem /= 0.99; // performance degradation due to migration - 10%
 			}
 
 			setUtilizationMem(getUtilizationMem() + totalAllocatedMem);

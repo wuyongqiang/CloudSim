@@ -1,5 +1,6 @@
 package org.cloudbus.cloudsim.power;
 
+import org.cloudbus.cloudsim.Host;
 import org.cloudbus.cloudsim.Vm;
 
 public class SaleItem {
@@ -8,7 +9,9 @@ public class SaleItem {
 	private int value;
 	private int priority;
 	
-	public SaleItem(Vm vm){
+	private Seller owner;
+	
+	public SaleItem(Vm vm, Seller owner){
 		this.vm = vm;
 	}
 	
@@ -30,6 +33,14 @@ public class SaleItem {
 
 	public void setPriority(int priority) {
 		this.priority = priority;
+	}
+
+	public Seller getOwner() {
+		return owner;
+	}
+
+	public void setOwner(Seller owner) {
+		this.owner = owner;
 	}
 
 }

@@ -64,7 +64,9 @@ public class PowerVmAllocationPolicyTrading extends
 		if (vm!=null && allocatedHost!=null && vm.getHost().getId() != allocatedHost.getId()){
 			migrate.put("vm", vm);
 			migrate.put("host", allocatedHost);
-			allocatedHost.setLastMigrationTime(CloudSim.clock());
+			PowerHost oldHost = (PowerHost) vm.getHost();
+			if (oldHost!=null) oldHost.setLastMigrationTime(CloudSim.clock());
+			vm.setLastMigrationTime(CloudSim.clock());
 		}
 		return migrate;
 	}
