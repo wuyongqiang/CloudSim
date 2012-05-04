@@ -1,7 +1,9 @@
 package org.cloudbus.cloudsim.power;
 
-public interface Seller {
-	public boolean accept(int price);
+import java.util.List;
+
+public interface Seller {	
 	public SaleItem provisionSaleItem();
 	public SaleItem getSaleItem();
+	public boolean accept(SaleItemPrice bidPrice);
 }

@@ -11,26 +11,41 @@ public class Market {
 	private List<SaleItem> items = new ArrayList<SaleItem>();
 	
 	private SaleItem soldItem = null;
-	private Bidder buyer = null;
+	private List<Bidder> buyers = new ArrayList<Bidder>();
 	
 	public boolean bid(){
 		Boolean soldSuccess = false;
 		SaleItem saleItem = selectSaleItem(); 
 		if (saleItem!=null){
-			int price = 0;
-			for (Bidder bidder : bidders){
-				int curBidPrice = bidder.bidPrice(saleItem);
-				if (price < curBidPrice){				
-					price = curBidPrice;
-					buyer = bidder;
+			
+			//int vmCount = saleItem.getRealItems().size();
+			//ArrayList<Integer> priceList = new ArrayList<Integer>(vmCount);
+			SaleItemPrice bidPrice = new SaleItemPrice();
+			for (int i=0;i<saleItem.getRealItems().size();i++){
+				bidPrice.addPrice(0);
+				buyers.add(null);
+			}
+				
+			
+			for (Bidder bidder : bidders){				
+				SaleItemPrice curBidPrice = bidder.bidPrice(saleItem);
+				
+				for(int i=0;i< curBidPrice.getPriceList().size();i++){
+					
+					if (bidPrice.getPriceList().get(i) < curBidPrice.getPriceList().get(i)){				
+						Integer tmpPrice = curBidPrice.getPriceList().get(i);
+						bidPrice.getPriceList().set(i, tmpPrice);						
+						buyers.set(i, bidder);
+					}
 				}
 			}
-			if (saleItem.getOwner()==null || saleItem.getOwner().accept(price))
-				soldSuccess = (price > 0);
+			if (saleItem.getOwner()==null || saleItem.getOwner().accept(bidPrice))
+				soldSuccess = bidPrice.isValid();
 			soldItem = soldSuccess ? saleItem : null;
 		}
 		return soldSuccess;
 	}
+	
 	
 	private SaleItem selectSaleItem() {
 		int priority = -1;
@@ -59,8 +74,8 @@ public class Market {
 			bidders.add(bidder);
 	}
 
-	public Bidder getBuyer() {	
-		return buyer;
+	public List<Bidder> getBuyers() {	
+		return buyers;
 	}
 	
 	

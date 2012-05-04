@@ -1,26 +1,54 @@
 package org.cloudbus.cloudsim.power;
 
-import org.cloudbus.cloudsim.Host;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.cloudbus.cloudsim.Vm;
 
 public class SaleItem {
 
 	private Vm vm;
+	private List<Vm> vms;
 	private int value;
 	private int priority;
 	
-	private Seller owner;
+	private Seller owner;	
 	
 	public SaleItem(Vm vm, Seller owner){
 		this.vm = vm;
 	}
 	
+	public SaleItem(List<Vm> vms, Seller owner){
+		this.vms = vms;
+	}
+	
 	public Vm getRealItem(){
-		return vm;
+		if (vm!=null)
+			return vm;
+		if (vms!=null && vms.size()>0)
+			return vms.get(0);
+		else
+			return null;
 	}
 
+	public List<Vm> getRealItems(){
+		if (vms!=null)
+			return vms;
+		vms = new ArrayList<Vm>();
+		vms.add(vm);
+		return vms;
+	}
+	
 	public int getValue() {
-		return (int)vm.getMips();
+		if (vm!=null)
+			return (int)vm.getMips();
+		else{
+			int v = 0;
+			for(Vm tmpVm : vms){
+				v += (int)tmpVm.getMips();
+			}
+			return v;
+		}
 	}
 
 	public void setValue(int value) {

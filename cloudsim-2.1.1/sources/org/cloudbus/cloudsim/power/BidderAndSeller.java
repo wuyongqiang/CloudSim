@@ -1,6 +1,7 @@
 package org.cloudbus.cloudsim.power;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Random;
 
 import org.cloudbus.cloudsim.Vm;
@@ -60,9 +61,19 @@ public class BidderAndSeller extends Bidder implements Seller {
 		return item;
 	}
 
+
+	/*@Override
+	public SaleItem getSaleItem() {		
+		return saleItem;
+	}*/
+
 	@Override
-	public boolean accept(int price) {
-		int diff =  price - bidPrice;
+	public boolean accept(SaleItemPrice price) {
+		int selfBidPrice = bidPrice;
+		if (price.getPriceList().size()>1){
+			selfBidPrice = (int)host.getPower();
+		}
+		int diff =  price.totalPrice() - selfBidPrice;
 		boolean accepted = false;
 		if (diff / bidPrice > 0.00)
 			accepted = true;
@@ -71,8 +82,9 @@ public class BidderAndSeller extends Bidder implements Seller {
 		return accepted;
 	}
 
+
 	@Override
-	public SaleItem getSaleItem() {		
+	public SaleItem getSaleItem() {
 		return saleItem;
 	}
 	

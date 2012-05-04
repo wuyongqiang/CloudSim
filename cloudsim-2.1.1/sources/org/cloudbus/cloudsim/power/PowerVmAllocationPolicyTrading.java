@@ -51,23 +51,27 @@ public class PowerVmAllocationPolicyTrading extends
 	}
 
 	private Map<String, Object> trade() {
-		Vm vm=null;
+		
 		PowerHost allocatedHost=null;
 		Map<String, Object> migrate = new HashMap<String, Object>();
 		
 		Market market = createMarket();
-		if (market.bid()){
-			vm = market.getSoldItem().getRealItem();
-			allocatedHost = (PowerHost) market.getBuyer().getHost();
-		}
-		
-		if (vm!=null && allocatedHost!=null && vm.getHost().getId() != allocatedHost.getId()){
-			migrate.put("vm", vm);
-			migrate.put("host", allocatedHost);
-			PowerHost oldHost = (PowerHost) vm.getHost();
-			if (oldHost!=null) oldHost.setLastMigrationTime(CloudSim.clock());
-			vm.setLastMigrationTime(CloudSim.clock());
-		}
+		if (market.bid()) {
+			for (int i=0;i<market.getSoldItem().getRealItems().size();i++) {
+				Vm vm = market.getSoldItem().getRealItems().get(i);
+				allocatedHost = (PowerHost) market.getBuyers().get(i).getHost();
+
+				if (vm != null && allocatedHost != null
+						&& vm.getHost().getId() != allocatedHost.getId()) {
+					migrate.put("vm", vm);
+					migrate.put("host", allocatedHost);
+					PowerHost oldHost = (PowerHost) vm.getHost();
+					if (oldHost != null)
+						oldHost.setLastMigrationTime(CloudSim.clock());
+					vm.setLastMigrationTime(CloudSim.clock());
+				}
+			}
+		}		
 		return migrate;
 	}
 

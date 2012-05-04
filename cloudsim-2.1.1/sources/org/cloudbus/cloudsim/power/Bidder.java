@@ -14,12 +14,31 @@ public class Bidder {
 		this.host = host;
 	}
 	
-	public int bidPrice(SaleItem saleItem) {
+	
+	public SaleItemPrice bidPrice(SaleItem saleItem){
+		List<Vm> vms = saleItem.getRealItems();
+		
+		SaleItemPrice bidPrice = new SaleItemPrice();
+		for (Vm vm : vms){
+			int price = 0;
+			//whole sale, the owner does not bid
+			if (vm.getHost().getId() == this.host.getId() && vms.size() > 1){
+				price = 0;
+			}else{
+				price = bidOneVm(vm);
+			}
+			bidPrice.addPrice(price);
+		}		
+		return bidPrice;
+		
+	}
+	
+	private int bidOneVm(Vm vm) {
 		
 		//if ( CloudSim.clock() - host.getLastMigrationTime() < 100)
 		//	return 0;
 
-		Vm vm = saleItem.getRealItem();
+		
 		
 		
 		int income = (int)vm.getMips();
@@ -32,8 +51,8 @@ public class Bidder {
 		if (vm.getHost().getId() == this.host.getId() ){
 			oldPower = host.getPower();
 			newPower = getPowerAfterDeAllocation(vm);
-			cost = (int)(oldPower - newPower);
-			bidPrice = income -cost;
+			cost = (int) (oldPower - newPower);
+			bidPrice = income - cost;
 		}
 		else if ( host.isSuitableForVm(vm) ){
 			oldPower = host.getPower();
