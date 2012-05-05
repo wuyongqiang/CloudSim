@@ -26,8 +26,8 @@ public class SaleItemPrice {
 	public int totalPrice(){
 		int tValue = 0;
 		for(int i=0;i<priceList.size();i++){
-			if (priceList.get(i)==null || priceList.get(i).intValue()==0)
-				tValue += priceList.get(i);
+			if (priceList.get(i)!=null && priceList.get(i).intValue()!=0)
+				tValue += priceList.get(i).intValue();
 		}
 		return tValue;
 	}

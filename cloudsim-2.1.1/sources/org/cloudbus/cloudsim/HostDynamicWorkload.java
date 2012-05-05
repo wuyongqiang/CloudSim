@@ -181,8 +181,9 @@ public class HostDynamicWorkload extends Host {
 	 */
 	@SuppressWarnings("unchecked")
 	public double getMaxUtilization(boolean moreRecently) {
-		double currentUtilization =  PeList.getMaxUtilization((List<Pe>) getPeList());
+		//double currentUtilization =  PeList.getMaxUtilization((List<Pe>) getPeList());
 		//return currentUtilization;
+		double currentUtilization = getUtilizationOfCpu();
 		return getHistoryAvgUtilization(currentUtilization,moreRecently);
 	}
 

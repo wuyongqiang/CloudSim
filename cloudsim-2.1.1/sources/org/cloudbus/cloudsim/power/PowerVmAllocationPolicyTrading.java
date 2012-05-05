@@ -42,25 +42,25 @@ public class PowerVmAllocationPolicyTrading extends
 		List<Vm> vmsToRestore = new ArrayList<Vm>();
 		vmsToRestore.addAll(vmList);
 
-		Map<String, Object> migrate = trade();
+		List<Map<String, Object>> migrate = trade();
 		if (migrate.size()>0)
-			migrationMap.add(migrate);
+			migrationMap.addAll(migrate);
 
 		restoreAllocation(vmsToRestore, getHostList());
 		return migrationMap;
 	}
 
-	private Map<String, Object> trade() {
+	private List<Map<String, Object>> trade() {
 		
 		PowerHost allocatedHost=null;
-		Map<String, Object> migrate = new HashMap<String, Object>();
 		
+		ArrayList<Map<String, Object>> migList = new ArrayList<Map<String,Object>>();
 		Market market = createMarket();
 		if (market.bid()) {
 			for (int i=0;i<market.getSoldItem().getRealItems().size();i++) {
 				Vm vm = market.getSoldItem().getRealItems().get(i);
 				allocatedHost = (PowerHost) market.getBuyers().get(i).getHost();
-
+				Map<String, Object> migrate = new HashMap<String, Object>();
 				if (vm != null && allocatedHost != null
 						&& vm.getHost().getId() != allocatedHost.getId()) {
 					migrate.put("vm", vm);
@@ -69,12 +69,19 @@ public class PowerVmAllocationPolicyTrading extends
 					if (oldHost != null)
 						oldHost.setLastMigrationTime(CloudSim.clock());
 					vm.setLastMigrationTime(CloudSim.clock());
+					
+					migList.add(migrate);
+					log(vm.getId()+"from \t" + vm.getHost().getId() + "to \t" + allocatedHost.getId() );
 				}
 			}
 		}		
-		return migrate;
+		return migList;
 	}
-
+	
+	
+	private void log(String s){
+		System.out.println(CloudSim.clock()+":\t"+s);
+	}
 	
 
 	private Market createMarket() {

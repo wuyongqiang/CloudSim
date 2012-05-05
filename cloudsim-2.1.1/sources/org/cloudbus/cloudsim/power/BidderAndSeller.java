@@ -34,6 +34,7 @@ public class BidderAndSeller extends Bidder implements Seller {
 			if (CloudSim.clock()<vm.getRecommendMigrationInterval() 
 					|| vm.getRecommendMigrationInterval() + vm.getLastMigrationTime() < CloudSim.clock()){
 				item = new SaleItem(vm, this);
+				item.setOwner(this);
 				// Date d =new Date();
 				// Random r = new Random(d.getTime());
 				item.setPriority(priority); // Math.abs(r.nextInt())%10 );
@@ -43,13 +44,20 @@ public class BidderAndSeller extends Bidder implements Seller {
 					item.setPriority(15000);
 				else if (host.getMaxUtilization(false) > 0.7)
 					item.setPriority(10000);
-				else if (host.getMaxUtilization(false) < 0.2) {
+				else if (host.getMaxUtilization(false) < 0.02) {
 					item.setPriority(6999);
-				}else if (host.getMaxUtilization(false) < 0.3) {
-					item.setPriority(5999);
+				}else if (host.getMaxUtilization(false) < 0.4) {
+					if (host.getVmsMigratingIn().size()==0){
+					item.setPriority(5999);					
+					item.getRealItems().clear();
+					item.getRealItems().addAll(host.getVmList());
+					}
+					else{
+						item = null;
+					}
 				}
 				else if (host.getMaxUtilization(false) < 0.4) {
-					//item.setPriority(4999);
+					item.setPriority(4999);
 				} 
 				else {
 					//item = null;
@@ -69,16 +77,22 @@ public class BidderAndSeller extends Bidder implements Seller {
 
 	@Override
 	public boolean accept(SaleItemPrice price) {
-		int selfBidPrice = bidPrice;
+		int selfBidPrice = 0;
 		if (price.getPriceList().size()>1){
-			selfBidPrice = (int)host.getPower();
-		}
+			selfBidPrice = getTotalIncome() - (int)host.getPower();
+		}else
+			selfBidPrice =  getSelfBidPrice(saleItem.getRealItem());
+		
 		int diff =  price.totalPrice() - selfBidPrice;
 		boolean accepted = false;
-		if (diff / bidPrice > 0.00)
+		if (selfBidPrice>0 && diff* 1.0 / selfBidPrice > 0.00){
+			System.out.println("bidPrice " + price.totalPrice() +" selfBidPrice=" + selfBidPrice );
 			accepted = true;
-		if (!canHoldTheVm(saleItem.getRealItem()))
+		}
+		if (!canHoldTheVm(saleItem.getRealItem())){
+			System.out.println("cannot hold the vm " + String.format("%.2f",  host.getMaxUtilization(false) ));
 			accepted = true;
+		}
 		return accepted;
 	}
 

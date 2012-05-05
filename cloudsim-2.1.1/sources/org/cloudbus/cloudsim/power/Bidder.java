@@ -23,14 +23,42 @@ public class Bidder {
 			int price = 0;
 			//whole sale, the owner does not bid
 			if (vm.getHost().getId() == this.host.getId() && vms.size() > 1){
-				price = 0;
+				price = 0;				
 			}else{
-				price = bidOneVm(vm);
+				//does not bid if it is turned off a short time ago
+				if ( CloudSim.clock() - host.getLastMigrationTime() < 100 &&
+						hostTurnedOff() )
+					price = 0;
+				else
+					price = bidOneVm(vm);
 			}
 			bidPrice.addPrice(price);
 		}		
 		return bidPrice;
 		
+	}
+	
+	private boolean hostTurnedOff(){
+		if (host.getVmList().size()==0)
+			return true;
+		
+		boolean allBeingMigrated = true;
+		for (Vm vm : host.getVmList()){
+			if (!vm.isInMigration()){
+				allBeingMigrated = false;
+				break;
+			}				
+		}
+		return allBeingMigrated;		
+	}
+	
+	protected int getSelfBidPrice(Vm vm){
+		if (!canHoldTheVm(vm)) return 0;
+		int income = (int)vm.getMips();
+		double oldPower =  host.getPower();
+		double newPower =  getPowerAfterDeAllocation(vm);
+		int cost = (int) (oldPower - newPower);
+		return income - cost;
 	}
 	
 	private int bidOneVm(Vm vm) {
@@ -111,6 +139,14 @@ public class Bidder {
 
 		return power;
 	}
+	
+	protected int getTotalIncome(){
+		int income = 0;
+		for(Vm vm : host.getVmList()){
+			income += vm.getMips();
+		}
+		return income;
+	}
 
 
 	public Host getHost() {		
@@ -122,11 +158,16 @@ public class Bidder {
 	}
 	
 	protected boolean canHoldTheVm(Vm vm){
-		if (vm.getHost() == host) return true;
+		if (vm.getHost() == host){
+			if (host.getMaxUtilization(false) < 0.7) 
+				return true;
+			else
+				return false;
+		}
 		double avgMips = vm.getAvgCurrentRequestedTotalMips();
 		double increaseUtil = avgMips/ host.getMaxAvailableMips();
-		return (host.getMaxUtilization(false) + increaseUtil) < 0.7 ||
-				host.getMaxUtilization(false) > 0.4;
+		return (host.getMaxUtilization(false) + increaseUtil < 0.7); 
+				//|| host.getMaxUtilization(false) > 0.4;
 		
 	}
 

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.cloudbus.cloudsim.Host;
+import org.cloudbus.cloudsim.Vm;
 
 public class Market {
 	
@@ -27,16 +28,33 @@ public class Market {
 			}
 				
 			
-			for (Bidder bidder : bidders){				
-				SaleItemPrice curBidPrice = bidder.bidPrice(saleItem);
+			
 				
-				for(int i=0;i< curBidPrice.getPriceList().size();i++){
+			for(int i=0;i< saleItem.getRealItems().size();i++){
+				
+				
+				buyers.set(i, null);
+				bidPrice.getPriceList().set(i, 0);
+			
+				//for one VM that every bidder can bid
+				for (Bidder bidder : bidders){				
+					SaleItemPrice curBidPrice = bidder.bidPrice(saleItem);
 					
-					if (bidPrice.getPriceList().get(i) < curBidPrice.getPriceList().get(i)){				
+					if (bidPrice.getPriceList().get(i) < curBidPrice.getPriceList()
+							.get(i)) {
 						Integer tmpPrice = curBidPrice.getPriceList().get(i);
-						bidPrice.getPriceList().set(i, tmpPrice);						
+						bidPrice.getPriceList().set(i, tmpPrice);
 						buyers.set(i, bidder);
-					}
+					}					
+				}	
+				if (buyers.get(i)==null) break; // no one bid the current vm
+				if (saleItem.getRealItems().size()>1 ){
+									
+						Vm vm = saleItem.getRealItems().get(i);
+						Host host = buyers.get(i).getHost();
+						List<Double> allocatedMipsForVm =  vm.getHost().getAllocatedMipsForVm(vm);
+						host.allocatePesForVm(vm, allocatedMipsForVm);
+										
 				}
 			}
 			if (saleItem.getOwner()==null || saleItem.getOwner().accept(bidPrice))
