@@ -58,6 +58,7 @@ public class SimuAnnealTest {
 	static ArrayQueue<Integer> results = new ArrayQueue<Integer>(10);
 	
 	static Date beginTime = null;
+	private static double leastTheoryEnergy = 0;
 	
 	private static void initAssign(){
 		if (vAssign==null) vAssign= new int[vNum];
@@ -74,7 +75,7 @@ public class SimuAnnealTest {
 		if (vAssignOld==null) vAssignOld = new int[vNum];		
 		
 		print("radom assignment initially");
-		randomFit();
+		randomFit(true);
 		
 	}	
 	
@@ -122,7 +123,7 @@ public class SimuAnnealTest {
 		return result;
 	}
 	
-	private static void randomFit() {
+	private static void randomFit(boolean saveResult) {
 		double[] pLeftCPU = new double[pNum];
 		double[] pLeftMEM = new double[pNum];
 		for (int i=0;i<pNum;i++){
@@ -134,11 +135,16 @@ public class SimuAnnealTest {
 			int selectedPM = -1;
 			
 			Random r = getRandom();	
+			int loopCount = 0;
 			while(selectedPM == -1){
-				int j = Math.abs( r.nextInt()) % pNum;
-				
+				int j = absInt( r.nextInt()) % pNum;
+				j = absInt(j);
 				if (pLeftCPU[j]>vCPU[i] && pLeftMEM[j]>vMEM[i] ){					
 						selectedPM = j;
+				}
+				if (loopCount++ > 1000){
+					selectedPM = j;
+					break;
 				}
 			}	
 			vAssign[i] = selectedPM;
@@ -146,14 +152,21 @@ public class SimuAnnealTest {
 			pLeftMEM[selectedPM] -= vMEM[i];			
 		}		
 		
-		sofarBest = stateEnergy(vAssign);
-		fftCost = sofarBest;
-		saveResult();
-		
-		sofarBest= Double.MAX_VALUE;
+		if (saveResult){
+			sofarBest = stateEnergy(vAssign);
+			fftCost = sofarBest;
+			saveResult();
+			
+			sofarBest= Double.MAX_VALUE;
+		}
 	}
 
 	
+	private static int absInt(int value) {
+		if (value<0) return -value;
+		return value;
+	}
+
 	private static void bestFit() {
 		double[] pLeftCPU = new double[pNum];
 		double[] pLeftMEM = new double[pNum];
@@ -220,12 +233,63 @@ public class SimuAnnealTest {
 		
 		sofarBest = stateEnergy(vAssign);
 		fftCost = sofarBest;
+		
+		leastTheoryEnergy = lowerEnergyBoundary();
 		saveResult();
 		
 		sofarBest= Double.MAX_VALUE;
+		
+		
 	}
 
+	private static double lowerEnergyBoundary() {
+		double[] pLeftCPU = new double[pNum];
+		double[] pLeftMEM = new double[pNum];
+		
+		double[] pUsedCPU = new double[pNum];
+		for (int i=0;i<pNum;i++){
+			pLeftCPU[i] = pCPU[i];
+			pLeftMEM[i] = pMEM[i];
+			pUsedCPU[i] = 0;
+		}
+		double totalVmCpu = 0;
+		double energyTotal = 0;
+		
+		for (int i=0;i<vNum;i++){
+			totalVmCpu += vCPU[i];
+		}
+		
+		
+			for (int j = 0;j<pNum;j++){
+				if (pCPU[j] <= totalVmCpu ){
+					pUsedCPU[j] = pCPU[j];					
+					totalVmCpu -= pCPU[j];
+					energyTotal += ePM[j];  //pack to 100% usage
+				}else{
+					pUsedCPU[j] = totalVmCpu;
+					totalVmCpu = 0;
+					energyTotal += getLeastEnergy(j,totalVmCpu);
+				}				
+				if (totalVmCpu<=0)
+					break;
+			}			
+		
+		//step2 : find the most energy-effient scheme for the left requirement 
+		//print(String.format("low boundary is %.2f",energyTotal));				
+		return energyTotal;
+	}
 
+	private static double getLeastEnergy(int j, double totalVmCpu) {
+		double leastEnergy = Double.MAX_VALUE;
+		for (int i=j; i<pNum; i++){
+			double uPM = totalVmCpu / pCPU[i];
+			if (uPM <= 1){
+				double energyPM = uPM * (1- idleEnergyRatio ) * ePM[i] + idleEnergyRatio * ePM[i];
+				if (energyPM < leastEnergy) leastEnergy = energyPM;
+			}
+		}		
+		return leastEnergy;
+	}
 
 	private static void anneal(int scale) {
 		print("annealing method 1: random assigment with group annealing");
@@ -281,10 +345,12 @@ public class SimuAnnealTest {
 		
 		if (initFFD){
 			initAssign();
+			return;
 		}else{
 			initAssignRandom();
 		}
 		
+		recentBest = sofarBest;
 		
 		while( temperature > 0){
 			int staleMateCount = 0;
@@ -331,6 +397,53 @@ public class SimuAnnealTest {
 		}		
 	}
 	
+	private static void randomSearch(int scale, boolean initFFD) {
+		print("annealing method 1: random assignment");
+		
+		temperature = initialTemperature;
+		totalIteration = 0;
+		
+		if (initFFD){
+			initAssign();
+		}else{
+			initAssignRandom();
+		}
+		
+		recentBest = sofarBest;
+		
+		while( temperature > 0){
+			
+			for (int iT = 0; iT< iTeration * scale ; iT++){
+				if (getTicksFromStart()> 200) return;
+				totalIteration++;
+				randomAssign();			
+				double curEnergy = stateEnergy(vAssign);
+				
+				if (hasLowerEnergy(curEnergy )){
+					recentBest = curEnergy;
+					saveRecentBestAssign();				
+					
+					if (recentBest < sofarBest){
+						sofarBest = recentBest;
+						saveResult();
+					}
+				}
+				
+			}			
+			
+			temperature -= coldingRate;
+			if ( ((int)temperature) %10 == 0) print("temperature="+temperature);
+		}		
+	}
+	
+	private static void randomAssign() {
+		if (vAssign==null) vAssign= new int[vNum];
+		if (vAssignOld==null) vAssignOld = new int[vNum];		
+			
+		randomFit(false);
+		
+	}
+
 	private static void saveRecentBestAssign() {
 		if (vRecentAssignBest==null){
 			vRecentAssignBest = new int [vNum];
@@ -349,7 +462,7 @@ public class SimuAnnealTest {
 			strResult = strResult + vAssign[i] + "," ;
 		}	
 
-		strResult = (String.format("%.1f", tick)+"\t"+totalIteration +"\t " + String.format("%.2f", sofarBest)
+		strResult = (String.format("%.1f", tick)+"\t"+totalIteration +"\t " +String.format("lb %.2f\\t", leastTheoryEnergy)  + String.format("%.2f", sofarBest)
 				+"\t" +String.format("%.2f%%", (fftCost-sofarBest)*100/fftCost) +" assignment " + strResult);
 		
 		
@@ -375,6 +488,8 @@ public class SimuAnnealTest {
 		double tick = 0;
 		if (beginTime!=null)
 			tick= now.getTime() - beginTime.getTime();
+		else
+			beginTime = now;
 		tick = tick/1000;
 		return tick;
 	}
@@ -511,7 +626,7 @@ private static void fluctuateSediment(int grpNum) {
 		
 	ArrayList<Integer> curGroup = sedimentGroups.get((int) grpNum);
 	
-		int rnd = Math.abs( random.nextInt());
+		int rnd = absInt( random.nextInt());
 		/*
 		if ( rnd% 2 ==0){
 			swapSediment(grpNum);
@@ -539,7 +654,7 @@ private static void pickVMFromGroups(int grpNum, int vmNum) {
 	for (int k=0;k<vmNum;k++){
 		// pick up the group first, current group with the most probability
 		int sqareNum = (grpNum+1)*(grpNum+1);
-		int rnd = Math.abs( random.nextInt()) % sqareNum;
+		int rnd = absInt( random.nextInt()) % sqareNum;
 		int selGrp = grpNum;
 		for(int i = 0; i<= grpNum ; i++){
 			if (rnd<=i){
@@ -549,11 +664,11 @@ private static void pickVMFromGroups(int grpNum, int vmNum) {
 		}
 		
 		ArrayList<Integer> selGroup = sedimentGroups.get(selGrp);
-		int grpInx = Math.abs( random.nextInt()) % selGroup.size();
+		int grpInx = absInt( random.nextInt()) % selGroup.size();
 		if (grpInx >= 0 && grpInx < selGroup.size()) {
 				int vm = selGroup.get(grpInx);
 
-				int pm = Math.abs(random.nextInt()) % pNum;
+				int pm = absInt(random.nextInt()) % pNum;
 				vAssign[vm] = pm;
 		}
 	}
@@ -564,12 +679,12 @@ private static void pickVMFromCurGroup(int grpNum, int vmNo) {
 	ArrayList<Integer> curGroup = sedimentGroups.get((int) grpNum);
 	for (int k=0;k<vmNo;k++){
 		// pick up the vm
-			int grpInx = Math.abs(random.nextInt()) % curGroup.size();
+			int grpInx = absInt(random.nextInt()) % curGroup.size();
 		// pick up the pm
 			if (grpInx >= 0 && grpInx < curGroup.size()) {
 				int vm = curGroup.get(grpInx);
 
-				int pm = Math.abs(random.nextInt()) % pNum;
+				int pm = absInt(random.nextInt()) % pNum;
 				vAssign[vm] = pm;
 			}
 	}
@@ -589,12 +704,12 @@ private static void pickVMFromCurGroup(int grpNum, int vmNo) {
 		do{
 
 			//pick up the vm
-			int grpInx = Math.abs( random.nextInt() ) % curGroup.size();
+			int grpInx = absInt( random.nextInt() ) % curGroup.size();
 			//pick up the pm
 			
 			int vm1 = curGroup.get(grpInx);		
 			
-			grpInx = Math.abs( random.nextInt() ) % curGroup.size();
+			grpInx = absInt( random.nextInt() ) % curGroup.size();
 		
 			int vm2 = curGroup.get(grpInx);
 		
@@ -676,20 +791,20 @@ private static void pickVMFromCurGroup(int grpNum, int vmNo) {
 			vAssignOld[i] = vAssign[i];
 		}
 		//pick up the vm
-		int vm = Math.abs( random.nextInt() ) % vNum;
+		int vm = absInt( random.nextInt() ) % vNum;
 		//pick up the pm
 		
 		int oldPm = vAssignOld[vm];
 		int distance = (int)(pNum * 2 * (temperature / initialTemperature)) + 2;
 		distance =  random.nextInt()  % distance;		
-		int pm = Math.abs( (oldPm + distance )%pNum );		
+		int pm = absInt( (oldPm + distance )%pNum );		
 		vAssign[vm] = pm;
 	}
 	
 	
 	private static void fluctuate() {
 		
-		int rnd = Math.abs( random.nextInt()); 
+		int rnd = absInt( random.nextInt()); 
 		if (rnd % 2 ==0){
 			swap();
 			return;
@@ -702,9 +817,9 @@ private static void pickVMFromCurGroup(int grpNum, int vmNo) {
 		rnd = rnd % 3;
 		for (int k=0; k<rnd; k++){
 			//pick up the vm
-			int vm = Math.abs( random.nextInt() ) % vNum;
+			int vm = absInt( random.nextInt() ) % vNum;
 
-			int pm = Math.abs(random.nextInt()) % pNum;
+			int pm = absInt(random.nextInt()) % pNum;
 			vAssign[vm] = pm;
 		}
 	}
@@ -720,9 +835,9 @@ private static void pickVMFromCurGroup(int grpNum, int vmNo) {
 		
 		do{
 		//pick up the vm
-		int vm1 = Math.abs( random.nextInt() ) % vNum;
+		int vm1 = absInt( random.nextInt() ) % vNum;
 		//pick up the pm
-		int vm2 = Math.abs( random.nextInt() ) % vNum;
+		int vm2 = absInt( random.nextInt() ) % vNum;
 		
 		if (vm1<0 || vm2 <0 || vm1 >= vNum || vm2 >= vNum) return; //weird, it could happen
 		
@@ -847,11 +962,11 @@ private static void pickVMFromCurGroup(int grpNum, int vmNo) {
 		Random rMem = getRandom();
 		rMem.setSeed(3000);
 		for (int i=0;i<vNum;i++){
-			double randomRequirement = Math.abs( r.nextInt()% 20 ) * 100 ;
+			double randomRequirement = absInt( r.nextInt()% 20 ) * 100 ;
 			if (randomRequirement<0.01) randomRequirement= 50; // minimum cpu to keep it alive
 			vCPU[i] = randomRequirement;
 			
-			randomRequirement = Math.abs( rMem.nextInt()% 20 ) * 100 ;
+			randomRequirement = absInt( rMem.nextInt()% 20 ) * 100 ;
 			vMEM[i] = randomRequirement ;
 		}
 		
@@ -938,13 +1053,13 @@ private static void pickVMFromCurGroup(int grpNum, int vmNo) {
 		String resultFile = "st_result"+beginTime.getHours()+beginTime.getMinutes() +".txt";
 		sedimentGroupNum=10;
 		coldingRate = 50;
-		int problemScales[] = {20, 50,100 }; //200 20, 50, 50,51,52,53,54,55,56,57,58,59,60
+		int problemScales[] = { 20,50,100,200 }; //200 20, 50, 50,51,52,53,54,55,56,57,58,59,60
 		int problemCapacityIndexes[] = {1, 2, 3, 4, 5, 10};
 		boolean initWithFFD = true;
-		for (int experimentTime=40;experimentTime<50;experimentTime++){
-			resultFolder = "st-mem-" + String.format("%02d", experimentTime);
+		for (int experimentTime=0;experimentTime<1;experimentTime++){
+			resultFolder = "low-boundary-" + String.format("%02d", experimentTime);
 			boolean mem = false;
-			if (experimentTime>=40) mem = true;
+			if (experimentTime>=50) mem = true;
 			for (int i=0;i<problemScales.length;i++){				
 				for (int j=0;j<problemCapacityIndexes.length;j++){
 					problemScale = problemScales[i];
@@ -952,6 +1067,7 @@ private static void pickVMFromCurGroup(int grpNum, int vmNo) {
 					generateProblem(problemScale,problemCapacityIndex,mem);
 					beginTime = new Date();
 					print("started "+beginTime.toString());			
+					//randomSearch(problemScale,initWithFFD);
 					anneal_old(problemScale,initWithFFD);		
 					//anneal(problemScale);
 					writeText(resultFile, problemScale+"\t"+problemCapacityIndex+"\t"+ strResult);
