@@ -17,6 +17,7 @@ import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.UUID;
 
 import org.cloudbus.cloudsim.distributions.ZipfDistr;
 
@@ -29,20 +30,24 @@ import org.cloudbus.cloudsim.distributions.ZipfDistr;
  */
 public class UtilizationModelStochastic implements UtilizationModel {
 
+	private static final int _averageDuration = 50;
 	/** The history. */
-	private Map<String, Double> history;
+	protected Map<String, Double> history;
 	private long seed;
 	private Random rnd;
-
+	protected int roughIndex;
+	protected boolean _averageUtilization = true;
 	/**
 	 * Instantiates a new utilization model stochastic.
 	 */
-	public UtilizationModelStochastic() {
+	public UtilizationModelStochastic(int roughIndex) {
 		setHistory(new HashMap<String, Double>());
 		zipf = new ZipfDistr(0.5, 10); 
-		seed = (long)(Math.random() * 1000000);
+		UUID id = UUID.randomUUID();
+		seed = id.hashCode();
 		rnd = new Random(seed);
-	}
+		this.roughIndex = roughIndex;
+	}	
 	
 	transient private ZipfDistr zipf = null;
 	
@@ -62,7 +67,7 @@ public class UtilizationModelStochastic implements UtilizationModel {
 			return 1;
 		}
 		
-		double utilization = rnd.nextGaussian()/4 + 0.5;
+		double utilization = rnd.nextGaussian()/4*(roughIndex/5.0) + 0.5;
 		//double utilization = zipf.sample();
 		if (utilization< 0.001){
 			utilization = 0.05;
@@ -72,7 +77,22 @@ public class UtilizationModelStochastic implements UtilizationModel {
 			utilization = 1;
 		}
 		getHistory().put(String.format("%d", (int)time), utilization);
+		
+		
 		return utilization;
+	}
+	
+	public double getAvgUtilization(double time){
+		int utilizations = 0;
+		double tUtilization = 0;
+		for(int i=(int)time;i>=0&&i>(int)time-_averageDuration;i--){
+			Double u = getHistory().get(String.format("%d", i));
+			if (u!=null){
+				utilizations++;
+				tUtilization += u;
+			}
+		}
+		return tUtilization/utilizations;
 	}
 
 	/**

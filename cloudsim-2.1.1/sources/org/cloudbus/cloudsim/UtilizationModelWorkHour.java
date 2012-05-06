@@ -7,16 +7,19 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
+import java.util.UUID;
 
 public class UtilizationModelWorkHour extends UtilizationModelStochastic {
 
-	private Map<String, Double> history;
+	//private Map<String, Double> history;
 	
-	public UtilizationModelWorkHour(){
-		super();
-		history = new HashMap<String, Double>();
+	public UtilizationModelWorkHour(int roughIndex){
+		super(roughIndex);		
+		//history = new HashMap<String, Double>();
 	}
 	
 	@Override
@@ -29,6 +32,7 @@ public class UtilizationModelWorkHour extends UtilizationModelStochastic {
 		double utilization = geWorkHourWorkLoad(time);
 		utilization = addRandomVariation(utilization);
 		history.put(String.format("%.0f", time), utilization);
+				
 		return utilization;
 	}
 	
@@ -60,8 +64,12 @@ public class UtilizationModelWorkHour extends UtilizationModelStochastic {
 		return utilization;
 	}
 
-	private double addRandomVariation(double baseUtilization){
-		double randomUtilization = (Math.random()-0.5)/1.5;		
+	private double addRandomVariation(double baseUtilization){		
+		UUID id = UUID.randomUUID();
+		id.hashCode();
+		Random r = new Random(id.hashCode());
+		double rn = ((double)Math.abs(r.nextInt())%100)/100;
+		double randomUtilization = ( rn -0.5)/1.5*(roughIndex/5.0);		
 		double utilization = baseUtilization + randomUtilization;
 		if (utilization<0){
 			utilization = 0.05;

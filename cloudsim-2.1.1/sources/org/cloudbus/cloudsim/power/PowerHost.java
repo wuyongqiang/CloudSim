@@ -26,6 +26,7 @@ import org.cloudbus.cloudsim.provisioners.RamProvisioner;
 public class PowerHost extends HostDynamicWorkload {
 	
 	private double lastUtilization;
+	private double lastMigrationTime = 0;
 
 	/**
 	 * Instantiates a new host.
@@ -73,6 +74,14 @@ public class PowerHost extends HostDynamicWorkload {
 
 	public double getLastUtilization() {
 		return lastUtilization;
+	}
+	
+	public void setLastMigrationTime(double d) {
+		this.lastMigrationTime = d;
+	}
+
+	public double getLastMigrationTime() {
+		return lastMigrationTime;
 	}
 
 }

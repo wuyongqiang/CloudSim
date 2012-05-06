@@ -380,6 +380,15 @@ public class CloudletSchedulerTimeShared extends CloudletScheduler {
 		}
 		return totalUtilization;
 	}
+	
+	@Override
+	public double getTotalUtilizationOfRam(double time){
+		double totalUtilization = 0;
+		for (ResCloudlet gl : getCloudletExecList()) {
+			totalUtilization += gl.getCloudlet().getUtilizationOfRam(time);
+		}
+		return totalUtilization;
+	}
 
 	/**
 	 * Informs about completion of some cloudlet in the VM managed
@@ -515,6 +524,12 @@ public class CloudletSchedulerTimeShared extends CloudletScheduler {
 //		}
 		//TODO: implement
 		return mipsShare;
+	}
+	
+	@Override
+	public double getCurrentRequestedRam() {
+		throw new RuntimeException("not implemented");
+		//return 0.0;
 	}
 
 	/* (non-Javadoc)

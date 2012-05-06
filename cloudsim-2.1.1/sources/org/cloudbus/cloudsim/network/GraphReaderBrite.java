@@ -28,13 +28,13 @@ import java.util.StringTokenizer;
  */
 public class GraphReaderBrite implements GraphReaderIF {
 
-	private static final int PARSE_NOTHING = 0;
-	private static final int PARSE_NODES = 1;
-	private static final int PARSE_EDGES = 2;
+	protected static final int PARSE_NOTHING = 0;
+	protected static final int PARSE_NODES = 1;
+	protected static final int PARSE_EDGES = 2;
 
-	private int state = PARSE_NOTHING;
+	protected int state = PARSE_NOTHING;
 
-	private TopologicalGraph graph = null;
+	protected TopologicalGraph graph = null;
 
 
 	/**
@@ -98,7 +98,7 @@ public class GraphReaderBrite implements GraphReaderIF {
 		return graph;
 	}
 
-	private void parseNodeString(String nodeLine){
+	protected void parseNodeString(String nodeLine){
 
 		StringTokenizer tokenizer = new StringTokenizer(nodeLine);
 
@@ -154,7 +154,7 @@ public class GraphReaderBrite implements GraphReaderIF {
 	}//parseNodeString-END
 
 
-	private void parseEdgesString(String nodeLine){
+	protected void parseEdgesString(String nodeLine){
 		StringTokenizer tokenizer = new StringTokenizer(nodeLine);
 
 		//number of node parameters to parse (counts at linestart)

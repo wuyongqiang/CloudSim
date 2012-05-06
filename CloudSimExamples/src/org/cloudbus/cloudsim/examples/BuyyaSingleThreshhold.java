@@ -221,7 +221,7 @@ public class BuyyaSingleThreshhold {
 
 		// create VM
 		Vm vm = new Vm(vmid, brokerId, mips, pesNumber, ram, bw, size, vmm,
-				new CloudletSchedulerDynamicWorkload(mips, pesNumber));
+				new CloudletSchedulerDynamicWorkload(mips, pesNumber,ram));
 
 		// add the VM to the vmList
 		vmlist.add(vm);		

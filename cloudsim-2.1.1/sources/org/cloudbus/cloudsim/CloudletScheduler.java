@@ -185,6 +185,8 @@ public abstract class CloudletScheduler {
 	 * @return total utilization
 	 */
 	public abstract double getTotalUtilizationOfCpu(double time);
+	
+	public abstract double getTotalUtilizationOfRam(double time);
 
 	/**
 	 * Gets the current requested mips.
@@ -192,6 +194,8 @@ public abstract class CloudletScheduler {
 	 * @return the current mips
 	 */
 	public abstract List<Double> getCurrentRequestedMips();
+	
+	public abstract double getCurrentRequestedRam();
 
 	/**
 	 * Gets the total current mips for the Cloudlet.
@@ -257,6 +261,19 @@ public abstract class CloudletScheduler {
 	 */
 	public List<Double> getCurrentMipsShare() {
 		return currentMipsShare;
+	}
+
+	public double getAvgTotalCurrentRequestedMipsForCloudlet(ResCloudlet rcl,
+			double time) {
+		return getTotalCurrentRequestedMipsForCloudlet(rcl,time);
+	}
+
+	public double getAvgTotalUtilizationOfCpu(double time) {		
+		return getTotalUtilizationOfCpu(time);
+	}
+
+	public List<Double> getAvgCurrentRequestedMips() {		
+		return getCurrentRequestedMips();
 	}
 
 }

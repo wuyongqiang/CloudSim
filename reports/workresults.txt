@@ -239,3 +239,467 @@ set migrationlevel=1, before applying consolidation ration
 149	MM0.50-0.40	3600	76	4.11	10.25	1.6914
 150	MM0.60-0.20	3600	37	2.06	9.61	1.9276
 
+// sa
+0.6, 
+Total simulation time: 3610.00 sec
+Energy consumption: 1.4635 kWh
+Number of VM migrations: 862
+Number of SLA violations: 5203
+SLA violation percentage: 36.18%
+Average SLA violation: 18.10%
+
+//sa
+0.6,
+Total simulation time: 3650.00 sec
+Energy consumption: 1.4545 kWh
+Number of VM migrations: 398
+Number of SLA violations: 3086
+SLA violation percentage: 21.46%
+Average SLA violation: 28.88%
+
+SingleThreshold finished!
+
+//sa , workhour 0.6 , 120
+Total simulation time: 3610.00 sec
+Energy consumption: 0.9861 kWh
+Number of VM migrations: 198
+Number of SLA violations: 2778
+SLA violation percentage: 31.09%
+Average SLA violation: 28.81%
+
+SingleThreshold finished!
+
+//sa , workhour 0.7 , 60
+Total simulation time: 3650.00 sec
+Energy consumption: 1.0443 kWh
+Number of VM migrations: 531
+Number of SLA violations: 4740
+SLA violation percentage: 38.49%
+Average SLA violation: 26.14%
+
+SingleThreshold finished!
+
+
+//sa , workhour 0.7 , 180
+Total simulation time: 3630.00 sec
+Energy consumption: 0.7521 kWh
+Number of VM migrations: 74
+Number of SLA violations: 991
+SLA violation percentage: 12.17%
+Average SLA violation: 19.35%
+
+theorectically, 0.4 * (250 , 500, 750, 1000)*5 = 5000
+1000, 2000, 3000 , then one or two 2000 machine is enough 450 + 350 W
+
+pmInUseOld=3 pmInUse=1 initial vm assignment: 4, 0, 0, 5, 0, 0, 5, 0, 0, 0, 4,
+migration=4
+pmInUseOld=1 pmInUse=1 initial vm assignment: 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+migration=0
+pmInUseOld=1 pmInUse=3 initial vm assignment: 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+migration=8
+pmInUseOld=3 pmInUse=3 initial vm assignment: 0, 0, 1, 1, 1, 0, 2, 1, 2, 2, 2,
+migration=4
+pmInUseOld=3 pmInUse=2 initial vm assignment: 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 2,
+migration=6
+pmInUseOld=2 pmInUse=2 initial vm assignment: 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1,
+migration=1
+pmInUseOld=2 pmInUse=2 initial vm assignment: 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1,
+migration=3
+pmInUseOld=2 pmInUse=2 initial vm assignment: 0, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1,
+migration=4
+pmInUseOld=2 pmInUse=2 initial vm assignment: 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1,
+migration=4
+pmInUseOld=2 pmInUse=2 initial vm assignment: 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1,
+migration=5
+pmInUseOld=2 pmInUse=2 initial vm assignment: 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0,
+migration=5
+pmInUseOld=2 pmInUse=3 initial vm assignment: 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1,
+migration=4
+pmInUseOld=3 pmInUse=2 initial vm assignment: 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2,
+migration=4
+pmInUseOld=2 pmInUse=2 initial vm assignment: 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1,
+migration=7
+pmInUseOld=1 pmInUse=1 initial vm assignment: 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+migration=0
+pmInUseOld=1 pmInUse=2 initial vm assignment: 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+migration=5
+pmInUseOld=2 pmInUse=1 initial vm assignment: 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1,
+migration=5
+pmInUseOld=1 pmInUse=1 initial vm assignment: 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+migration=0
+pmInUseOld=1 pmInUse=2 initial vm assignment: 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+migration=4
+pmInUseOld=2 pmInUse=1 initial vm assignment: 0, 1,
+migration=1
+SingleThreshold finished!
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+st - 0.7
+Total simulation time: 3625.00 sec
+Energy consumption: 1.2815 kWh
+Number of VM migrations: 582
+Number of SLA violations: 5795
+SLA violation percentage: 40.30%
+Average SLA violation: 21.30%
+
+SingleThreshold finished!
+
+sa - 0.6 180
+
+Total simulation time: 3610.00 sec
+Energy consumption: 1.3654 kWh
+Number of VM migrations: 251
+Number of SLA violations: 3286
+SLA violation percentage: 24.63%
+Average SLA violation: 35.82%
+
+SingleThreshold finished!
+
+sa - 0.7 180
+Total simulation time: 3610.00 sec
+Energy consumption: 1.0241 kWh
+Number of VM migrations: 182
+Number of SLA violations: 5865
+SLA violation percentage: 40.79%
+Average SLA violation: 47.06%
+
+sa -0.7 , allow one more PM, 180
+
+
+Total simulation time: 3610.00 sec
+Energy consumption: 1.3654 kWh
+Number of VM migrations: 251
+Number of SLA violations: 3286
+SLA violation percentage: 24.63%
+Average SLA violation: 35.82%
+
+SingleThreshold finished!
+
+
+sa -0.8 , allow one more PM, 180
+
+Total simulation time: 3610.00 sec
+Energy consumption: 1.1860 kWh
+Number of VM migrations: 167
+Number of SLA violations: 3465
+SLA violation percentage: 25.35%
+Average SLA violation: 29.30%
+
+sa -0.8 , 180
+Total simulation time: 3650.00 sec
+Energy consumption: 1.1478 kWh
+Number of VM migrations: 193
+Number of SLA violations: 2596
+SLA violation percentage: 20.13%
+Average SLA violation: 15.17%
+
+sa -0.5 , 180
+Total simulation time: 3850.00 sec
+Energy consumption: 1.2055 kWh
+Number of VM migrations: 181
+Number of SLA violations: 5406
+SLA violation percentage: 41.67%
+Average SLA violation: 56.75%
+
+sa- 0.65 , 300 
+Total simulation time: 3610.00 sec
+Energy consumption: 1.2256 kWh
+Number of VM migrations: 110
+Number of SLA violations: 1121
+SLA violation percentage: 9.19%
+Average SLA violation: 17.87%
+
+sa- 0.55 , 300 
+Total simulation time: 3615.00 sec
+Energy consumption: 1.2823 kWh
+Number of VM migrations: 131
+Number of SLA violations: 3458
+SLA violation percentage: 26.32%
+Average SLA violation: 55.22%
+
+++++++++++++++++++++++++++++++++++++++++++
+sa - gaussion, 300, 0.55
+Total simulation time: 3950.00 sec
+Energy consumption: 1.4906 kWh
+Number of VM migrations: 160
+Number of SLA violations: 4257
+SLA violation percentage: 29.09%
+Average SLA violation: 56.52%
+
+=======================================
+
+st 0.6 , roughindex = 0;  wh
+Total simulation time: 3605.00 sec
+Energy consumption: 1.5711 kWh
+Number of VM migrations: 225
+Number of SLA violations: 1244
+SLA violation percentage: 8.65%
+Average SLA violation: 11.96%
+
+----------------------------------------
+st 0.6, roughindex = 0; constant workload
+Total simulation time: 3635.00 sec
+Energy consumption: 1.6146 kWh
+Number of VM migrations: 42
+Number of SLA violations: 212
+SLA violation percentage: 1.47%
+Average SLA violation: 10.00%
+
+sa 0.6,  roughindex = 0; constant workload, interval=100
+Total simulation time: 3730.00 sec
+Energy consumption: 1.5313 kWh
+Number of VM migrations: 26
+Number of SLA violations: 161
+SLA violation percentage: 1.12%
+Average SLA violation: 10.15%
+
+======================================
+
+sa 0.6,  roughindex = 5; caussion workload ,interval=100
+Total simulation time: 3650.00 sec
+Energy consumption: 1.5380 kWh
+Number of VM migrations: 474
+Number of SLA violations: 2951
+SLA violation percentage: 20.51%
+Average SLA violation: 11.21%
+
+================================================
+sa 0.6,  roughindex = 2; caussion workload ,interval=100
+
+Total simulation time: 3750.00 sec
+Energy consumption: 1.5879 kWh
+Number of VM migrations: 396
+Number of SLA violations: 2191
+SLA violation percentage: 15.16%
+Average SLA violation: 10.34%
+
+sa 0.7,  roughindex = 2; caussion workload ,interval=100
+Total simulation time: 3650.00 sec
+Energy consumption: 1.3491 kWh
+Number of VM migrations: 341
+Number of SLA violations: 1989
+SLA violation percentage: 13.83%
+Average SLA violation: 10.13%
+
+sa 0.7,  roughindex = 2; caussion workload ,interval=300
+Total simulation time: 3650.00 sec
+Energy consumption: 1.4564 kWh
+Number of VM migrations: 126
+Number of SLA violations: 704
+SLA violation percentage: 4.90%
+Average SLA violation: 9.80%
+
+sa 0.7,  roughindex = 2; caussion workload ,interval=600
+Total simulation time: 3650.00 sec
+Energy consumption: 1.4774 kWh
+Number of VM migrations: 57
+Number of SLA violations: 348
+SLA violation percentage: 2.42%
+Average SLA violation: 9.69%
+
+sa 0.7,  roughindex = 5; caussion workload ,interval=600
+Total simulation time: 3650.00 sec
+Energy consumption: 1.5648 kWh
+Number of VM migrations: 66
+Number of SLA violations: 1400
+SLA violation percentage: 9.73%
+Average SLA violation: 19.17%
+
+sa 0.7,  roughindex = 7; caussion workload ,interval=600
+
+Total simulation time: 3650.00 sec
+Energy consumption: 1.4734 kWh
+Number of VM migrations: 66
+Number of SLA violations: 2552
+SLA violation percentage: 17.75%
+Average SLA violation: 23.11%
+
+sa 0.7,  roughindex = 7; caussion workload ,interval=3600
+  only one reshuffle
+Total simulation time: 3610.00 sec
+Energy consumption: 1.4773 kWh
+Number of VM migrations: 19
+Number of SLA violations: 2513
+SLA violation percentage: 17.48%
+Average SLA violation: 24.19%
+
+sa 0.7,  roughindex = 7; workhour workload ,interval=3600
+  only one reshuffle
+
+Total simulation time: 3610.00 sec
+Energy consumption: 0.4701 kWh
+Number of VM migrations: 13
+Number of SLA violations: 12045
+SLA violation percentage: 84.78%
+Average SLA violation: 65.68%
+
+sa 0.7,  roughindex = 7; workhour workload ,interval=100
+
+Total simulation time: 3610.00 sec
+Energy consumption: 1.3037 kWh
+Number of VM migrations: 427
+Number of SLA violations: 3911
+SLA violation percentage: 27.20%
+
+sa 0.7,  roughindex = 5; workhour workload ,interval=100
+
+Total simulation time: 3610.00 sec
+Energy consumption: 1.2385 kWh
+Number of VM migrations: 295
+Number of SLA violations: 2288
+SLA violation percentage: 18.48%
+Average SLA violation: 11.70%
+Average SLA violation: 17.74%
+
+-----------------------------------------
+sa 0.7,  roughindex = 5; workhour workload ,avg_interval=100
+30 secs avg 
+
+
+Total simulation time: 3610.00 sec
+Energy consumption: 1.2490 kWh
+Number of VM migrations: 242
+Number of SLA violations: 1946
+SLA violation percentage: 14.63%
+Average SLA violation: 14.24%
+
+
+sa 0.7,  roughindex = 5; workhour workload ,avg_interval=100
+50 secs avg 
+
+Total simulation time: 3610.00 sec
+Energy consumption: 1.1398 kWh
+Number of VM migrations: 189
+Number of SLA violations: 1421
+SLA violation percentage: 11.81%
+Average SLA violation: 13.41%
+
+
+sa 0.7,  roughindex = 5; workhour workload ,avg_interval=100
+50 secs avg, more iterations for SA 
+temprature from 100 -> 200
+coldingRate from 2 -> 1
+iteration from 10,000 -> 50,000
+
+
+Total simulation time: 3610.00 sec
+Energy consumption: 1.2204 kWh
+Number of VM migrations: 58
+Number of SLA violations: 877
+SLA violation percentage: 6.80%
+Average SLA violation: 19.68%
+
+
+
+sa 0.7,  roughindex = 5; workhour workload ,avg_interval=100
+50 secs avg, more iterations for SA 
+temprature from 100 -> 200
+coldingRate from 2 -> 1
+iteration from 10,000 -> 50,000
+//add early return condition if (curEnergy/migrationCost <= vNum*0.2) break;
+
+simid=320
+
+Total simulation time: 3610.00 sec
+Energy consumption: 1.1246 kWh
+Number of VM migrations: 71
+Number of SLA violations: 814
+SLA violation percentage: 6.28%
+Average SLA violation: 18.36%
+
+
+migration=13
+migration=0
+migration=4
+migration=4
+migration=4
+migration=4
+migration=0
+migration=0
+migration=0
+migration=5
+migration=4
+migration=0
+migration=0
+migration=0
+migration=0
+migration=0
+migration=0
+migration=9
+migration=6
+migration=0
+migration=0
+migration=0
+migration=0
+migration=0
+migration=0
+migration=4
+migration=0
+migration=0
+migration=6
+migration=8
+migration=0
+migration=0
+migration=0
+migration=0
+migration=0
+migration=0
+SingleThreshold finished!
+
+
+sa 0.6,  roughindex = 5; workhour workload ,avg_interval=100
+50 secs avg, more iterations for SA 
+temprature from 100 -> 200
+coldingRate from 2 -> 1
+iteration from 10,000 -> 50,000
+//add early return condition if (curEnergy/migrationCost <= vNum*0.2) break;
+Total simulation time: 3610.00 sec
+Energy consumption: 1.4027 kWh
+Number of VM migrations: 69
+Number of SLA violations: 666
+SLA violation percentage: 4.92%
+Average SLA violation: 16.09%
+
+sa 0.6,  roughindex = 5; uniform workload ,avg_interval=100
+50 secs avg, more iterations for SA 
+simid=328
+
+Total simulation time: 3615.00 sec
+Energy consumption: 1.2813 kWh
+Number of VM migrations: 39
+Number of SLA violations: 408
+SLA violation percentage: 2.84%
+Average SLA violation: 8.07%
+
+
+dt 0.4-0.7,  roughindex = 5; workhour workload ,
+
+Total simulation time: 3610.00 sec
+Energy consumption: 1.2207 kWh
+Number of VM migrations: 66
+Number of SLA violations: 282
+SLA violation percentage: 2.34%
+Average SLA violation: 9.74%
+Turn On times: 14
+Turn Off times: 13
+
+second - run , simid=326
+Total simulation time: 3610.00 sec
+Energy consumption: 1.5576 kWh
+Number of VM migrations: 92
+Number of SLA violations: 902
+SLA violation percentage: 6.66%
+Average SLA violation: 14.41%
+Turn On times: 18
+Turn Off times: 17
+
+dt 0.4-0.7,  roughindex = 5; uniform workload ,
+simid=325
+Total simulation time: 3610.00 sec
+Energy consumption: 1.4686 kWh
+Number of VM migrations: 124
+Number of SLA violations: 740
+SLA violation percentage: 5.15%
+Average SLA violation: 10.61%
+Turn On times: 18
+Turn Off times: 16
