@@ -226,7 +226,7 @@ public class VmAllocationPolicySimple extends VmAllocationPolicy {
 		Log.printLineToVmFile((int)CloudSim.clock(), vm.getId(), vm.getHost().getId(), 
 				utilization, vm.getMips()*utilization, 
 				vm.getHost().getMaxAvailableMips(),
-				vm.getHost().getVmScheduler().getUsedMips());
+				vm.getHost().getVmScheduler().getUsedMips(),0,0);
 		}
 		return new ArrayList<Map<String, Object>>();
 	}

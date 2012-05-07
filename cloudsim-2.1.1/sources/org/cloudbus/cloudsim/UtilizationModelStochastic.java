@@ -46,6 +46,7 @@ public class UtilizationModelStochastic implements UtilizationModel {
 		UUID id = UUID.randomUUID();
 		seed = id.hashCode();
 		rnd = new Random(seed);
+		if (roughIndex<0) roughIndex = 0;
 		this.roughIndex = roughIndex;
 	}	
 	

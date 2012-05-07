@@ -214,7 +214,7 @@ public class SingleThreshold {
 				cloudlet = new Cloudlet(i, length, pesNumber, fileSize, outputSize, utilizationModelStochastic, new UtilizationModelStochastic(roughIndex), new UtilizationModelStochastic(roughIndex));
 			}else{
 				if (workHourLoad)
-					cloudlet = new Cloudlet(i, length, pesNumber, fileSize, outputSize, new UtilizationModelWorkHour(roughIndex), new UtilizationModelStochastic(roughIndex), new UtilizationModelStochastic(roughIndex));
+					cloudlet = new Cloudlet(i, length, pesNumber, fileSize, outputSize, new UtilizationModelWorkHour(roughIndex), new UtilizationModelWorkHour(roughIndex-2), new UtilizationModelStochastic(roughIndex));
 				else
 					cloudlet = new Cloudlet(i, length, pesNumber, fileSize, outputSize, new UtilizationModelStochastic(roughIndex), new UtilizationModelStochastic(roughIndex), new UtilizationModelStochastic(roughIndex));
 			}

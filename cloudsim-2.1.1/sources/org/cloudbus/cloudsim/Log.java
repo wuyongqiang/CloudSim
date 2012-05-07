@@ -145,9 +145,9 @@ public class Log {
 	}
 	
 	//simid, time, vm, host, utilization
-	public static void printLineToVmFile(int time,int vm,int host,double utilization, double vmmips, double hostmips, double usedmips) {
+	public static void printLineToVmFile(int time,int vm,int host,double utilization, double vmmips, double hostmips, double usedmips, int hostMem, int vmReqMem) {
 		if (!isDisabled()) {
-			String message = String.format("%d,%d,%d,%d,%.2f,%.2f,%.2f,%.2f", logSimId, time, vm, host, utilization, vmmips, hostmips, usedmips) + LINE_SEPARATOR;			
+			String message = String.format("%d,%d,%d,%d,%.2f,%.2f,%.2f,%.2f,%d,%d", logSimId, time, vm, host, utilization, vmmips, hostmips, usedmips,hostMem, vmReqMem) + LINE_SEPARATOR;			
 			try {
 				outputVm.write(message.getBytes());
 			} catch (IOException e) {

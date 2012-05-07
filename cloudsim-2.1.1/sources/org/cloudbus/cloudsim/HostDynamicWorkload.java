@@ -150,7 +150,7 @@ public class HostDynamicWorkload extends Host {
 	}
 
 	private void setUtilizationMem(double mem) {
-		utilizationMem += mem;
+		utilizationMem = mem;
 		
 	}
 
@@ -293,6 +293,10 @@ public class HostDynamicWorkload extends Host {
 	 */
 	public double getUtilizationOfCpu() {
 		return getUtilizationMips() / getTotalMips();
+	}
+	
+	public double getUtilizationOfMem() {
+		return getUtilizationMem() / getRam();
 	}
 
 	/**

@@ -225,7 +225,7 @@ public class DoubleThreshold extends SingleThreshold {
 			hostList.add(
 				new PowerHost(
 					i,
-					new RamProvisionerSimple(ram),
+					new RamProvisionerSimple(mips[i % mips.length]),//new RamProvisionerSimple(ram),
 					new BwProvisionerSimple(bw),
 					storage,
 					peList,

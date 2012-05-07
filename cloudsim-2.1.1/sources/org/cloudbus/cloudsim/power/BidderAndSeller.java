@@ -44,6 +44,8 @@ public class BidderAndSeller extends Bidder implements Seller {
 					item.setPriority(15000);
 				else if (host.getMaxUtilization(false) > 0.7)
 					item.setPriority(10000);
+				else if (!canHoldMoreVm())
+					item.setPriority(9999);
 				else if (host.getMaxUtilization(false) < 0.02) {
 					item.setPriority(6999);
 				}else if (host.getMaxUtilization(false) < 0.4) {
@@ -90,7 +92,7 @@ public class BidderAndSeller extends Bidder implements Seller {
 			accepted = true;
 		}
 		if (!canHoldTheVm(saleItem.getRealItem())){
-			System.out.println("cannot hold the vm " + String.format("%.2f",  host.getMaxUtilization(false) ));
+			System.out.println("cannot hold the vm " + String.format("%.2f%%",  host.getMaxUtilization(false)*100 ) +  String.format(" mem=%.2f%%",  host.getUtilizationOfMem()*100,false) );
 			accepted = true;
 		}
 		return accepted;

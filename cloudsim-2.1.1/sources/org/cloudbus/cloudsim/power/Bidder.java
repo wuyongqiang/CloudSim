@@ -153,20 +153,23 @@ public class Bidder {
 		return host;
 	}
 	
-	private boolean canHoldMoreVm(){
-		return host.getMaxUtilization(false) < 0.7;
+	protected boolean canHoldMoreVm(){
+		return host.getMaxUtilization(false) < 0.7 && host.getUtilizationOfMem()<0.7;
 	}
 	
 	protected boolean canHoldTheVm(Vm vm){
 		if (vm.getHost() == host){
-			if (host.getMaxUtilization(false) < 0.7) 
+			if (host.getMaxUtilization(false) < 0.7 && host.getUtilizationOfMem()<0.7) 
 				return true;
 			else
 				return false;
 		}
 		double avgMips = vm.getAvgCurrentRequestedTotalMips();
+		double mem = vm.getCurrentRequestedRam();
+		double increaseUtilMem = mem/ host.getRam();
 		double increaseUtil = avgMips/ host.getMaxAvailableMips();
-		return (host.getMaxUtilization(false) + increaseUtil < 0.7); 
+		return (host.getMaxUtilization(false) + increaseUtil <= 0.7
+				&& host.getUtilizationOfMem() + increaseUtilMem <= 0.7); 
 				//|| host.getMaxUtilization(false) > 0.4;
 		
 	}

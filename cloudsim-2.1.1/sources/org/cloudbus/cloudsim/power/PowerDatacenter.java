@@ -136,7 +136,7 @@ public class PowerDatacenter extends Datacenter {
 				Log.formatLine("%.2f: Host #%d utilization is %.2f%%", CloudSim.clock(), host.getId(), host.getUtilizationOfCpu() * 100);
 				Log.formatLine("%.2f: Host #%d energy is %.2f W*sec", CloudSim.clock(), host.getId(), hostPower);
 				
-				Log.printLineToDetailFile(String.format("%d,%d,%d,%.2f,%.2f", Log.getLogSimId(), (int)CloudSim.clock(), host.getId(), host.getUtilizationOfCpu() * 100,hostPower));
+				Log.printLineToDetailFile(String.format("%d,%d,%d,%.2f,%.2f,%.2f", Log.getLogSimId(), (int)CloudSim.clock(), host.getId(), host.getUtilizationOfCpu() * 100,hostPower, host.getUtilizationOfMem() * 100));
 			}
 
 			Log.formatLine("\n%.2f: Consumed energy is %.2f W*sec\n", CloudSim.clock(), timeframePower);
