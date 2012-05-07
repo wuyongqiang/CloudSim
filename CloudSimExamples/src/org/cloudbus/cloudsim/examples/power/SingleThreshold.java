@@ -66,7 +66,7 @@ public class SingleThreshold {
 	protected static double cloudletsNumber = 6;//20;
 	protected static boolean workHourLoad = true;
 	protected static boolean useSA = true;
-	protected static int roughIndex = 1;
+	protected static int roughIndex = 3;
 	protected static boolean useAverageUtilization = true;
 
 	//protected static UtilizationModelStochastic utilizationModelWorkHour;

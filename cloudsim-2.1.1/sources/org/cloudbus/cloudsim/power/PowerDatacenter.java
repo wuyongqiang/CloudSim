@@ -264,6 +264,20 @@ public class PowerDatacenter extends Datacenter {
 		}
 		return underAllocatedMips;
 	}
+	
+	public Map<String, List<List<Double>>> getUnderAllocatedMem() {
+		Map<String, List<List<Double>>> underAllocatedMem = new HashMap<String, List<List<Double>>>();
+		for (PowerHost host : this.<PowerHost>getHostList()) {
+			for (Entry<String, List<List<Double>>> entry : host.getUnderAllocatedMem().entrySet()) {
+				if (!underAllocatedMem.containsKey(entry.getKey())) {
+					underAllocatedMem.put(entry.getKey(), new ArrayList<List<Double>>());
+				}
+				underAllocatedMem.get(entry.getKey()).addAll(entry.getValue());
+
+			}
+		}
+		return underAllocatedMem;
+	}
 
 	/**
 	 * Checks if is disable migrations.

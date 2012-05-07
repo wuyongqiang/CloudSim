@@ -142,13 +142,62 @@ public class DoubleThreshold extends SingleThreshold {
 					averageSla,
 					datacenter.getPower() / (3600 * 1000));
 			utilizationModelStochastic.saveHistory("c:\\users\\n7682905\\simWorkload.txt");
+			
+			printMemViolation(datacenter);
 		} catch (Exception e) {
 			e.printStackTrace();
 			Log.printLine("Unwanted errors happen");
 		}
+		
+		
 
 		Log.printLine("DoubleThreshold finished!");
 		System.out.println("DoubleThreshold finished!");
+	}
+	
+	protected static void printMemViolation(PowerDatacenter datacenter){
+		 int totalTotalRequested = 0;
+		    int totalTotalAllocated = 0;
+		    ArrayList<Double> sla = new ArrayList<Double>();
+		    int numberOfAllocations = 0;
+			for (Entry<String, List<List<Double>>> entry : datacenter.getUnderAllocatedMem().entrySet()) {
+			    List<List<Double>> underAllocatedMem = entry.getValue();
+			    double totalRequested = 0;
+			    double totalAllocated = 0;
+			    for (List<Double> mips : underAllocatedMem) {
+			    	if (mips.get(0) != 0) {
+			    		numberOfAllocations++;
+			    		totalRequested += mips.get(0);
+			    		totalAllocated += mips.get(1);
+			    		double _sla = (mips.get(0) - mips.get(1)) / mips.get(0) * 100;
+			    		if (_sla > 0) {
+			    			sla.add(_sla);
+			    		}
+			    	}
+				}
+			    totalTotalRequested += totalRequested;
+			    totalTotalAllocated += totalAllocated;
+			}
+
+			double averageSla = 0;
+			if (sla.size() > 0) {
+			    double totalSla = 0;
+			    for (Double _sla : sla) {
+			    	totalSla += _sla;
+				}
+			    averageSla = totalSla / sla.size();
+			}
+
+			printLine("");
+			printLine(String.format("Number of SLA violations: %d", sla.size()));
+			printLine(String.format("SLA violation percentage: %.2f%%", (double) sla.size() * 100 / numberOfAllocations));
+			printLine(String.format("Average SLA violation: %.2f%%", averageSla));			
+			printLine(String.format("satisfaction rate: %.2f%%", totalTotalAllocated*1.0/totalTotalRequested*100));
+			printLine("");
+	}
+	
+	private static void printLine(String s){
+		System.out.println(s);
 	}
 	
 	protected static PowerDatacenter createDatacenter(String name) throws Exception {
@@ -161,7 +210,7 @@ public class DoubleThreshold extends SingleThreshold {
 		double staticPowerPercent = 0.7; // 70%
 
 		int[] mips = { 1000, 2000, 3000 };
-		int ram = 10000; // host memory (MB)
+		int ram = 3000; // host memory (MB)
 		long storage = 1000000; // host storage
 		int bw = 100000;
 

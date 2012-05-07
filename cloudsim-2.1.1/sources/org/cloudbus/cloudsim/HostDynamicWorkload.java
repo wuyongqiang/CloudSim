@@ -36,6 +36,8 @@ public class HostDynamicWorkload extends Host {
 	/** The under allocated mips. */
 	private Map<String, List<List<Double>>> underAllocatedMips;
 	
+	private Map<String, List<List<Double>>> underAllocatedMem;
+	
 	private Queue<Double> historyUtilizationQueue;	
 	
 	private int queueLength = 16;
@@ -62,6 +64,7 @@ public class HostDynamicWorkload extends Host {
 		super(id, ramProvisioner, bwProvisioner, storage, peList, vmScheduler);
 		setUtilizationMips(0);
 		setUnderAllocatedMips(new HashMap<String, List<List<Double>>>());
+		setUnderAllocatedMem(new HashMap<String, List<List<Double>>>());
 		setVmsMigratingIn(new ArrayList<Vm>());
 		historyUtilizationQueue = new ArrayDeque<Double>();
 		
@@ -130,7 +133,7 @@ public class HostDynamicWorkload extends Host {
 				Log.printLine("Under allocated mem for VM #" + vm.getId() + ": requested " + totalRequestedMem + ", allocated " + totalAllocatedMem);
 			}
 
-			//updateUnderAllocatedMips(vm, totalRequestedMem, totalAllocatedMem, CloudSim.clock());
+			updateUnderAllocatedMem(vm, totalRequestedMem, totalAllocatedMem, CloudSim.clock());
 
 			Log.formatLine("%.2f: Total allocated Mem for VM #" + vm.getId() + " (Host #" + vm.getHost().getId() + ") is %.2f, was requested %.2f out of total %.2f (%.2f%%)", CloudSim.clock(), totalAllocatedMem, totalRequestedMem, vm.getMips(), totalRequestedMem / vm.getMips() * 100);
 			if ( totalAllocatedMem < totalRequestedMem ){ 
@@ -265,6 +268,23 @@ public class HostDynamicWorkload extends Host {
 		underAllocatedMipsArray.add(underAllocatedMips);
 		getUnderAllocatedMips().put(vm.getUid(), underAllocatedMipsArray);
 	}
+	
+	protected void updateUnderAllocatedMem(Vm vm, double requested, double allocated, double time) {
+		List<List<Double>> underAllocatedMemArray;
+		List<Double> underAllocatedMem = new ArrayList<Double>();
+		underAllocatedMem.add(requested);
+		underAllocatedMem.add(allocated);
+		underAllocatedMem.add(time);
+
+		if (getUnderAllocatedMem().containsKey(vm.getUid())) {
+			underAllocatedMemArray = getUnderAllocatedMem().get(vm.getUid());
+		} else {
+			underAllocatedMemArray = new ArrayList<List<Double>>();
+		}
+
+		underAllocatedMemArray.add(underAllocatedMem);
+		getUnderAllocatedMem().put(vm.getUid(), underAllocatedMemArray);
+	}
 
 	/**
 	 * Get current utilization of CPU in percents.
@@ -310,6 +330,10 @@ public class HostDynamicWorkload extends Host {
     public Map<String, List<List<Double>>> getUnderAllocatedMips() {
 		return underAllocatedMips;
 	}
+    
+    public Map<String, List<List<Double>>> getUnderAllocatedMem() {
+		return underAllocatedMem;
+	}
 
 	/**
 	 * Sets the under allocated mips.
@@ -318,6 +342,10 @@ public class HostDynamicWorkload extends Host {
 	 */
 	protected void setUnderAllocatedMips(Map<String, List<List<Double>>> underAllocatedMips) {
 		this.underAllocatedMips = underAllocatedMips;
+	}
+	
+	protected void setUnderAllocatedMem(Map<String, List<List<Double>>> underAllocatedMem) {
+		this.underAllocatedMem = underAllocatedMem;
 	}
 
 }
