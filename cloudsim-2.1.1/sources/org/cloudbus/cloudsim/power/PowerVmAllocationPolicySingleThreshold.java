@@ -9,9 +9,14 @@
 package org.cloudbus.cloudsim.power;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.Map.Entry;
 
 import javax.swing.plaf.basic.BasicInternalFrameTitlePane.MaximizeAction;
 
@@ -140,6 +145,72 @@ public class PowerVmAllocationPolicySingleThreshold extends VmAllocationPolicySi
 				host.vmDestroy(vm);
 			}
 		}
+	}
+	
+	public void reMapping(List<? extends Vm> vmList, List<? extends PowerHost> hostList){
+		double[] vCPU = new double[vmList.size()];
+		double[] vMEM = {}; 
+		double[] pCPU = new double[hostList.size()];
+		double[] pMEM = {};
+		double[] ePM = new double[hostList.size()];
+		
+		//order the VM list
+		List<Vm> sortedVmList =  sortVM(vmList);
+		Map vmMap = new HashMap<String, Vm>();
+		for (int i = 0 ;i< sortedVmList.size();i++){
+			vmMap.put(String.format("%d", i), sortedVmList.get(i));
+			vCPU[i] = sortedVmList.get(i).getCurrentRequestedTotalMips();
+		}
+		//order the PM list
+		List<PowerHost> sortedPmList =  sortPM(hostList);
+		Map pmMap = new HashMap<String, PowerHost>();
+		for (int i = 0 ;i< sortedPmList.size();i++){	
+			pmMap.put(String.format("%d", i), sortedPmList.get(i));
+			pCPU[i] = sortedPmList.get(i).getTotalMips();
+			ePM[i] = sortedPmList.get(i).getMaxPower();
+		}
+	}
+	
+	private  List<Vm> sortVM(List<? extends Vm> vmList) {
+		List<Vm> nList = new ArrayList<Vm>();
+		
+		for (int i=0;i<vmList.size();i++){
+			double requestedTotalMipsMax = -1;
+			int vmInx = -1;
+			for (int j = 0;j<vmList.size();j++){
+				if ( nList.contains( vmList.get(j)) ) continue;
+				if(vmList.get(j).getCurrentRequestedTotalMips() > requestedTotalMipsMax){					
+					vmInx = j;
+					requestedTotalMipsMax = vmList.get(j).getCurrentRequestedTotalMips();
+				}
+			}
+			if (vmInx > -1){
+				nList.add(vmList.get(vmInx));
+			}
+		}		
+		
+		return nList;
+	}
+	
+	private  List<PowerHost> sortPM(List<? extends PowerHost>hostList) {
+		List<PowerHost> nList = new ArrayList<PowerHost>();
+		
+		for (int i=0;i<hostList.size();i++){
+			double totalMipsMax = -1;
+			int hostInx = -1;
+			for (int j = 0;j<hostList.size();j++){
+				if ( nList.contains( hostList.get(j)) ) continue;
+				if(hostList.get(j).getTotalMips() > totalMipsMax){					
+					hostInx = j;
+					totalMipsMax = hostList.get(j).getTotalMips();
+				}
+			}
+			if (hostInx > -1){
+				nList.add(hostList.get(hostInx));
+			}
+		}		
+		
+		return nList;
 	}
 
 	/**

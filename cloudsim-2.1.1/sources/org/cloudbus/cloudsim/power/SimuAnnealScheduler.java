@@ -1,0 +1,1164 @@
+package org.cloudbus.cloudsim.power;
+
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Random;
+
+
+public class SimuAnnealScheduler {
+	
+	 transient int vNum = 15;
+	 transient int pNum = 9;
+	
+	 transient double vCPU[]=null;
+	 transient double vMEM[]= null;
+	 transient double pCPU[]=null;
+	 transient double pMEM[]= null;
+	 transient double ePM[]= null;
+	 transient double idleEnergyRatio = 0.7;
+	
+	
+	 double initialTemperature = 1000;
+	 double temperature = 1000;
+	 double coldingRate = 5;
+	
+	 double recentBest = Double.MAX_VALUE - 1;
+	 double sofarBest = Double.MAX_VALUE - 1;
+	 double fftCost = Double.MAX_VALUE - 1;
+	 int iTeration = 10000;
+	
+	 int vAssign[]=null;
+	
+	 int vAssignOld[]=null;
+	
+	 int vAssignBest[]=null;
+	
+	 int  vRecentAssignBest[] = null;
+	
+	 double pUtilization[] = null;
+	
+	 double pUtilizationMem[] = null;
+	
+	 Random random = new java.util.Random();
+	
+	 int totalIteration = 0;
+	
+	 ArrayDeque<String> resultAssign = new ArrayDeque<String>(10);
+	 ArrayDeque<Integer> results = new ArrayDeque<Integer>(10);
+	
+	 Date beginTime = null;
+	private  double leastTheoryEnergy = 0;
+	
+	private  void initAssign(){
+		if (vAssign==null) vAssign= new int[vNum];
+		if (vAssignOld==null) vAssignOld = new int[vNum];		
+		
+		//print("best Fit");
+		//bestFit();
+		print("first Fit");
+		firstFit();
+	}	
+	
+	private  void initAssignRandom(){
+		if (vAssign==null) vAssign= new int[vNum];
+		if (vAssignOld==null) vAssignOld = new int[vNum];		
+		
+		print("radom assignment initially");
+		randomFit(true);
+		
+	}	
+	
+	
+	private  void sortVM() {
+		for (int i=0;i<vNum;i++){
+			double prevMax = vCPU[i];
+			for (int j = i+1;j<vNum;j++){
+				if(vCPU[j] > prevMax){					
+					vCPU[i] = vCPU[j];
+					vCPU[j] = prevMax;
+					prevMax = vCPU[i]; 
+					
+					//swap the mem usage attribute
+					double tmp = vMEM[i];
+					vMEM[i] = vMEM[j];
+					vMEM[j] = tmp;
+				}
+			}			
+		}			
+	}
+	
+	private  void sortPM() {
+		for (int i=0;i<pNum;i++){
+			double prevMax = pCPU[i];
+			for (int j = i+1;j<pNum;j++){
+				if(pCPU[j] > prevMax){					
+					pCPU[i] = pCPU[j];
+					pCPU[j] = prevMax;
+					prevMax = pCPU[i]; 
+					
+					//swap the mem usage attribute
+					double tmp = pMEM[i];
+					pMEM[i] = pMEM[j];
+					pMEM[j] = tmp;
+				}
+			}			
+		}			
+	}
+	
+	private  Random getRandom(){
+		long tick = (new Date()).getTime();
+		Random result = new Random();
+		result.setSeed(tick);
+		return result;
+	}
+	
+	private  void randomFit(boolean saveResult) {
+		double[] pLeftCPU = new double[pNum];
+		double[] pLeftMEM = new double[pNum];
+		for (int i=0;i<pNum;i++){
+			pLeftCPU[i] = pCPU[i];
+			pLeftMEM[i] = pMEM[i];
+		}
+		for (int i=0;i<vNum;i++){
+			
+			int selectedPM = -1;
+			
+			Random r = getRandom();	
+			int loopCount = 0;
+			while(selectedPM == -1){
+				int j = absInt( r.nextInt()) % pNum;
+				j = absInt(j);
+				if (pLeftCPU[j]>vCPU[i] && pLeftMEM[j]>vMEM[i] ){					
+						selectedPM = j;
+				}
+				if (loopCount++ > 1000){
+					selectedPM = j;
+					break;
+				}
+			}	
+			vAssign[i] = selectedPM;
+			pLeftCPU[selectedPM] -= vCPU[i];
+			pLeftMEM[selectedPM] -= vMEM[i];			
+		}		
+		
+		if (saveResult){
+			sofarBest = stateEnergy(vAssign);
+			fftCost = sofarBest;
+			saveResult();
+			
+			sofarBest= Double.MAX_VALUE;
+		}
+	}
+
+	
+	private  int absInt(int value) {
+		if (value<0) return -value;
+		return value;
+	}
+
+	private  void bestFit() {
+		double[] pLeftCPU = new double[pNum];
+		double[] pLeftMEM = new double[pNum];
+		for (int i=0;i<pNum;i++){
+			pLeftCPU[i] = pCPU[i];
+			pLeftMEM[i] = pMEM[i];
+		}
+		for (int i=0;i<vNum;i++){
+			double lowestIncreaseEnergy = Double.MAX_VALUE;
+			int selectedPM = 0;
+			for (int j = 0;j<pNum;j++){
+				
+				
+				if (pLeftCPU[j]>vCPU[i] && pLeftMEM[j]>vMEM[i] ){
+					
+					double oldEnergy = getEngergy(j,pCPU[j]-pLeftCPU[j]);
+					double increaseEnergy = getEngergy(j,pCPU[j]-pLeftCPU[j] + vCPU[i]) -oldEnergy;
+					
+					if (increaseEnergy<lowestIncreaseEnergy){
+						lowestIncreaseEnergy = increaseEnergy;
+						selectedPM = j;
+					}
+					
+				}
+			}	
+			vAssign[i] = selectedPM;
+			pLeftCPU[selectedPM] -= vCPU[i];
+			pLeftMEM[selectedPM] -= vMEM[i];			
+		}		
+		
+		sofarBest = stateEnergy(vAssign);
+		fftCost = sofarBest;
+		saveResult();
+		
+		sofarBest= Double.MAX_VALUE;
+	}
+
+	private  double getEngergy(int pmNo, double cpuUsage) {
+		double u = cpuUsage / pCPU[pmNo];
+		double energy = 0;
+		if (u > 0.00001)
+			energy = u * (1- idleEnergyRatio ) * ePM[pmNo] + idleEnergyRatio * ePM[pmNo];
+		
+		return energy;
+	}
+
+	private  void firstFit() {
+		double[] pLeftCPU = new double[pNum];
+		double[] pLeftMEM = new double[pNum];
+		for (int i=0;i<pNum;i++){
+			pLeftCPU[i] = pCPU[i];
+			pLeftMEM[i] = pMEM[i];
+		}
+		for (int i=0;i<vNum;i++){
+			for (int j = 0;j<pNum;j++){
+				if (pLeftCPU[j]>vCPU[i] && pLeftMEM[j]>vMEM[i] ){
+					vAssign[i] = j;
+					pLeftCPU[j] -= vCPU[i];
+					pLeftMEM[j] -= vMEM[i];
+					break;
+				}
+			}			
+		}		
+		
+		sofarBest = stateEnergy(vAssign);
+		fftCost = sofarBest;
+		
+		leastTheoryEnergy = lowerEnergyBoundary();
+		saveResult();
+		
+		sofarBest= Double.MAX_VALUE;
+		
+		
+	}
+
+	private  double lowerEnergyBoundary() {
+		double[] pLeftCPU = new double[pNum];
+		double[] pLeftMEM = new double[pNum];
+		
+		double[] pUsedCPU = new double[pNum];
+		for (int i=0;i<pNum;i++){
+			pLeftCPU[i] = pCPU[i];
+			pLeftMEM[i] = pMEM[i];
+			pUsedCPU[i] = 0;
+		}
+		double totalVmCpu = 0;
+		double energyTotal = 0;
+		
+		for (int i=0;i<vNum;i++){
+			totalVmCpu += vCPU[i];
+		}
+		
+		
+			for (int j = 0;j<pNum;j++){
+				if (pCPU[j] <= totalVmCpu ){
+					pUsedCPU[j] = pCPU[j];					
+					totalVmCpu -= pCPU[j];
+					energyTotal += ePM[j];  //pack to 100% usage
+				}else{
+					pUsedCPU[j] = totalVmCpu;
+					totalVmCpu = 0;
+					energyTotal += getLeastEnergy(j,totalVmCpu);
+				}				
+				if (totalVmCpu<=0)
+					break;
+			}			
+		
+		//step2 : find the most energy-effient scheme for the left requirement 
+		//print(String.format("low boundary is %.2f",energyTotal));				
+		return energyTotal;
+	}
+
+	private  double getLeastEnergy(int j, double totalVmCpu) {
+		double leastEnergy = Double.MAX_VALUE;
+		for (int i=j; i<pNum; i++){
+			double uPM = totalVmCpu / pCPU[i];
+			if (uPM <= 1){
+				double energyPM = uPM * (1- idleEnergyRatio ) * ePM[i] + idleEnergyRatio * ePM[i];
+				if (energyPM < leastEnergy) leastEnergy = energyPM;
+			}
+		}		
+		return leastEnergy;
+	}
+
+	private  void anneal(int scale) {
+		print("annealing method 1: random assigment with group annealing");
+		initAssign();
+		while( temperature > 0){
+			int staleMateCount = 0;
+			for (int iT = 0; iT< iTeration ; iT++){
+				totalIteration++;
+				//fluctuate();
+				sediment();
+				//double curEnergy = stateEnergy(vAssign);
+				double curEnergy = stateEnergyGroup();
+				if (hasLowerEnergy(curEnergy )){
+					recentBest = curEnergy;
+					saveRecentBestAssign();
+					staleMateCount = 0;
+					
+					if (recentBest < sofarBest){
+						sofarBest = recentBest;
+						saveResult();
+					}
+				}
+				else{
+					revertFluctuate();
+					staleMateCount ++;
+				}
+				
+				if (staleMateCount >= scale*scale){
+					
+					//fluctuate();
+					sediment();
+					//curEnergy = stateEnergy(vAssign);
+					curEnergy = stateEnergyGroup();
+					if ( curEnergy - recentBest > dievationEnergy())
+						revertFluctuate();
+					else{
+						recentBest = curEnergy;
+						saveRecentBestAssign();
+						staleMateCount = 0;
+					}
+				}
+			}			
+			
+			temperature -= coldingRate;
+		}		
+	}
+	
+	private  void anneal_old(int scale, boolean initFFD) {
+		print("annealing method 1: random assignment");
+		
+		temperature = initialTemperature;
+		totalIteration = 0;
+		
+		if (initFFD){
+			initAssign();
+			return;
+		}else{
+			initAssignRandom();
+		}
+		
+		recentBest = sofarBest;
+		
+		while( temperature > 0){
+			int staleMateCount = 0;
+			for (int iT = 0; iT< iTeration * scale ; iT++){
+				if (getTicksFromStart()> 200) break;
+				totalIteration++;
+				fluctuate();			
+				double curEnergy = stateEnergy(vAssign);
+				
+				if (hasLowerEnergy(curEnergy )){
+					recentBest = curEnergy;
+					saveRecentBestAssign();
+					staleMateCount = 0;
+					
+					if (recentBest < sofarBest){
+						sofarBest = recentBest;
+						saveResult();
+					}
+				}
+				else{
+					revertFluctuate();
+					staleMateCount ++;
+				}
+				
+				if (staleMateCount >= scale*scale){		
+					//double tmpcost = sofarBest;
+					//initAssign();
+					//sofarBest = tmpcost;
+					fluctuate();					
+					curEnergy = stateEnergy(vAssign);
+					
+					if ( curEnergy - recentBest > dievationEnergy())
+						revertFluctuate();
+					else{
+						recentBest = curEnergy;
+						saveRecentBestAssign();
+						staleMateCount = 0;
+					}
+				}
+			}			
+			
+			temperature -= coldingRate;
+			if ( ((int)temperature) %10 == 0) print("temperature="+temperature);
+		}		
+	}
+	
+	private  void randomSearch(int scale, boolean initFFD) {
+		print("annealing method 1: random assignment");
+		
+		temperature = initialTemperature;
+		totalIteration = 0;
+		
+		if (initFFD){
+			initAssign();
+		}else{
+			initAssignRandom();
+		}
+		
+		recentBest = sofarBest;
+		
+		while( temperature > 0){
+			
+			for (int iT = 0; iT< iTeration * scale ; iT++){
+				if (getTicksFromStart()> 200) return;
+				totalIteration++;
+				randomAssign();			
+				double curEnergy = stateEnergy(vAssign);
+				
+				if (hasLowerEnergy(curEnergy )){
+					recentBest = curEnergy;
+					saveRecentBestAssign();				
+					
+					if (recentBest < sofarBest){
+						sofarBest = recentBest;
+						saveResult();
+					}
+				}
+				
+			}			
+			
+			temperature -= coldingRate;
+			if ( ((int)temperature) %10 == 0) print("temperature="+temperature);
+		}		
+	}
+	
+	private  void randomAssign() {
+		if (vAssign==null) vAssign= new int[vNum];
+		if (vAssignOld==null) vAssignOld = new int[vNum];		
+			
+		randomFit(false);
+		
+	}
+
+	private  void saveRecentBestAssign() {
+		if (vRecentAssignBest==null){
+			vRecentAssignBest = new int [vNum];
+		}
+		for (int i=0; i< vNum; i++){
+			vRecentAssignBest[i] = vAssign[i] ;
+		}
+		
+	}
+
+	private  void saveResult() {
+				
+		double tick = getTicksFromStart();
+		strResult = "";
+		for (int i=0; i< vNum; i++){
+			strResult = strResult + vAssign[i] + "," ;
+		}	
+
+		strResult = (String.format("%.1f", tick)+"\t"+totalIteration +"\t " +String.format("lb %.2f\\t", leastTheoryEnergy)  + String.format("%.2f", sofarBest)
+				+"\t" +String.format("%.2f%%", (fftCost-sofarBest)*100/fftCost) +" assignment " + strResult);
+		
+		
+		saveBestAssign();
+		
+		strResult += " ";
+		if (pUtilization != null) {
+			for (int i = 0; i < pNum; i++) {
+				strResult = strResult + pCPU[i] + "-"
+						+ String.format("%.2f%%|%.2f%%,", pUtilization[i]*100,pUtilizationMem[i]*100);
+			}
+		}
+		
+		print(strResult);
+		/*
+		resultAssign.add("");
+		results.add(0);
+		*/		
+	}
+
+	private  double getTicksFromStart() {
+		Date now = new Date();
+		double tick = 0;
+		if (beginTime!=null)
+			tick= now.getTime() - beginTime.getTime();
+		else
+			beginTime = now;
+		tick = tick/1000;
+		return tick;
+	}
+	
+	private  void saveBestAssign() {
+		if (vAssignBest==null){
+			vAssignBest = new int [vNum];
+		}
+		if (vRecentAssignBest!=null){
+			for (int i=0; i< vNum; i++){
+				vAssignBest[i] = vRecentAssignBest[i] ;
+			}
+		}
+	}
+
+
+	private  void revertFluctuate() {
+		for (int i=0; i< vNum; i++){
+			vAssign[i] = vAssignOld[i];
+		}		
+	}
+
+
+	
+	private  boolean initSediment = false;
+	private  int sedimentGroupNum = 4;
+	private  List<ArrayList<Integer>> sedimentGroups = null;
+	private  void initSediment(){
+		sedimentGroups = new ArrayList<ArrayList<Integer>>(sedimentGroupNum);
+		int curVM = 0;
+		int groupSize = vNum / sedimentGroupNum;
+		for (int i=0;i<sedimentGroupNum-1;i++){			
+			ArrayList<Integer> group = new ArrayList<Integer>();
+			sedimentGroups.add(group);
+			for(int j= 0; j< groupSize;j++){				
+				group.add(curVM++);
+			}
+		}
+		
+		// the last group
+		ArrayList<Integer> group = new ArrayList<Integer>();
+		sedimentGroups.add(group);
+		for(; curVM< vNum;curVM++){
+			group.add(curVM);
+		}	
+		initSediment = true;
+	}
+	
+	private  int curGroupNum;
+	private  int lastGroupNum = -1;
+	private  void sediment(){
+		//the temperature only allow a certain 10% range of VMs to move around
+		//the VM sized above the range will be taken away at the moment
+		//the VM sized blow the range will stay their current positions
+		
+		//step0: init
+		if (!initSediment){
+			initSediment();
+		}
+		
+		
+		
+		//step1: calculate the current range to deal with
+		long groupNum = sedimentGroupNum -1 - Math.round( temperature*100 / initialTemperature)/10;
+		
+		if (groupNum<0)
+			groupNum = 0;
+		else if (groupNum>=sedimentGroupNum)
+			groupNum = sedimentGroupNum-1;
+		curGroupNum = (int) groupNum; 
+		
+		if (lastGroupNum!=-1 && lastGroupNum!=curGroupNum){
+			getLastRoundBestAssign();
+			generateInitialGroupAssign(curGroupNum);			
+		}
+		else{		
+			fluctuateSediment(curGroupNum);
+		}
+		
+		lastGroupNum = curGroupNum;
+	}
+
+	private  void generateInitialGroupAssign(int grpNum) {
+		double[] pLeftCPU = new double[pNum];
+		double[] pLeftMEM = new double[pNum];
+		for (int i=0;i<pNum;i++){
+			pLeftCPU[i] = pCPU[i];
+			pLeftMEM[i] = pMEM[i];
+		}
+		
+		//computeLeftCPU
+		for (int i=0;i<grpNum;i++){
+			
+			ArrayList<Integer> curGroup = sedimentGroups.get(i);								
+			
+			for (int j=0;j<curGroup.size();j++)
+			{
+				int iVM = curGroup.get(j);
+				int iPM = vAssign[iVM];								
+				pLeftCPU[iPM] -= vCPU[iVM] ;
+				pLeftMEM[iPM] -= vMEM[iVM] ;
+			}						
+		}
+		
+		//generate initial assignment for this group
+		ArrayList<Integer> curGroup = sedimentGroups.get(grpNum);								
+		
+		for (int j=0;j<curGroup.size();j++)
+		{
+			int iVM = curGroup.get(j);
+			for (int k = 0; k< pNum; k++){
+												
+				if ( pLeftCPU[k] >= vCPU[iVM] && pLeftMEM[k] >= vMEM[iVM])
+				{
+					 vAssign[iVM] = k;	
+					 pLeftCPU[k] -= vCPU[iVM] ;	
+				}
+			}
+		}			
+	}
+
+	private  void getLastRoundBestAssign() {
+		if (vAssignBest!=null){
+			for (int i=0; i< vNum; i++){
+				vAssign[i] = vAssignBest[i] ;
+			}
+		}
+		else{
+			print("vAssignBest is null");
+		}		
+	}
+
+private  void fluctuateSediment(int grpNum) {
+		
+	ArrayList<Integer> curGroup = sedimentGroups.get((int) grpNum);
+	
+		int rnd = absInt( random.nextInt());
+		/*
+		if ( rnd% 2 ==0){
+			swapSediment(grpNum);
+			return;
+		}*/
+		
+		for (int i=0; i< vNum; i++){
+			vAssignOld[i] = vAssign[i];
+		}
+		
+		int vmNumMax = curGroup.size()<3?curGroup.size():3; // we don't want to change many vm assignment at a time
+		int vmNum = rnd % vmNumMax;
+		if (vmNum==0) vmNum=1;
+		
+		
+		
+		//pickVMFromGroups(grpNum, vNum);
+		
+		pickVMFromCurGroup(grpNum, vNum);
+	}
+
+private  void pickVMFromGroups(int grpNum, int vmNum) {
+	ArrayList<Integer> curGroup = sedimentGroups.get((int) grpNum);
+	
+	for (int k=0;k<vmNum;k++){
+		// pick up the group first, current group with the most probability
+		int sqareNum = (grpNum+1)*(grpNum+1);
+		int rnd = absInt( random.nextInt()) % sqareNum;
+		int selGrp = grpNum;
+		for(int i = 0; i<= grpNum ; i++){
+			if (rnd<=i){
+				selGrp = i;
+				break;
+			}
+		}
+		
+		ArrayList<Integer> selGroup = sedimentGroups.get(selGrp);
+		int grpInx = absInt( random.nextInt()) % selGroup.size();
+		if (grpInx >= 0 && grpInx < selGroup.size()) {
+				int vm = selGroup.get(grpInx);
+
+				int pm = absInt(random.nextInt()) % pNum;
+				vAssign[vm] = pm;
+		}
+	}
+}
+
+private  void pickVMFromCurGroup(int grpNum, int vmNo) {
+	
+	ArrayList<Integer> curGroup = sedimentGroups.get((int) grpNum);
+	for (int k=0;k<vmNo;k++){
+		// pick up the vm
+			int grpInx = absInt(random.nextInt()) % curGroup.size();
+		// pick up the pm
+			if (grpInx >= 0 && grpInx < curGroup.size()) {
+				int vm = curGroup.get(grpInx);
+
+				int pm = absInt(random.nextInt()) % pNum;
+				vAssign[vm] = pm;
+			}
+	}
+}
+	
+	private  void swapSediment(int grpNum) {
+		
+		for (int i=0; i< vNum; i++){
+			vAssignOld[i] = vAssign[i];
+		}
+		
+		ArrayList<Integer> curGroup = sedimentGroups.get((int) grpNum);
+		
+		int oldPm1;
+		int oldPm2;
+		
+		do{
+
+			//pick up the vm
+			int grpInx = absInt( random.nextInt() ) % curGroup.size();
+			//pick up the pm
+			
+			int vm1 = curGroup.get(grpInx);		
+			
+			grpInx = absInt( random.nextInt() ) % curGroup.size();
+		
+			int vm2 = curGroup.get(grpInx);
+		
+			oldPm1 = vAssignOld[vm1];
+			oldPm2 = vAssignOld[vm2];
+		
+			vAssign[vm1] = oldPm2;
+			vAssign[vm2] = oldPm1;
+		
+		}while(oldPm1==oldPm2);		
+	}
+	
+	private  double stateEnergyGroup(){
+		
+		int grpNum = curGroupNum;
+		double energy = 0;
+		for (int i=grpNum+1;i<sedimentGroupNum;i++){
+			energy += 1000000;
+		}
+		double[] uPM = new double[pNum];
+		double[] usedMEM = new double[pNum];
+		for (int i=0;i<=grpNum;i++){
+				
+			ArrayList<Integer> curGroup = sedimentGroups.get(i);								
+			
+			for (int j=0;j<curGroup.size();j++)
+			{
+				int iVM = curGroup.get(j);
+				int iPM = vAssign[iVM];
+				if ( iPM >= pNum || iPM <0 ){
+					print("illegal assignment " + vAssign.toString());
+					return Double.MAX_VALUE;
+				}				
+				uPM[iPM] += vCPU[iVM] / pCPU[iPM];			
+				usedMEM[iPM] += vMEM[iVM]/ pMEM[iPM];	
+			}						
+		}
+		for (int k = 0;k< pNum; k++){
+			if (uPM[k]>1 || usedMEM[k] > 1){
+				return Double.MAX_VALUE;
+			}
+			double energyPM = 0;
+			if (uPM[k] > 0.001)
+				energyPM = uPM[k] * (1- idleEnergyRatio ) * ePM[k] + idleEnergyRatio * ePM[k];
+			energy += energyPM;
+			
+			saveUtilization(uPM,usedMEM);
+		}
+		return energy;
+	}
+	
+	
+	
+	private  void saveUtilization(double[] uPM, double[] mPM) {
+		if (pUtilization==null){
+			pUtilization = new double[pNum];
+		}
+		for (int i=0;i<uPM.length;i++){
+			pUtilization[i] = uPM[i];
+		}
+		
+		if (pUtilizationMem==null){
+			pUtilizationMem = new double[pNum];
+		}
+		
+		for (int i=0;i<mPM.length;i++){
+			pUtilizationMem[i] = mPM[i];
+		}
+	}
+
+	private  void fluctuate_old() {
+		
+		if (random.nextInt() % 2 ==0){
+			swap();
+			return;
+		}
+		
+		for (int i=0; i< vNum; i++){
+			vAssignOld[i] = vAssign[i];
+		}
+		//pick up the vm
+		int vm = absInt( random.nextInt() ) % vNum;
+		//pick up the pm
+		
+		int oldPm = vAssignOld[vm];
+		int distance = (int)(pNum * 2 * (temperature / initialTemperature)) + 2;
+		distance =  random.nextInt()  % distance;		
+		int pm = absInt( (oldPm + distance )%pNum );		
+		vAssign[vm] = pm;
+	}
+	
+	
+	private  void fluctuate() {
+		
+		int rnd = absInt( random.nextInt()); 
+		if (rnd % 2 ==0){
+			swap();
+			return;
+		}
+		
+		for (int i=0; i< vNum; i++){
+			vAssignOld[i] = vAssign[i];
+		}
+		
+		rnd = rnd % 3;
+		for (int k=0; k<rnd; k++){
+			//pick up the vm
+			int vm = absInt( random.nextInt() ) % vNum;
+
+			int pm = absInt(random.nextInt()) % pNum;
+			vAssign[vm] = pm;
+		}
+	}
+	
+	private  void swap() {
+		
+		for (int i=0; i< vNum; i++){
+			vAssignOld[i] = vAssign[i];
+		}
+		
+		int oldPm1;
+		int oldPm2;
+		
+		do{
+		//pick up the vm
+		int vm1 = absInt( random.nextInt() ) % vNum;
+		//pick up the pm
+		int vm2 = absInt( random.nextInt() ) % vNum;
+		
+		if (vm1<0 || vm2 <0 || vm1 >= vNum || vm2 >= vNum) return; //weird, it could happen
+		
+		oldPm1 = vAssignOld[vm1];
+		oldPm2 = vAssignOld[vm2];
+		
+				
+		vAssign[vm1] = oldPm2;
+		vAssign[vm2] = oldPm1;
+		}while(oldPm1==oldPm2);
+	}
+	
+	private  double dievationEnergy(){
+		double largestPMEnergy = 0;
+		for (int i = 0;i< pNum; i++){			
+			largestPMEnergy +=  ePM[i];			
+		}
+		double energy = largestPMEnergy * temperature / initialTemperature + 0.1 ;
+		return energy;
+	}
+	
+	private  void print(String s){
+		Date now = new Date();		
+		
+		s = now.toString() +": "+s;
+		System.out.println(s);
+		
+		String fName = "simulatonAnneal-"+problemScale+"-"+problemCapacityIndex+".txt";
+		writeText(fName,s);
+	}
+	
+	private  String resultFolder = "";
+	
+	private  void writeText(String fFileName,String message) {
+		String folder = "C:\\users\\n7682905\\" + resultFolder;
+	
+		try {
+			createFolderIfNotExist(folder);
+			
+			fFileName = folder +"\\" +  fFileName;
+			
+			createFileIfNotExist(fFileName);
+
+			Writer out = new OutputStreamWriter(
+					new FileOutputStream(fFileName, true), "utf8");
+			try {
+				out.append(message+"\r\n");
+			} finally {
+				out.close();
+			}
+		} catch (Exception e) {
+		}
+	}
+
+	private  void createFileIfNotExist(String filePath) throws IOException {
+		File f;
+		f = new File(filePath);
+		if (!f.exists()){
+			f.createNewFile();
+		}
+	}
+	
+	private  void createFolderIfNotExist(String filePath) throws IOException {
+		File f;
+		f = new File(filePath);
+		if (!f.exists()){
+			f.mkdir();
+		}
+	}
+	
+	private  double stateEnergy(int[] assignment){
+		double energy = 0;
+		double[] uPM = new double[pNum];
+		double[] usedMEM = new double[pNum];
+		for (int i=0;i<assignment.length;i++)
+		{
+			int iPM = assignment[i];
+			if ( iPM >= pNum || iPM <0 ){
+				print("illegal assignment " + assignment.toString());
+				return Double.MAX_VALUE;
+			}
+			
+			uPM[iPM] += vCPU[i] / pCPU[iPM];
+			usedMEM[iPM] += vMEM[i]/ pMEM[iPM];
+		}
+		
+		for (int i = 0;i< pNum; i++){
+			if (uPM[i]>1 || usedMEM[i]>1 ){
+				return Double.MAX_VALUE;
+			}
+			double energyPM = 0;
+			if (uPM[i] > 0.001)
+				energyPM = uPM[i] * (1- idleEnergyRatio ) * ePM[i] + idleEnergyRatio * ePM[i];
+			energy += energyPM;
+			
+			saveUtilization(uPM,usedMEM);
+		}
+	
+		return energy;
+	}
+	
+	private  boolean hasLowerEnergy(double curEnergy) {
+		return ( curEnergy < recentBest );
+	}
+	/*
+	 * input: current VM to PM mapping
+	 * return vmToMigrate list
+	 */
+	public int[] shedule(){
+		//step1 find the least energy?, if this the lowest energy configuration,
+		//maybe this is the only configuration, so we cannot have 
+		//choices to select the one with the lowest migration cost
+		anneal_old(vNum, true);
+		//step2 find the re-configuration re-allocation steps from the current status
+		//? how to define the migration cost : length of the migration linklist
+		//? overlook the migration cost at the moment
+		return vAssign;
+	}
+	/*
+	 * assume vCPU and pCPU are ordered in a descending order
+	 */
+	public void init(double[] vCPU, double[]vMEM, double[] pCPU, double[] pMEM, double[] ePM) throws Exception{		
+		//cpu requirement for virtual machine
+		this.vNum = vCPU.length;	
+		if (vNum == 0){
+			throw new Exception("vNum == 0");
+		}
+		this.vCPU = new double[vNum];
+		for (int i=0;i<vNum;i++){
+			this.vCPU[i] = vCPU[i];
+		}
+		//memory requirement for virtual machine
+		this.vMEM = new double[vNum];
+		if (vMEM.length>0 && vMEM.length != vCPU.length){
+			throw new Exception("vMEM.length != vCPU.length");
+		}else if(vMEM.length==0){
+			for (int i=0;i<vNum;i++){
+				this.vMEM[i] = 0;
+			}
+		}else{
+			for (int i=0;i<vNum;i++){
+				this.vMEM[i] = vMEM[i];
+			}
+		}
+		// initialize the PM's CPU capacity
+		this.pNum = pCPU.length;	
+		if (pNum == 0){
+			throw new Exception("pNum == 0");
+		}
+		this.pCPU = new double[pNum];
+		for (int i=0;i<pNum;i++){
+			this.pCPU[i] = pCPU[i];
+		}
+		
+		//memory requirement for physical machine
+		this.pMEM = new double[pNum];
+		if (pMEM.length>0 && pMEM.length != pCPU.length){
+			throw new Exception("pMEM.length != pCPU.length");
+		}else if(pMEM.length==0){
+			for (int i=0;i<pNum;i++){
+				this.pMEM[i] = Double.MAX_VALUE;
+			}
+		}else{
+			for (int i=0;i<pNum;i++){
+				this.pMEM[i] = pMEM[i];
+			}
+		}
+		//maximum power usage of physical machines
+		ePM= new double[pNum];
+		if (ePM.length==0 || ePM.length != pCPU.length){
+			throw new Exception("ePM.length != pCPU.length");
+		}else{
+			for (int i=0;i<pNum;i++){
+				this.ePM[i] = ePM[i];
+			}
+		}
+		
+		idleEnergyRatio = 0.7;
+		
+		vAssign= new int[vNum];
+		
+		vAssignOld = new int[vNum];
+		
+		vAssignBest = new int[vNum];
+		
+		vRecentAssignBest = new int[vNum];
+		
+		pUtilization = new double[pNum];
+		
+		pUtilizationMem = new double[pNum];
+	}
+	private  void generateProblem(int scale,int capacityIndexPM, boolean mem) throws Exception{
+		
+		vNum = scale;
+		vNum = vNum <=0? 1: vNum;
+		vCPU = new double[vNum];
+		vMEM = new double[vNum];
+		vNum = scale;
+		pNum = scale *2 / 2 / capacityIndexPM;
+		pNum = pNum <=0 ? 1:pNum;
+		pCPU = new double[pNum];
+		pMEM = new double[pNum];
+		ePM= new double[pNum];
+		
+		
+		Random r = getRandom();
+		r.setSeed(2000);
+		Random rMem = getRandom();
+		rMem.setSeed(3000);
+		for (int i=0;i<vNum;i++){
+			double randomRequirement = absInt( r.nextInt()% 20 ) * 100 ;
+			if (randomRequirement<0.01) randomRequirement= 50; // minimum cpu to keep it alive
+			vCPU[i] = randomRequirement;
+			
+			randomRequirement = absInt( rMem.nextInt()% 20 ) * 100 ;
+			vMEM[i] = randomRequirement ;
+		}
+		
+		sortVM();
+		
+		int capacity[] = { 1000, 1200, 1500, 1800, 2000, 2300, 2400, 2500, 2700, 3000};
+		//int capacity[] = { 3000, 3000, 3000, 3000, 3000, 3000, 3000, 3000, 3000, 3000};
+		for (int i=0;i<pNum;i++){			
+			pCPU[i] = capacity[i%10] * capacityIndexPM;		
+			if (mem)
+				pMEM[i] = pCPU[i]; //;
+			else
+				pMEM[i] = 30000 * capacityIndexPM; 
+		}
+		
+		sortPM();
+		
+		/*for (int i=0;i<pNum;i++){
+			ePM[i]= (pCPU[i]/10) * ( 1 - 1000/pCPU[i]); // 1000-> 100, 3000-> 300 * (1-1/3)
+		}*/
+		for (int i=0;i<pNum;i++){
+			double energyTimes = 1;
+			if (pCPU[i]/1000 < 100){
+				//10 times capacity, 5 times of energy
+				//100 times capacity, 20 times of energy
+				energyTimes =( 1 - Math.log10( pCPU[i]/1000)*0.4); 
+			}else{
+				print("wrong capacity: " + pCPU[i]);
+				throw new Exception();
+			}
+			
+			ePM[i]= (pCPU[i]/10) * energyTimes; // 1000-> 100*(1-0), 3000-> 300 * (1-1/3)
+		} 
+		 
+		idleEnergyRatio = 0.7;
+		printProblem();
+		
+		vAssign= new int[vNum];
+		
+		vAssignOld = new int[vNum];
+		
+		vAssignBest = new int[vNum];
+		
+		vRecentAssignBest = new int[vNum];
+		
+		pUtilization = new double[pNum];
+		
+		pUtilizationMem = new double[pNum];
+	}
+	
+	private  void printProblem(){
+		String s = "";
+		double totalReqquirement = 0;
+		for (int i=0;i<vNum;i++){
+			s += String.format("%.0f,",vCPU[i]);
+			totalReqquirement += vCPU[i];
+		}
+		
+		print("VM No " + vNum +" requiremnt " + s);
+		print("total requirement " + totalReqquirement);
+		
+		s = "";
+		double totalCapacity = 0;
+		for (int i=0;i<pNum;i++){
+			s += String.format("%.0f,",pCPU[i]);
+			totalCapacity += pCPU[i];
+		}
+		
+		print("PM " + pNum +" capacity " + s);
+		print("total capacity " + totalCapacity);				
+	}
+
+	/**
+	 * @param args
+	 * @throws Exception 
+	 */
+	
+	 private int problemScale = 10;
+	 private int problemCapacityIndex = 1;
+	private  String strResult;
+	@SuppressWarnings("deprecation")
+	public static  void main(String[] args) throws Exception {
+		SimuAnnealScheduler scheduler = new SimuAnnealScheduler();
+		scheduler.beginTime = new Date();
+		String resultFile = "st_result"+ scheduler.beginTime.getHours()+scheduler.beginTime.getMinutes() +".txt";
+		scheduler.sedimentGroupNum=10;
+		scheduler.coldingRate = 50;
+		int problemScales[] = { 20,50,100,200 }; //200 20, 50, 50,51,52,53,54,55,56,57,58,59,60
+		int problemCapacityIndexes[] = {1, 2, 3, 4, 5, 10};
+		boolean initWithFFD = true;
+		for (int experimentTime=0;experimentTime<1;experimentTime++){
+			scheduler.resultFolder = "low-boundary-" + String.format("%02d", experimentTime);
+			boolean mem = false;
+			if (experimentTime>=50) mem = true;
+			for (int i=0;i<problemScales.length;i++){				
+				for (int j=0;j<problemCapacityIndexes.length;j++){
+					scheduler.problemScale = problemScales[i];
+					scheduler.problemCapacityIndex = problemCapacityIndexes[j];
+					scheduler.generateProblem(scheduler.problemScale,scheduler.problemCapacityIndex,mem);
+					scheduler.beginTime = new Date();
+					scheduler.print("started "+scheduler.beginTime.toString());			
+					//randomSearch(problemScale,initWithFFD);
+					scheduler.anneal_old(scheduler.problemScale,initWithFFD);		
+					//anneal(problemScale);
+					scheduler.writeText(resultFile, scheduler.problemScale+"\t"+scheduler.problemCapacityIndex+"\t"+ scheduler.strResult);
+					scheduler.print("finished");
+				}
+			}
+		}// for experimentTimes
+	}
+
+}
