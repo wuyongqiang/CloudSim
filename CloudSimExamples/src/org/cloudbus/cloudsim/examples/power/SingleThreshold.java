@@ -61,12 +61,12 @@ public class SingleThreshold {
 
 	protected static double utilizationThreshold = 0.7;
 
-	protected static double hostsNumber = 10;
-	protected static double vmsNumber = 20;
-	protected static double cloudletsNumber = 20;
+	protected static double hostsNumber = 3;//10;
+	protected static double vmsNumber = 6;//20;
+	protected static double cloudletsNumber = 6;//20;
 	protected static boolean workHourLoad = true;
 	protected static boolean useSA = true;
-	protected static int roughIndex = 5;
+	protected static int roughIndex = 3;
 	protected static boolean useAverageUtilization = true;
 
 	//protected static UtilizationModelStochastic utilizationModelWorkHour;
@@ -214,7 +214,7 @@ public class SingleThreshold {
 				cloudlet = new Cloudlet(i, length, pesNumber, fileSize, outputSize, utilizationModelStochastic, new UtilizationModelStochastic(roughIndex), new UtilizationModelStochastic(roughIndex));
 			}else{
 				if (workHourLoad)
-					cloudlet = new Cloudlet(i, length, pesNumber, fileSize, outputSize, new UtilizationModelWorkHour(roughIndex), new UtilizationModelStochastic(roughIndex), new UtilizationModelStochastic(roughIndex));
+					cloudlet = new Cloudlet(i, length, pesNumber, fileSize, outputSize, new UtilizationModelWorkHour(roughIndex), new UtilizationModelWorkHour(roughIndex-2), new UtilizationModelStochastic(roughIndex));
 				else
 					cloudlet = new Cloudlet(i, length, pesNumber, fileSize, outputSize, new UtilizationModelStochastic(roughIndex), new UtilizationModelStochastic(roughIndex), new UtilizationModelStochastic(roughIndex));
 			}

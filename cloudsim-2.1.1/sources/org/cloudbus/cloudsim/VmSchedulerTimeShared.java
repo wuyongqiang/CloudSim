@@ -95,7 +95,7 @@ public class VmSchedulerTimeShared extends VmScheduler {
 		List<Double> mipsShareAllocated = new ArrayList<Double>();
 		for (Double mipsRequested : mipsShareRequested) {
 			if (getVmsInMigration().contains(vmUid)) {
-				mipsRequested *= 0.9; // performance degradation due to migration = 10% MIPS
+				mipsRequested *= 0.99; // performance degradation due to migration = 10% MIPS
 			}
 			mipsShareAllocated.add(mipsRequested);
 		}

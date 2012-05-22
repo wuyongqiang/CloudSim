@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.cloudbus.cloudsim.Host;
+import org.cloudbus.cloudsim.Vm;
 
 public class Market {
 	
@@ -11,26 +12,58 @@ public class Market {
 	private List<SaleItem> items = new ArrayList<SaleItem>();
 	
 	private SaleItem soldItem = null;
-	private Bidder buyer = null;
+	private List<Bidder> buyers = new ArrayList<Bidder>();
 	
 	public boolean bid(){
 		Boolean soldSuccess = false;
 		SaleItem saleItem = selectSaleItem(); 
 		if (saleItem!=null){
-			int price = 0;
-			for (Bidder bidder : bidders){
-				int curBidPrice = bidder.bidPrice(saleItem);
-				if (price < curBidPrice){				
-					price = curBidPrice;
-					buyer = bidder;
+			
+			//int vmCount = saleItem.getRealItems().size();
+			//ArrayList<Integer> priceList = new ArrayList<Integer>(vmCount);
+			SaleItemPrice bidPrice = new SaleItemPrice();
+			for (int i=0;i<saleItem.getRealItems().size();i++){
+				bidPrice.addPrice(0);
+				buyers.add(null);
+			}
+				
+			
+			
+				
+			for(int i=0;i< saleItem.getRealItems().size();i++){
+				
+				
+				buyers.set(i, null);
+				bidPrice.getPriceList().set(i, 0);
+			
+				//for one VM that every bidder can bid
+				for (Bidder bidder : bidders){				
+					SaleItemPrice curBidPrice = bidder.bidPrice(saleItem);
+					
+					if (bidPrice.getPriceList().get(i) < curBidPrice.getPriceList()
+							.get(i)) {
+						Integer tmpPrice = curBidPrice.getPriceList().get(i);
+						bidPrice.getPriceList().set(i, tmpPrice);
+						buyers.set(i, bidder);
+					}					
+				}	
+				if (buyers.get(i)==null) break; // no one bid the current vm
+				if (saleItem.getRealItems().size()>1 ){
+									
+						Vm vm = saleItem.getRealItems().get(i);
+						Host host = buyers.get(i).getHost();
+						List<Double> allocatedMipsForVm =  vm.getHost().getAllocatedMipsForVm(vm);
+						host.allocatePesForVm(vm, allocatedMipsForVm);
+										
 				}
 			}
-			
-			soldSuccess = (price > 0);
+			if (saleItem.getOwner()==null || saleItem.getOwner().accept(bidPrice))
+				soldSuccess = bidPrice.isValid();
 			soldItem = soldSuccess ? saleItem : null;
 		}
 		return soldSuccess;
 	}
+	
 	
 	private SaleItem selectSaleItem() {
 		int priority = -1;
@@ -52,14 +85,15 @@ public class Market {
 		if( item != null)
 			items.add(item);
 	}
+		
 	
 	public void addBidder(Bidder bidder){
 		if (bidder != null)
 			bidders.add(bidder);
 	}
 
-	public Bidder getBuyer() {	
-		return buyer;
+	public List<Bidder> getBuyers() {	
+		return buyers;
 	}
 	
 	
