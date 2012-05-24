@@ -10,12 +10,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
-import com.sun.jmx.remote.internal.ArrayQueue;
-
-import net.sourceforge.jannealer.AnnealingScheme;
-import net.sourceforge.jannealer.ObjectiveFunction;
-import net.sourceforge.jannealer.test.Util;
-
 public class SimuAnnealTest {
 	
 	static transient int vNum = 15;
@@ -53,10 +47,7 @@ public class SimuAnnealTest {
 	static Random random = new java.util.Random();
 	
 	static int totalIteration = 0;
-	
-	static ArrayQueue<String> resultAssign = new ArrayQueue<String>(10);
-	static ArrayQueue<Integer> results = new ArrayQueue<Integer>(10);
-	
+
 	static Date beginTime = null;
 	private static double leastTheoryEnergy = 0;
 	

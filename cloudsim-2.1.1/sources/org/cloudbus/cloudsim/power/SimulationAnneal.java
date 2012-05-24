@@ -13,6 +13,7 @@ import org.cloudbus.cloudsim.util.LogPrint;
 
 public class SimulationAnneal implements MigrationScheduleInt {
 
+	protected double migrationRate = 0.2;
 	protected static int migrationCost = 100000;
 	protected double[] pCPU;
 	protected double[] vCPU;
@@ -106,6 +107,7 @@ public class SimulationAnneal implements MigrationScheduleInt {
 		while (temperature > 0) {
 			int staleMateCount = 0;
 			dE = dievationEnergy();
+			double curEnergy = Double.MAX_VALUE;
 			//iTeration = scale;
 			//for (int iT = 0; iT < iTeration * scale; iT++) {
 			for (int iT = 0; iT < iTeration * scale ; iT++) {
@@ -113,10 +115,8 @@ public class SimulationAnneal implements MigrationScheduleInt {
 					return;
 				totalIteration++;
 				fluctuate();
-				double curEnergy = stateEnergy(vAssign);
-
-				if (curEnergy / migrationCost <= vNum * 0.2)
-					break;
+				curEnergy = stateEnergy(vAssign);
+				
 				if (hasLowerEnergy(curEnergy)) {
 					recentBest = curEnergy;
 					saveRecentBestAssign();
@@ -129,7 +129,7 @@ public class SimulationAnneal implements MigrationScheduleInt {
 				} else {
 					revertFluctuate();
 					staleMateCount++;
-				}
+				}				
 
 				if (staleMateCount >= scale * scale) {
 					// double tmpcost = sofarBest;
@@ -148,6 +148,9 @@ public class SimulationAnneal implements MigrationScheduleInt {
 					}
 				}
 			}
+			
+			if (curEnergy / migrationCost <= vNum * migrationRate)
+				break;
 
 			temperature -= coldingRate;
 			if (((int) temperature) % 10 == 0)

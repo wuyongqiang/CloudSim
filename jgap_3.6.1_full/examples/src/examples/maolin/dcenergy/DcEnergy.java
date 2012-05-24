@@ -142,7 +142,7 @@ public class DcEnergy {
     for (int i = 0; i < MAX_ALLOWED_EVOLUTIONS * scale/capacityIndex; i++) {
     	
     	population.evolve();
-      if (i%2==0){
+      if (i%50==1){
     	  System.out.println("genration:"+i);
       printSolution(population);
       }
@@ -183,7 +183,7 @@ private static void printSolution(Genotype population) {
   public static void main(String[] args)
       throws Exception {
     if (args.length != 2) {
-    	int scale = 100;
+    	int scale = 20;
     	int capacityIndex = 4;
       System.out.println(new Date() + String.format(" start\nSyntax: DcEnergy <scale=%d> <capacityIndex=%d>",scale, capacityIndex));
       makeChangeForAmount(scale, capacityIndex);

@@ -21,7 +21,7 @@ import org.jgap.supergenes.*;
  * @author Audrius Meskauskas
  * @since 2.0
  */
-public class TotalSupergeneTest
+public class DuplicatedTotalSupergeneTest
     extends TestCase {
   /** String containing the CVS revision. Read out via reflection!*/
   private final static String CVS_REVISION = "$Revision: 1.3 $";

@@ -12,9 +12,11 @@ package examples.maolin.dcenergy;
 import java.util.Date;
 import java.util.Random;
 
+import org.cloudbus.cloudsim.network.FatTreeTopologicalNode;
+import org.cloudbus.cloudsim.network.TopologicalGraph;
+import org.cloudbus.cloudsim.power.NetworkCostCalculator;
 import org.jgap.*;
 
-import com.sun.org.apache.bcel.internal.generic.GETSTATIC;
 
 /**
  * Sample fitness function for the CoinsEnergy example. Adapted from
@@ -58,6 +60,8 @@ private static double pLargestPMEnergy;
 
 private static boolean inited = false;
 
+private static NetworkCostCalculator networkCalc;
+
   private static void generateProblem(int scale,int capacityIndexPM) throws Exception{
 	  
 	  if (inited) return;
@@ -85,6 +89,8 @@ private static boolean inited = false;
 		double totalRequirement = 0;
 		for (int i=0;i<vNum;i++){
 			double randomRequirement = Math.abs( r.nextInt()% 20 ) * 100 ;
+			vCPU[i] = randomRequirement;
+			if (randomRequirement<0.01) randomRequirement= 50; // minimum cpu to keep it alive
 			vCPU[i] = randomRequirement;
 			
 			totalRequirement += vCPU[i];
@@ -140,7 +146,40 @@ private static boolean inited = false;
 		print("gnerate problem done");
 		inited = true;
 		
+		generateNetworkConfig(pNum,vNum);
+		
 		printProblem();
+	}
+  
+  private static void generateNetworkConfig(int pmNumber, int vmNumber){
+	  int childrenNumber = 5;
+	  for(int i=2;i<10;i++){
+		  childrenNumber = i;
+		  if (Math.pow(i, i+1) > pmNumber)
+			  break;
+	  }
+	  System.out.println("children number of network node is = " + childrenNumber);
+	  TopologicalGraph graph = FatTreeTopologicalNode.generateTree(pmNumber, childrenNumber);
+		
+		FatTreeTopologicalNode root = FatTreeTopologicalNode.orgnizeGraphToTree(graph);
+		networkCalc = new NetworkCostCalculator();
+		networkCalc.setNetworkRootNode(root);
+		
+		int traffic[] = new int[vmNumber * vmNumber];
+		
+		resetArray(traffic);	
+		
+		int vmHalfNumber = vmNumber / 2;
+		for (int i=0;i<vmHalfNumber; i++){
+			traffic[i * vmNumber + (vmHalfNumber + i)] = 10;		
+		}
+		networkCalc.setVmTraffic(traffic,vmNumber);
+  }
+  
+  static private void resetArray(int a[]){
+		for (int i=0;i<a.length;i++){
+			a[i] = 0;
+		}
 	}
   
   
@@ -369,7 +408,7 @@ public DcEnergyFitnessFunction(int scale,int capacityIndexPM) throws Exception {
 			saveUtilization(uPM);
 		}
 		
-		return energy;
+		return energy + networkCalc.getTotalNetworkCost(assignment) * 3;
 	}
   
   
