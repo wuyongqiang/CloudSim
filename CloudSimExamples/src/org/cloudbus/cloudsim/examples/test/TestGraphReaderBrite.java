@@ -229,7 +229,7 @@ public class TestGraphReaderBrite {
 	
 	@Test
 	public void testGenerateTree(){		
-		TopologicalGraph graph = FatTreeTopologicalNode.generateTree(200, 10);
+		TopologicalGraph graph = FatTreeTopologicalNode.generateTree(5, 2);
 		FatTreeTopologicalNode root = FatTreeTopologicalNode.orgnizeGraphToTree(graph);
 		assertEquals(1000000,root.getNodeID());
 		printTreeNode2(root);

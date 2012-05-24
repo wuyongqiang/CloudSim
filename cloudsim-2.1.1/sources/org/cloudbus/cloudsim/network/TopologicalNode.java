@@ -26,7 +26,7 @@ public class TopologicalNode {
 	/**
 	 * describes the nodes-name inside the network
 	 */
-	private String nodeName = null;
+	protected String nodeName = null;
 
 	/**
 	 * representing the x an y world-coordinates

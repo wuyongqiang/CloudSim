@@ -61,9 +61,9 @@ public class SingleThreshold {
 
 	protected static double utilizationThreshold = 0.7;
 
-	protected static double hostsNumber = 3;//10;
-	protected static double vmsNumber = 6;//20;
-	protected static double cloudletsNumber = 6;//20;
+	protected static double hostsNumber = 6;//10;
+	protected static double vmsNumber = 12;//20;
+	protected static double cloudletsNumber = vmsNumber;//20;
 	protected static boolean workHourLoad = true;
 	protected static boolean useSA = true;
 	protected static int roughIndex = 3;

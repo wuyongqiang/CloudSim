@@ -310,6 +310,7 @@ public class FatTreeTopologicalNode extends TopologicalNode {
 						int pmId = curPM;
 						FatTreeTopologicalNode pmNode = new FatTreeTopologicalNode(pmId, String.format("%d",pmId), 0, 0);
 						pmNode.setNodeType(FatTreeNodeType.PM);
+						pmNode.setNodeLabel("pm"+pmNode.getNodeID());
 						graph.addNode(pmNode);
 						pmNode.setGraph(graph);
 						graph.addLink(new TopologicalLink(edgeId, pmId, 0.0f, 100.0f));
@@ -365,5 +366,20 @@ public class FatTreeTopologicalNode extends TopologicalNode {
 		if (parent.getLastChild() == null)
 			return false;
 		return parent.getLastChild()!=this;
+	}
+
+	public FatTreeTopologicalNode findNodeByLabel(String label) {		
+			Iterator<TopologicalNode> it = getNodeIterator();
+			while(it.hasNext()){
+				TopologicalNode node = it.next();
+				if ( node.getNodeLabel().equalsIgnoreCase(label)){
+					return (FatTreeTopologicalNode)node;
+				}
+			}		
+			return null;
+		}
+	
+	public void setNodeLabel(String name){
+		this.nodeName = name;
 	}
 }

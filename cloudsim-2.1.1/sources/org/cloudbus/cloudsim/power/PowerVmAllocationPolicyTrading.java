@@ -54,9 +54,41 @@ public class PowerVmAllocationPolicyTrading extends
 		
 		PowerHost allocatedHost=null;
 		
-		ArrayList<Map<String, Object>> migList = new ArrayList<Map<String,Object>>();
-		Market market = createMarket();
-		if (market.bid()) {
+		ArrayList<Map<String, Object>> migList0 = new ArrayList<Map<String,Object>>();
+		Market market0 = createMarket(0);
+		addMigList(migList0, market0,null);	
+		
+		boolean bNotFind0 = (migList0.size()==0) && market0.getSelectedSaleItem()!=null;		
+		
+		ArrayList<Map<String, Object>> migList1 = new ArrayList<Map<String,Object>>();
+		Market market1 = createMarket(1);
+		addMigList(migList1, market1,null);	
+		
+		boolean bNotFind1 = (migList1.size()==0) && market1.getSelectedSaleItem()!=null;	
+		/*
+		if (bNotFind0){
+			addMigList(migList1, market1,market0.getSelectedSaleItem());	
+		}
+		
+		if (bNotFind1){
+			addMigList(migList0, market0,market1.getSelectedSaleItem());	
+		}*/
+		
+		migList0.addAll(migList1);
+		return migList0;
+	}
+
+	private void addMigList(ArrayList<Map<String, Object>> migList,
+			Market market, SaleItem item) {
+		PowerHost allocatedHost;
+		boolean bidResult = false;
+		if (item==null){
+			bidResult = market.bid();
+		}else{
+			market.setSelectedSaleItem(item);
+			bidResult = market.bidWithoutSaleItem();
+		}
+		if (bidResult) {
 			for (int i=0;i<market.getSoldItem().getRealItems().size();i++) {
 				Vm vm = market.getSoldItem().getRealItems().get(i);
 				allocatedHost = (PowerHost) market.getBuyers().get(i).getHost();
@@ -74,8 +106,7 @@ public class PowerVmAllocationPolicyTrading extends
 					log(vm.getId()+"from \t" + vm.getHost().getId() + "to \t" + allocatedHost.getId() );
 				}
 			}
-		}		
-		return migList;
+		}
 	}
 	
 	
@@ -84,14 +115,26 @@ public class PowerVmAllocationPolicyTrading extends
 	}
 	
 
-	private Market createMarket() {
+	private Market createMarket(int marketNo) {
+		//int hostNo[][] = {{0,1,2,3,4,5},{}};
+		int hostNo[][] = {{0,1,2},{3,4,5}};
+		int marketHosts[] = hostNo[marketNo];
 		Market market = new Market();
 		for (PowerHost host : this.<PowerHost>getHostList()) {
-			BidderAndSeller bs = new BidderAndSeller(host);
-			market.addBidder(bs);
-			market.addSaleItem(bs.provisionSaleItem());			
+			if (inList(host.getId(),marketHosts)){
+				BidderAndSeller bs = new BidderAndSeller(host);
+				market.addBidder(bs);
+				market.addSaleItem(bs.provisionSaleItem());
+			}
 		}
 		return market;
+	}
+
+	private boolean inList(int id, int[] marketHosts) {
+		for(int i=0;i<marketHosts.length;i++){
+			if (marketHosts[i]==id) return true;
+		}
+		return false;
 	}
 
 	@Override

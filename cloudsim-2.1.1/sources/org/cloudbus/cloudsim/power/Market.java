@@ -14,9 +14,16 @@ public class Market {
 	private SaleItem soldItem = null;
 	private List<Bidder> buyers = new ArrayList<Bidder>();
 	
+	private SaleItem saleItem = null;
+	
 	public boolean bid(){
+		saleItem = selectSaleItem(); 
+		return bidWithoutSaleItem();
+	}
+	public boolean bidWithoutSaleItem(){
 		Boolean soldSuccess = false;
-		SaleItem saleItem = selectSaleItem(); 
+		
+		
 		if (saleItem!=null){
 			
 			//int vmCount = saleItem.getRealItems().size();
@@ -85,7 +92,14 @@ public class Market {
 		if( item != null)
 			items.add(item);
 	}
-		
+	
+	public void setSelectedSaleItem(SaleItem item){
+		saleItem = item;
+	}
+	
+	public SaleItem getSelectedSaleItem(){
+		return saleItem ;
+	}
 	
 	public void addBidder(Bidder bidder){
 		if (bidder != null)

@@ -9,6 +9,7 @@
 package org.cloudbus.cloudsim.provisioners;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import org.cloudbus.cloudsim.Vm;
@@ -25,6 +26,7 @@ public class RamProvisionerSimple extends RamProvisioner {
 
 	/** The RAM table. */
 	private Map<String, Integer> ramTable;
+	private Map<String, Vm> vmTable =new HashMap<String,Vm>();
 
 	/**
 	 * Instantiates a new ram provisioner simple.
@@ -52,13 +54,36 @@ public class RamProvisionerSimple extends RamProvisioner {
 		if (getAvailableRam() >= ram) {
 			setAvailableRam(getAvailableRam() - ram);
 			getRamTable().put(vm.getUid(), ram);
+			
 			vm.setCurrentAllocatedRam(getAllocatedRamForVm(vm));
 			return true;
+		}else{
+			int totalRequest = 0;
+			Iterator<Vm> it = vmTable.values().iterator();
+			for(int i=0;i<vmTable.size();i++){
+				Vm vmTmp = it.next();
+				totalRequest += vmTmp.getCurrentRequestedRam();
+			}
+			
+			totalRequest += ram;
+			
+			double percent = getRam() *1.0 / totalRequest;
+			
+			it = vmTable.values().iterator();
+			for(int i=0;i<vmTable.size();i++){
+				Vm vmTmp = it.next();
+				vm.setCurrentAllocatedRam((int) (vmTmp.getCurrentRequestedRam() * percent) );
+			}
+			
+			setAvailableRam((int) ( ram * percent) );
+			getRamTable().put(vm.getUid(), ram);
+			
+			vm.setCurrentAllocatedRam(getAllocatedRamForVm(vm));
 		}
 
 		vm.setCurrentAllocatedRam(getAllocatedRamForVm(vm));
 
-		return false;
+		return true;
 	}
 
 	/* (non-Javadoc)
@@ -79,6 +104,7 @@ public class RamProvisionerSimple extends RamProvisioner {
 	public void deallocateRamForVm(Vm vm) {
 		if (getRamTable().containsKey(vm.getUid())) {
 			int amountFreed = getRamTable().remove(vm.getUid());
+			vmTable.remove(vm.getUid());
 			setAvailableRam(getAvailableRam() + amountFreed);
 			vm.setCurrentAllocatedRam(0);
 		}
@@ -99,12 +125,24 @@ public class RamProvisionerSimple extends RamProvisioner {
 	@Override
 	public boolean isSuitableForVm(Vm vm, int ram) {
 		int allocatedRam = getAllocatedRamForVm(vm);
+		
+		if (ram > vm.getRam())
+			ram = vm.getRam();
+		
+		if(allocatedRam + getAvailableRam()>=ram)
+			return true;
+		else
+			return false;		
+		
+		/*
+		int allocatedRam = getAllocatedRamForVm(vm);
 		boolean result = allocateRamForVm(vm, ram);
 		deallocateRamForVm(vm);
 		if (allocatedRam > 0) {
 			allocateRamForVm(vm, allocatedRam);
 		}
 		return result;
+		*/
 	}
 
 	/**
