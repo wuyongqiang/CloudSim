@@ -41,6 +41,8 @@ public class FatTreeTopologicalNode extends TopologicalNode {
 	
 	private List<FatTreeTopologicalNode> children = null;
 	
+	private List appData;
+	
 	public enum FatTreeNodeType{
 		PM,
 		Edge,
@@ -382,4 +384,58 @@ public class FatTreeTopologicalNode extends TopologicalNode {
 	public void setNodeLabel(String name){
 		this.nodeName = name;
 	}
+	
+	
+	static private String getPrefix(FatTreeTopologicalNode node){
+		String result = "";
+		if (node!=null) {
+			result = getPrefix(node.getParent());
+			if (node.hasNextSibling())
+				result +=  "  |";
+			else
+				result +=  "   ";
+		}
+		return result;
+	}
+	
+	static StringBuilder treeNode2StrBuilder = new StringBuilder();
+	
+	static public void clearTreeNode2StrBuilder(){
+		treeNode2StrBuilder = new StringBuilder();
+	}
+	
+	static public StringBuilder getTreeNode2StrBuilder(){
+		return treeNode2StrBuilder;
+	}
+	
+	static public void printTreeNode2(FatTreeTopologicalNode node){
+		List<FatTreeTopologicalNode> list = node.getLowerNodes();		
+		StringBuilder builder = new StringBuilder();
+		builder.append(getPrefix(node));
+		builder.append("--"+node.getNodeLabel() + "(" + node.getAppDataStr()+")");
+		treeNode2StrBuilder.append(builder.toString()+"\n");
+		for(int i=0;i<list.size();i++){
+			FatTreeTopologicalNode subNode =list.get(i);
+			printTreeNode2(subNode);
+		}
+	}
+
+	private String getAppDataStr() {
+		String str = "";
+		if (appData!=null){
+			for(Object o:appData)
+				str += o +",";
+		}
+		return str;
+	}
+
+	@SuppressWarnings("rawtypes")
+	public List getAppData() {
+		if(appData==null)
+			appData = new ArrayList();
+		return appData;
+	}
+
+
+	
 }

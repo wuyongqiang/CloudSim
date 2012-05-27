@@ -11,6 +11,7 @@ package examples.maolin.dcenergy;
 
 import java.util.Date;
 
+import org.cloudbus.cloudsim.util.LogPrint;
 import org.jgap.Chromosome;
 import org.jgap.Configuration;
 import org.jgap.Gene;
@@ -163,9 +164,17 @@ private static void printSolution(Genotype population) {
     System.out.println( myFunc.printResult(
         bestSolutionSoFar)
                        + " \n with a total energy of "
-                       +myFunc.getTotalWeight(
-        bestSolutionSoFar)
-                       + ")");
+                       +DcEnergyFitnessFunction.getTotalWeightStr( bestSolutionSoFar) + ")\n");
+}
+
+private static LogPrint log;
+
+private static void print(String message){
+	if (log==null){
+		log = new LogPrint(DcEnergy.class.getName()+".txt");
+	}
+	
+	log.print(message,LogPrint.PrintMode.PrintLog);
 }
 
   /**

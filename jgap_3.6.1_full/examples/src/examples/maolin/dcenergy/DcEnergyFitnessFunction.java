@@ -10,10 +10,12 @@
 package examples.maolin.dcenergy;
 
 import java.util.Date;
+import java.util.Iterator;
 import java.util.Random;
 
 import org.cloudbus.cloudsim.network.FatTreeTopologicalNode;
 import org.cloudbus.cloudsim.network.TopologicalGraph;
+import org.cloudbus.cloudsim.network.TopologicalNode;
 import org.cloudbus.cloudsim.power.NetworkCostCalculator;
 import org.jgap.*;
 
@@ -61,6 +63,7 @@ private static double pLargestPMEnergy;
 private static boolean inited = false;
 
 private static NetworkCostCalculator networkCalc;
+private static FatTreeTopologicalNode root;
 
   private static void generateProblem(int scale,int capacityIndexPM) throws Exception{
 	  
@@ -96,7 +99,9 @@ private static NetworkCostCalculator networkCalc;
 			totalRequirement += vCPU[i];
 			
 			randomRequirement = Math.abs( rMem.nextInt()% 20 ) * 100 ;
+			if (randomRequirement<0.01) randomRequirement= 200;
 			vMEM[i] = randomRequirement;
+			
 		}
 		
 		sortVM();
@@ -107,7 +112,7 @@ private static NetworkCostCalculator networkCalc;
 		
 		for (int i=0;i<pNum;i++){			
 			pCPU[i] = capacity[i%10] * capacityIndexPM;		
-			pMEM[i] = 3000 * capacityIndexPM;
+			pMEM[i] = pCPU[i];//3000 * capacityIndexPM;
 						
 		}
 		
@@ -135,8 +140,7 @@ private static NetworkCostCalculator networkCalc;
 			}
 		}
 		
-		idleEnergyRatio = 0.7;
-		//pLeastTheoryEnergy = totalRequirement /10 * (1 - 1000/maxPMCapacity) /2;
+		idleEnergyRatio = 0.7;		
 		
 		pLeastTheoryEnergy = (totalRequirement/maxPMCapacity) * (1- idleEnergyRatio ) * pLargestPMEnergy + idleEnergyRatio * pLargestPMEnergy;
 		
@@ -161,7 +165,7 @@ private static NetworkCostCalculator networkCalc;
 	  System.out.println("children number of network node is = " + childrenNumber);
 	  TopologicalGraph graph = FatTreeTopologicalNode.generateTree(pmNumber, childrenNumber);
 		
-		FatTreeTopologicalNode root = FatTreeTopologicalNode.orgnizeGraphToTree(graph);
+		root = FatTreeTopologicalNode.orgnizeGraphToTree(graph);
 		networkCalc = new NetworkCostCalculator();
 		networkCalc.setNetworkRootNode(root);
 		
@@ -203,13 +207,15 @@ private static NetworkCostCalculator networkCalc;
 		}		
 		
 		
-		System.out.println("ffd energy:" + stateEnergy(vAssign));
+		System.out.println("ffd energy:" + getTotalWeightStr(vAssign));
 		
 		return vAssign;
 	}
   
   
-  private static void sortVM() {
+
+
+private static void sortVM() {
 		for (int i=0;i<vNum;i++){
 			double prevMax = vCPU[i];
 			for (int j = i+1;j<vNum;j++){
@@ -251,7 +257,7 @@ private static NetworkCostCalculator networkCalc;
 	String s = "VM:";
 	double totalRequirement = 0;
 	  for(int i=0; i< vNum;i++){
-		s += vCPU[i]+",";
+		s += "("+vCPU[i]+","+vMEM[i]+"),";
 		totalRequirement += vCPU[i];
 	}
 	  
@@ -260,7 +266,7 @@ private static NetworkCostCalculator networkCalc;
 	  s = "PM:";
 	  totalRequirement = 0;
 	  for(int i=0; i< pNum;i++){
-		s += pCPU[i]+",";
+		s += "("+pCPU[i]+","+pMEM[i]+"),";;
 		totalRequirement += pCPU[i];
 	}
 	  print(s);
@@ -342,7 +348,7 @@ public DcEnergyFitnessFunction(int scale,int capacityIndexPM) throws Exception {
    * @author Neil Rotstan
    * @since 1.0
    */
-  public int getPmNumberAtGene(IChromosome a_potentialSolution,
+  static public int getPmNumberAtGene(IChromosome a_potentialSolution,
                                            int a_position) {
     Integer num =
         (Integer) a_potentialSolution.getGene(a_position).getAllele();
@@ -360,7 +366,7 @@ public DcEnergyFitnessFunction(int scale,int capacityIndexPM) throws Exception {
    * @author Klaus Meffert
    * @since 2.4
    */
-  public double getTotalWeight(IChromosome a_potentialSolution) {
+  static public double getTotalWeight(IChromosome a_potentialSolution) {
 	  int[] tmpAssign = new int[vNum];
 	  
 	  double totalWeight = 0.0d;
@@ -370,7 +376,7 @@ public DcEnergyFitnessFunction(int scale,int capacityIndexPM) throws Exception {
       tmpAssign[i] = pmNumber;
       
     }
-    totalWeight = stateEnergy(tmpAssign);
+    totalWeight = stateEnergy(tmpAssign) + networkCalc.getTotalNetworkCost(tmpAssign) * 3;
     return totalWeight;
   }
   
@@ -408,7 +414,7 @@ public DcEnergyFitnessFunction(int scale,int capacityIndexPM) throws Exception {
 			saveUtilization(uPM);
 		}
 		
-		return energy + networkCalc.getTotalNetworkCost(assignment) * 3;
+		return energy ;
 	}
   
   
@@ -456,28 +462,75 @@ public  String printResult(IChromosome bestSolutionSoFar) {
 		double tmpusedMEM[] = new double [pNum];
 		                        
 		int numberOfGenes = bestSolutionSoFar.size();
+		
+		assert(numberOfGenes == vNum);
+		
+		clearAllNetworkNodeAppData();
+		
 		for (int i = 0; i < numberOfGenes; i++) {
 			int pmNumber = getPmNumberAtGene(bestSolutionSoFar, i);
 			tmpAssign[i] = pmNumber;
 			
 			int iPM = pmNumber;
 			tmpuPM[iPM] += vCPU[i] / pCPU[iPM];
-			tmpusedMEM[iPM] += vMEM[i];
+			tmpusedMEM[iPM] += vMEM[i] / pMEM[iPM];
 		}
 		
-		for (int i=0; i< vNum; i++){
-			s = s + tmpAssign[i] + "," ;
+		
+		
+		for (int i=0; i< pNum; i++){
+			//s = s + pCPU[i]+ String.format("[%%%.2f]", tmpuPM[i]*100) + "," ;
+			addToNetworkNode(String.format("cpu%%%.2f,mem%%%.2f", tmpuPM[i]*100,tmpusedMEM[i]*100),i);
 		}	
 		
 		s = s + "\n";
 		
-		for (int i=0; i< pNum; i++){
-			s = s + pCPU[i]+ String.format("[%%%.2f]", tmpuPM[i]*100) + "," ;
+		for (int i=0; i< vNum; i++){
+			//s = s + tmpAssign[i] + "," ;
+			addToNetworkNode(i,tmpAssign[i]);
 		}	
-		
-		
-
+		FatTreeTopologicalNode.clearTreeNode2StrBuilder();
+		FatTreeTopologicalNode.printTreeNode2(root);
+		s = s + FatTreeTopologicalNode.getTreeNode2StrBuilder();
 		return s;
 }
 
+private static void clearAllNetworkNodeAppData() {
+	if (root != null) {
+		Iterator<TopologicalNode> it = root.getGraph().getNodeIterator();
+		while(it.hasNext()){
+			FatTreeTopologicalNode node = (FatTreeTopologicalNode) it.next();
+			node.getAppData().clear();
+		}
+	}
+
+}
+
+	@SuppressWarnings("unchecked")
+	private static void addToNetworkNode(Object appData, int iPM) {
+		if (root != null) {
+			FatTreeTopologicalNode node = FatTreeTopologicalNode.getNodeByIdInGraph(
+					root.getGraph(), iPM);
+			node.getAppData().add(appData);
+		}
+
+	}
+
+	static public String getTotalWeightStr(IChromosome a_potentialSolution) {
+		 
+		    int numberOfGenes = a_potentialSolution.size();
+		    int[] tmpAssign = new int[numberOfGenes];
+			for (int i = 0; i < numberOfGenes; i++) {
+		      int pmNumber = getPmNumberAtGene(a_potentialSolution,i);
+		      tmpAssign[i] = pmNumber;		      
+		    }
+			return getTotalWeightStr(tmpAssign);
+	}	
+	
+	static private String getTotalWeightStr(int[] tmpAssign) {
+		  double totalEnergy = stateEnergy(tmpAssign);
+			double totalNetworkCost = networkCalc.getTotalNetworkCost(tmpAssign) * 3;
+			double totalWeight =totalEnergy + totalNetworkCost;
+		    return String.format("%.2f",  totalWeight) + " energy:" + String.format("%.2f",totalEnergy)+" network:"+String.format("%.2f",totalNetworkCost);
+		}
 }
