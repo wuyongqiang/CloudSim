@@ -112,18 +112,24 @@ public class DcEnergy {
     
     IChromosome sampleChromosome = new Chromosome(conf, sampleGenes);
     conf.setSampleChromosome(sampleChromosome);
-    
+    //conf.getGeneticOperators().clear();
     //UniformCrossover uniformCrossover = new UniformCrossover(conf);
     //conf.addGeneticOperator(uniformCrossover);
     //SwappingMutationOperator swapper = new SwappingMutationOperator(conf,10);
-    //conf.addGeneticOperator(swapper);
-    conf.addGeneticOperator(new MutationOperator(conf, 10));
-    //conf.addGeneticOperator(new CrossoverOperator(conf,1,true));
+    //conf.addGeneticOperator(swapper);    
+    
+    //conf.addGeneticOperator(new MutationOperator(conf, 10));
+    //conf.addGeneticOperator(new CrossoverOperator(conf,0.35d));
     conf.addGeneticOperator(new WeightedRouletteCrossoverOperator(conf,0.7));
+    //conf.addGeneticOperator(new MutationOperator(conf, 10));
+    
+    //conf.getNaturalSelectors(true).clear();
+    //conf.getNaturalSelectors(false).clear();
     WeightedRouletteSelector selector = new WeightedRouletteSelector(conf);
     //BestChromosomesSelector selector = new BestChromosomesSelector(conf);
     
     conf.addNaturalSelector(selector, false);
+    
     conf.setSelectFromPrevGen(0.7);
     
     // Finally, we need to tell the Configuration object how many
@@ -132,6 +138,7 @@ public class DcEnergy {
     // finding the answer), but the longer it will take to evolve
     // the population (which could be seen as bad).
     // ------------------------------------------------------------
+    //conf.setPopulationSize(100);
     conf.setPopulationSize(2*scale/capacityIndex);
     // Create random initial population of Chromosomes.
     // ------------------------------------------------
@@ -143,7 +150,7 @@ public class DcEnergy {
     for (int i = 0; i < MAX_ALLOWED_EVOLUTIONS * scale/capacityIndex; i++) {
     	
     	population.evolve();
-      if (i%50==1){
+      if (i%100==1){
     	  System.out.println("genration:"+i);
       printSolution(population);
       }
@@ -192,7 +199,7 @@ private static void print(String message){
   public static void main(String[] args)
       throws Exception {
     if (args.length != 2) {
-    	int scale = 20;
+    	int scale = 100;
     	int capacityIndex = 4;
       System.out.println(new Date() + String.format(" start\nSyntax: DcEnergy <scale=%d> <capacityIndex=%d>",scale, capacityIndex));
       makeChangeForAmount(scale, capacityIndex);

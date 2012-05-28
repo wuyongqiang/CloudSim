@@ -65,6 +65,10 @@ private static boolean inited = false;
 private static NetworkCostCalculator networkCalc;
 private static FatTreeTopologicalNode root;
 
+private static int traffic[];
+
+private static double networkWeight = 1;
+
   private static void generateProblem(int scale,int capacityIndexPM) throws Exception{
 	  
 	  if (inited) return;
@@ -169,15 +173,52 @@ private static FatTreeTopologicalNode root;
 		networkCalc = new NetworkCostCalculator();
 		networkCalc.setNetworkRootNode(root);
 		
-		int traffic[] = new int[vmNumber * vmNumber];
+		traffic = new int[vmNumber * vmNumber];
 		
 		resetArray(traffic);	
-		
-		int vmHalfNumber = vmNumber / 2;
+		//networkPairs(vmNumber, traffic);
+		networkRandomGrp(vmNumber, traffic);
+		networkCalc.setVmTraffic(traffic,vmNumber);
+  }
+  
+  static private void networkPairs(int vmNumber, int traffic[] ){
+	  int vmHalfNumber = vmNumber / 2;
 		for (int i=0;i<vmHalfNumber; i++){
 			traffic[i * vmNumber + (vmHalfNumber + i)] = 10;		
 		}
-		networkCalc.setVmTraffic(traffic,vmNumber);
+  }
+  
+  static private void networkRandom(int vmNumber, int traffic[] ){
+	  	Random r = new Random(123456L);
+		for (int i=0;i<vmNumber; i++){
+			for (int j=0;j<vmNumber; j++)
+				if (i!=j)
+					traffic[i * vmNumber + j] = r.nextInt(10);		
+		}
+  }
+  
+  static private void networkRandomGrp(int vmNumber, int traffic[] ){
+	  	Random r = new Random(123456L);
+	  	int grpNum = vmNumber / 4;
+	  	int vmGrp[] = new int[vmNumber];
+	  	for (int i=0;i<vmNumber; i++){
+	  		vmGrp[i]=r.nextInt(grpNum);
+	  	}
+	  	for (int i=0;i<grpNum;i++){
+	  		String s = "Group"+i + " :";
+	  		for (int j=0;j<vmNumber;j++){
+	  			if (vmGrp[j]==i){
+	  				s += j+",";
+	  			}
+	  		}
+	  		print(s);
+	  	}
+		for (int i=0;i<vmNumber; i++){
+			for (int j=0;j<vmNumber; j++){
+				if (i!=j && vmGrp[i] == vmGrp[j]) // in a grp
+					traffic[i * vmNumber + j] = r.nextInt(10);
+			}
+		}
   }
   
   static private void resetArray(int a[]){
@@ -271,6 +312,16 @@ private static void sortVM() {
 	}
 	  print(s);
 	  print(String.format("total PM %d capacity %.2f",pNum, totalRequirement));
+	  
+	  //network traffic info
+	  s = "network traffic info\n";
+	  for (int i=0;i<vNum; i++){
+			for (int j=0;j<vNum; j++){
+				s += String.format("%4d", traffic[i * vNum + j]);
+			}
+			s += "\n";
+		}
+	  print(s);
 }
 
 
@@ -376,7 +427,7 @@ public DcEnergyFitnessFunction(int scale,int capacityIndexPM) throws Exception {
       tmpAssign[i] = pmNumber;
       
     }
-    totalWeight = stateEnergy(tmpAssign) + networkCalc.getTotalNetworkCost(tmpAssign) * 3;
+    totalWeight = stateEnergy(tmpAssign) + networkCalc.getTotalNetworkCost(tmpAssign) * networkWeight;
     return totalWeight;
   }
   
@@ -529,7 +580,7 @@ private static void clearAllNetworkNodeAppData() {
 	
 	static private String getTotalWeightStr(int[] tmpAssign) {
 		  double totalEnergy = stateEnergy(tmpAssign);
-			double totalNetworkCost = networkCalc.getTotalNetworkCost(tmpAssign) * 3;
+			double totalNetworkCost = networkCalc.getTotalNetworkCost(tmpAssign) * networkWeight;
 			double totalWeight =totalEnergy + totalNetworkCost;
 		    return String.format("%.2f",  totalWeight) + " energy:" + String.format("%.2f",totalEnergy)+" network:"+String.format("%.2f",totalNetworkCost);
 		}

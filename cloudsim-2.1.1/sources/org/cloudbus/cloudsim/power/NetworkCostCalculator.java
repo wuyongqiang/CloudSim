@@ -11,9 +11,13 @@ public class NetworkCostCalculator{
 	private int[] trafficMap;
 	
 	private int vNum;
+	
+	private int []unitCostArray;
 
 	public NetworkCostCalculator( ) {
-		
+		unitCostArray = new int[100*100];
+		for (int i=0;i<100*100;i++)
+			unitCostArray[i] = -1;
 	}
 	
 	public void setNetworkRootNode(FatTreeTopologicalNode node){
@@ -25,13 +29,21 @@ public class NetworkCostCalculator{
 		this.vNum = vNum;
 	}
 	
+	
+	
 	private int networkCost(int vm1, int vm2,int[] assignment){	
 		int pm1 = assignment[vm1];
 		int pm2 = assignment[vm2];
 		
 		int traffic = getTaffic(vm1,vm2);
 		int unitCost = 0;
-		if (traffic>0) unitCost = networkUnitCost(pm1,pm2);
+		if (traffic>0){
+			unitCost = unitCostArray[pm1*100+pm2];
+			if(unitCost==-1){
+				unitCost = networkUnitCost(pm1,pm2);
+				unitCostArray[pm1*100+pm2] = unitCost;
+			}
+		}
 		return unitCost * traffic;
 	}
 	
@@ -51,8 +63,11 @@ public class NetworkCostCalculator{
 		return total;
 	}
 	
+	
+	
 	public int getTotalNetworkCost(int[] assignment){
 		int total = 0;
+		
 		if(vNum != assignment.length) throw new RuntimeException("vNum != assignment.length");
 		for(int i=0;i<vNum;i++){			
 			for(int j=0;j<vNum;j++){
