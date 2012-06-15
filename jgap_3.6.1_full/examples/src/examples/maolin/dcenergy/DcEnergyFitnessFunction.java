@@ -29,47 +29,48 @@ import org.jgap.*;
  */
 public class DcEnergyFitnessFunction
     extends FitnessFunction {
-  //private static final double normalEnergyBound = 1000*1000*100;	
-  //private static final double breachEnergy = normalEnergyBound * 100000;
+  //private  final double normalEnergyBound = 1000*1000*100;	
+  //private  final double breachEnergy = normalEnergyBound * 100000;
 		
 	
 /** String containing the CVS revision. Read out via reflection!*/
-  private final static String CVS_REVISION = "$Revision: 1.5 $";
+  private final  String CVS_REVISION = "$Revision: 1.5 $";
 
-private static int vNum;
+private  int vNum;
 
-private static double[] vCPU;
+private  double[] vCPU;
 
-private static double[] vMEM;
+private  double[] vMEM;
 
 
-private static int[] vAssign;
-private static int pNum;
+private  int[] vAssign;
+private  int pNum;
 
-private static double[] pCPU;
+private  double[] pCPU;
 
-private static double[] pMEM;
+private  double[] pMEM;
 
-private static double[] ePM;
+private  double[] ePM;
 
-private static double idleEnergyRatio;
+private  double idleEnergyRatio;
 
-private static double[] pUtilization;
+private  double[] pUtilization;
 
-private static double pLeastTheoryEnergy;  
+private  double pLeastTheoryEnergy;  
 
-private static double pLargestPMEnergy;  
+private  double pLargestPMEnergy;  
 
-private static boolean inited = false;
+private  boolean inited = false;
 
-private static NetworkCostCalculator networkCalc;
-private static FatTreeTopologicalNode root;
+private  NetworkCostCalculator networkCalc;
+private  FatTreeTopologicalNode root;
 
-private static int traffic[];
+private  int traffic[];
 
-private static double networkWeight = 1;
+private  double networkWeight = 1;
+private  double energyWeight = 1;
 
-  private static void generateProblem(int scale,int capacityIndexPM) throws Exception{
+  private  void generateProblem(int scale,int capacityIndexPM) throws Exception{
 	  
 	  if (inited) return;
 		
@@ -111,7 +112,7 @@ private static double networkWeight = 1;
 		sortVM();
 		
 		int capacity[] = { 1000, 1200, 1500, 1800, 2000, 2300, 2400, 2500, 2700, 3000};
-		
+		//int capacity[] = {2000, 2000, 2000,2000,2000,2000, 2000, 2000,2000,2000};
 						
 		
 		for (int i=0;i<pNum;i++){			
@@ -130,9 +131,11 @@ private static double networkWeight = 1;
 			if (pCPU[i]/1000 < 100){
 				//10 times capacity, 6 times of energy
 				//100 times capacity, 20 times of energy
-				energyTimes =( 1 - Math.log10( pCPU[i]/1000)*0.4); 
+				energyTimes =( 1 - Math.log10( pCPU[i]/1000)*0.4);
+				//Random r3 = new Random(3);
+				//energyTimes = 0.5 + 0.5 * r3.nextInt(10)/10;
 			}else{
-				print("wrong capacity: " + pCPU[i]);
+				println("wrong capacity: " + pCPU[i]);
 				throw new Exception();
 			}
 				
@@ -151,7 +154,7 @@ private static double networkWeight = 1;
 		 
 		
 		//printProblem();
-		print("gnerate problem done");
+		println("gnerate problem done");
 		inited = true;
 		
 		generateNetworkConfig(pNum,vNum);
@@ -159,14 +162,14 @@ private static double networkWeight = 1;
 		printProblem();
 	}
   
-  private static void generateNetworkConfig(int pmNumber, int vmNumber){
+  private  void generateNetworkConfig(int pmNumber, int vmNumber){
 	  int childrenNumber = 5;
 	  for(int i=2;i<10;i++){
 		  childrenNumber = i;
-		  if (Math.pow(i, i+1) > pmNumber)
+		  if (Math.pow(i, 3)  > pmNumber)
 			  break;
 	  }
-	  System.out.println("children number of network node is = " + childrenNumber);
+	  println("children number of network node is = " + childrenNumber);
 	  TopologicalGraph graph = FatTreeTopologicalNode.generateTree(pmNumber, childrenNumber);
 		
 		root = FatTreeTopologicalNode.orgnizeGraphToTree(graph);
@@ -181,14 +184,14 @@ private static double networkWeight = 1;
 		networkCalc.setVmTraffic(traffic,vmNumber);
   }
   
-  static private void networkPairs(int vmNumber, int traffic[] ){
+   private void networkPairs(int vmNumber, int traffic[] ){
 	  int vmHalfNumber = vmNumber / 2;
 		for (int i=0;i<vmHalfNumber; i++){
 			traffic[i * vmNumber + (vmHalfNumber + i)] = 10;		
 		}
   }
   
-  static private void networkRandom(int vmNumber, int traffic[] ){
+   private void networkRandom(int vmNumber, int traffic[] ){
 	  	Random r = new Random(123456L);
 		for (int i=0;i<vmNumber; i++){
 			for (int j=0;j<vmNumber; j++)
@@ -197,7 +200,7 @@ private static double networkWeight = 1;
 		}
   }
   
-  static private void networkRandomGrp(int vmNumber, int traffic[] ){
+   private void networkRandomGrp(int vmNumber, int traffic[] ){
 	  	Random r = new Random(123456L);
 	  	int grpNum = vmNumber / 4;
 	  	int vmGrp[] = new int[vmNumber];
@@ -211,7 +214,7 @@ private static double networkWeight = 1;
 	  				s += j+",";
 	  			}
 	  		}
-	  		print(s);
+	  		println(s);
 	  	}
 		for (int i=0;i<vmNumber; i++){
 			for (int j=0;j<vmNumber; j++){
@@ -221,14 +224,14 @@ private static double networkWeight = 1;
 		}
   }
   
-  static private void resetArray(int a[]){
+   private void resetArray(int a[]){
 		for (int i=0;i<a.length;i++){
 			a[i] = 0;
 		}
 	}
   
   
-  public static int[] firstFit() {
+  public  int[] firstFit() {
 	  
 		double[] pLeftCPU = new double[pNum];
 		double[] pLeftMEM = new double[pNum];
@@ -248,7 +251,7 @@ private static double networkWeight = 1;
 		}		
 		
 		
-		System.out.println("ffd energy:" + getTotalWeightStr(vAssign));
+		println("ffd energy:" + getTotalWeightStr(vAssign));
 		
 		return vAssign;
 	}
@@ -256,7 +259,7 @@ private static double networkWeight = 1;
   
 
 
-private static void sortVM() {
+private  void sortVM() {
 		for (int i=0;i<vNum;i++){
 			double prevMax = vCPU[i];
 			for (int j = i+1;j<vNum;j++){
@@ -274,7 +277,7 @@ private static void sortVM() {
 		}			
 	}
 	
-	private static void sortPM() {
+	private  void sortPM() {
 		for (int i=0;i<pNum;i++){
 			double prevMax = pCPU[i];
 			for (int j = i+1;j<pNum;j++){
@@ -294,7 +297,7 @@ private static void sortVM() {
 
 
 
-  private static void printProblem() {
+  private  void printProblem() {
 	String s = "VM:";
 	double totalRequirement = 0;
 	  for(int i=0; i< vNum;i++){
@@ -302,26 +305,26 @@ private static void sortVM() {
 		totalRequirement += vCPU[i];
 	}
 	  
-	  print(s);
-	  print(String.format("total VM %d requirement %.2f", vNum, totalRequirement));
+	  println(s);
+	  println(String.format("total VM %d requirement %.2f", vNum, totalRequirement));
 	  s = "PM:";
 	  totalRequirement = 0;
 	  for(int i=0; i< pNum;i++){
 		s += "("+pCPU[i]+","+pMEM[i]+"),";;
 		totalRequirement += pCPU[i];
 	}
-	  print(s);
-	  print(String.format("total PM %d capacity %.2f",pNum, totalRequirement));
+	  println(s);
+	  println(String.format("total PM %d capacity %.2f",pNum, totalRequirement));
 	  
-	  //network traffic info
-	  s = "network traffic info\n";
-	  for (int i=0;i<vNum; i++){
-			for (int j=0;j<vNum; j++){
-				s += String.format("%4d", traffic[i * vNum + j]);
-			}
-			s += "\n";
-		}
-	  print(s);
+	  //network traffic info	  
+//	  s = "network traffic info\n";
+//	  for (int i=0;i<vNum; i++){
+//			for (int j=0;j<vNum; j++){
+//				s += String.format("%4d", traffic[i * vNum + j]);
+//			}
+//			s += "\n";
+//		}
+	  println(s);
 }
 
 
@@ -399,7 +402,7 @@ public DcEnergyFitnessFunction(int scale,int capacityIndexPM) throws Exception {
    * @author Neil Rotstan
    * @since 1.0
    */
-  static public int getPmNumberAtGene(IChromosome a_potentialSolution,
+   public int getPmNumberAtGene(IChromosome a_potentialSolution,
                                            int a_position) {
     Integer num =
         (Integer) a_potentialSolution.getGene(a_position).getAllele();
@@ -417,7 +420,7 @@ public DcEnergyFitnessFunction(int scale,int capacityIndexPM) throws Exception {
    * @author Klaus Meffert
    * @since 2.4
    */
-  static public double getTotalWeight(IChromosome a_potentialSolution) {
+   public double getTotalWeight(IChromosome a_potentialSolution) {
 	  int[] tmpAssign = new int[vNum];
 	  
 	  double totalWeight = 0.0d;
@@ -427,12 +430,12 @@ public DcEnergyFitnessFunction(int scale,int capacityIndexPM) throws Exception {
       tmpAssign[i] = pmNumber;
       
     }
-    totalWeight = stateEnergy(tmpAssign) + networkCalc.getTotalNetworkCost(tmpAssign) * networkWeight;
+    totalWeight = stateEnergy(tmpAssign)*energyWeight + networkCalc.getTotalNetworkCost(tmpAssign) * networkWeight;
     return totalWeight;
   }
   
   
-  private static double stateEnergy(int[] assignment){
+  private  double stateEnergy(int[] assignment){
 		double energy = 0;
 		double[] uPM = new double[pNum];
 		double[] usedMEM = new double[pNum];
@@ -440,7 +443,7 @@ public DcEnergyFitnessFunction(int scale,int capacityIndexPM) throws Exception {
 		{
 			int iPM = assignment[i];
 			if ( iPM >= pNum || iPM <0 ){
-				print("illegal assignment " + assignment.toString());
+				println("illegal assignment " + assignment.toString());
 				return Double.MAX_VALUE;
 			}
 			
@@ -469,7 +472,7 @@ public DcEnergyFitnessFunction(int scale,int capacityIndexPM) throws Exception {
 	}
   
   
-	private static void saveUtilization(double[] uPM) {
+	private  void saveUtilization(double[] uPM) {
 		if (pUtilization==null){
 			pUtilization = new double[pNum];
 		}
@@ -479,9 +482,8 @@ public DcEnergyFitnessFunction(int scale,int capacityIndexPM) throws Exception {
 		}
 	}
   
-  private static void print(String s){
-		Date dt = new Date();		
-		System.out.println(dt.toString() +": "+s);
+  private  void println(String s){
+	  PrintUtil.print(s);
 	}
 
   /**
@@ -546,7 +548,7 @@ public  String printResult(IChromosome bestSolutionSoFar) {
 		return s;
 }
 
-private static void clearAllNetworkNodeAppData() {
+private  void clearAllNetworkNodeAppData() {
 	if (root != null) {
 		Iterator<TopologicalNode> it = root.getGraph().getNodeIterator();
 		while(it.hasNext()){
@@ -558,7 +560,7 @@ private static void clearAllNetworkNodeAppData() {
 }
 
 	@SuppressWarnings("unchecked")
-	private static void addToNetworkNode(Object appData, int iPM) {
+	private  void addToNetworkNode(Object appData, int iPM) {
 		if (root != null) {
 			FatTreeTopologicalNode node = FatTreeTopologicalNode.getNodeByIdInGraph(
 					root.getGraph(), iPM);
@@ -567,7 +569,7 @@ private static void clearAllNetworkNodeAppData() {
 
 	}
 
-	static public String getTotalWeightStr(IChromosome a_potentialSolution) {
+	 public String getTotalWeightStr(IChromosome a_potentialSolution) {
 		 
 		    int numberOfGenes = a_potentialSolution.size();
 		    int[] tmpAssign = new int[numberOfGenes];
@@ -578,7 +580,7 @@ private static void clearAllNetworkNodeAppData() {
 			return getTotalWeightStr(tmpAssign);
 	}	
 	
-	static private String getTotalWeightStr(int[] tmpAssign) {
+	 private String getTotalWeightStr(int[] tmpAssign) {
 		  double totalEnergy = stateEnergy(tmpAssign);
 			double totalNetworkCost = networkCalc.getTotalNetworkCost(tmpAssign) * networkWeight;
 			double totalWeight =totalEnergy + totalNetworkCost;

@@ -406,6 +406,8 @@ public class WeightedRouletteCrossoverOperator
 protected void doCrossover(IChromosome firstMate, IChromosome secondMate,
                            List a_candidateChromosomes,
                            RandomGenerator generator) {
+	firstMate.setFitnessValue(-1);
+	secondMate.setFitnessValue(-1);
     Gene[] firstGenes = firstMate.getGenes();
     Gene[] secondGenes = secondMate.getGenes();
     int locus = generator.nextInt(firstGenes.length);

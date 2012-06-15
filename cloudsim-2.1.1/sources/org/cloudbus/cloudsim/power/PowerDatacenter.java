@@ -24,6 +24,8 @@ import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.core.CloudSimTags;
 import org.cloudbus.cloudsim.core.SimEvent;
 import org.cloudbus.cloudsim.core.predicates.PredicateType;
+import org.cloudbus.cloudsim.lists.VmList;
+import org.cloudbus.cloudsim.network.NetworkConfig;
 
 /**
  * PowerDatacenter is a class that enables simulation of power-aware data centers.
@@ -50,6 +52,10 @@ public class PowerDatacenter extends Datacenter {
 	private int turnOffTimes;
 	
 	private List<String> powerOnOffRecord;
+
+	private double networkCost;
+	
+	private NetworkConfig networkConfig;
 	/**
 	 * Instantiates a new datacenter.
 	 *
@@ -94,6 +100,10 @@ public class PowerDatacenter extends Datacenter {
 		}
 		double currentTime = CloudSim.clock();
 		double timeframePower = 0.0;
+		double timeframeNetworkCost = 0.0;			
+		
+		int[] vmAssign = getVmAssign();
+		timeframeNetworkCost = networkConfig.getTotalWeight(vmAssign);
 
 		// if some time passed since last processing
 		if (currentTime > getLastProcessTime()) {
@@ -101,7 +111,9 @@ public class PowerDatacenter extends Datacenter {
 			double minTime = Double.MAX_VALUE;
 
 			Log.printLine("\n");
-
+			
+			timeframeNetworkCost = timeframeNetworkCost * timeDiff;
+			setNetworkCost(getNetworkCost() + timeframeNetworkCost);
 			for (PowerHost host : this.<PowerHost>getHostList()) {
 
 				Log.formatLine("%.2f: Host #%d", CloudSim.clock(), host.getId());
@@ -154,8 +166,7 @@ public class PowerDatacenter extends Datacenter {
 				Log.formatLine("%.2f: Host #%d utilization is %.2f%%", CloudSim.clock(), host.getId(), host.getUtilizationOfCpu() * 100);
 			}
 
-			setPower(getPower() + timeframePower);
-			
+			setPower(getPower() + timeframePower);			
 			/** Remove completed VMs **/
 			for (PowerHost host : this.<PowerHost>getHostList()) {
 				for (Vm vm : host.getCompletedVms()) {
@@ -202,6 +213,32 @@ public class PowerDatacenter extends Datacenter {
 			setLastProcessTime(currentTime);
 		}
 	}
+	
+	int[] _vmAssign = null; 
+	public int[] getVmAssign() {
+		if (_vmAssign==null)
+			_vmAssign = new int[getMaxVmId()+10];
+		
+		for(int i=0;i<_vmAssign.length;i++){
+			_vmAssign[i] = -1;
+		}
+		int i=0;		
+		for (Vm vm : getVmList()) {
+			if (vm.getHost()!=null)
+				_vmAssign[vm.getId()] = vm.getHost().getId();			
+		}
+		return _vmAssign;
+	}
+	
+	private int getMaxVmId(){
+		int idMax = 0;
+		for (Vm vm : getVmList()){
+			if (idMax<vm.getId()){
+				idMax = vm.getId();
+			}
+		}
+		return idMax;
+	}
 
 	/* (non-Javadoc)
 	 * @see cloudsim.Datacenter#processCloudletSubmit(cloudsim.core.SimEvent, boolean)
@@ -228,6 +265,24 @@ public class PowerDatacenter extends Datacenter {
 	 */
 	protected void setPower(double power) {
 		this.power = power;
+	}
+	
+	/**
+	 * Gets the power.
+	 *
+	 * @return the power
+	 */
+	public double getNetworkCost() {
+		return networkCost;
+	}
+
+	/**
+	 * Sets the power.
+	 *
+	 * @param power the new power
+	 */
+	protected void setNetworkCost(double power) {
+		this.networkCost = power;
 	}
 
 	/**
@@ -358,6 +413,14 @@ public class PowerDatacenter extends Datacenter {
 
 	public List<String> getPowerOnOffRecords(){
 		return this.powerOnOffRecord;
+	}
+
+	public NetworkConfig getNetworkConfig() {
+		return networkConfig;
+	}
+
+	public void setNetworkConfig(NetworkConfig networkConfig) {
+		this.networkConfig = networkConfig;
 	}
 
 }

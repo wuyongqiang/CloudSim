@@ -10,6 +10,8 @@ import java.util.Date;
 
 public class LogPrint {
 	
+	private static final String C_USERS_N7682905 = "C:\\users\\n7682905\\";
+
 	public enum PrintMode {
 		PrintLog,
 		PrintOnly,
@@ -17,7 +19,15 @@ public class LogPrint {
 	}
 	
 	private String fileName;
-	private String resultFolder = "results";
+	private String resultFolder = C_USERS_N7682905 + "results";
+	
+	public void setLogFolder(String path){
+		resultFolder = path;
+	}
+	
+	public void setLogFile(String fileName){
+		this.fileName = fileName;
+	}
 	
 	public LogPrint(String fileName){
 		this.fileName = fileName;
@@ -58,7 +68,7 @@ public class LogPrint {
 	}
 	
 	private void writeText(String fFileName,String message) {
-		String folder = "C:\\users\\n7682905\\" + resultFolder+"\\";
+		String folder =resultFolder+"\\";
 	
 		try {
 			createFolderIfNotExist(folder);

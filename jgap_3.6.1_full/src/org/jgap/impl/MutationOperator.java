@@ -211,6 +211,7 @@ public class MutationOperator
             // ...then mutate all its genes...
             // -------------------------------
             genes = copyOfChromosome.getGenes();
+            copyOfChromosome.setFitnessValue(-1);
             // In case monitoring is active, support it.
             // -----------------------------------------
             if (m_monitorActive) {

@@ -9,6 +9,7 @@ import org.cloudbus.cloudsim.core.CloudSim;
 public class Bidder {
 
 	protected PowerHost host;
+	private PowerDatacenter dc;
 	protected int bidPrice = 0;
 	public Bidder(PowerHost host){
 		this.host = host;
@@ -68,6 +69,15 @@ public class Bidder {
 
 		
 		
+		int[] vmAssign = dc.getVmAssign();
+		int oldHostId = vmAssign[vm.getId()];
+		int oldNetworkCost = (int) dc.getNetworkConfig().getTotalWeight(vmAssign);
+		vmAssign[vm.getId()] = this.host.getId();
+		int newNetworkCost = (int) dc.getNetworkConfig().getTotalWeight(vmAssign);
+		vmAssign[vm.getId()] = oldHostId;
+		
+		int incNetworkCost = newNetworkCost -oldNetworkCost;
+		//incNetworkCost = 0;
 		
 		int income = (int)vm.getMips();
 
@@ -93,7 +103,7 @@ public class Bidder {
 		}
 
 		if (canHoldMoreVm() && canHoldTheVm(vm))
-			return bidPrice;
+			return bidPrice - incNetworkCost;
 		else
 			return 0;		
 	}
@@ -174,4 +184,7 @@ public class Bidder {
 		
 	}
 
+	public void setDc(PowerDatacenter dc) {
+		this.dc = dc;
+	}
 }

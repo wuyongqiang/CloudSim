@@ -15,7 +15,7 @@ public class NetworkCostCalculator{
 	private int []unitCostArray;
 
 	public NetworkCostCalculator( ) {
-		unitCostArray = new int[100*100];
+		unitCostArray = new int[1000*1000];
 		for (int i=0;i<100*100;i++)
 			unitCostArray[i] = -1;
 	}
@@ -68,10 +68,16 @@ public class NetworkCostCalculator{
 	public int getTotalNetworkCost(int[] assignment){
 		int total = 0;
 		
-		if(vNum != assignment.length) throw new RuntimeException("vNum != assignment.length");
+		if(vNum > assignment.length){
+			System.err.println( "vNum("+vNum+") != assignment.length("+assignment.length+")");
+			//throw new RuntimeException("vNum != assignment.length");
+			return 0;
+		}
 		for(int i=0;i<vNum;i++){			
 			for(int j=0;j<vNum;j++){
 				if (i==j) continue;
+				if (assignment[i]==-1 || assignment[j]==-1) 
+					continue;
 				total += networkCost(i,j,assignment);
 			}
 		}		
@@ -91,9 +97,9 @@ public class NetworkCostCalculator{
 		else if (list.size()==3)
 			return 1;
 		else if (list.size()==5)
-			return 2;
+			return 3;
 		else if (list.size()==7)
-			return 4;
+			return 5;
 		else{
 			throw new RuntimeException("impossible network link " + list.size());
 		}

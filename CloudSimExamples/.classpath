@@ -4,5 +4,11 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/CloudSim"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/activemq-optional"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/httplib"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/activemq"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Java/jre6/lib/javaws.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Java/jre6/lib/rt.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/jgap_3.6.1"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

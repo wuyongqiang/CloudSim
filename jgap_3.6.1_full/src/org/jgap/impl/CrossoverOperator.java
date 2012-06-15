@@ -383,6 +383,8 @@ public class CrossoverOperator
       }
       // Cross over the chromosomes.
       // ---------------------------
+      firstMate.setFitnessValue(-1);
+      secondMate.setFitnessValue(-1);
       doCrossover(firstMate, secondMate, a_candidateChromosomes, generator);
     }
   }

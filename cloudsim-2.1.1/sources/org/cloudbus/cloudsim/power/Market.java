@@ -1,7 +1,10 @@
 package org.cloudbus.cloudsim.power;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.cloudbus.cloudsim.Host;
 import org.cloudbus.cloudsim.Vm;
@@ -15,14 +18,18 @@ public class Market {
 	private List<Bidder> buyers = new ArrayList<Bidder>();
 	
 	private SaleItem saleItem = null;
+	private Map<Host,Vm> restoreMap = new HashMap<Host, Vm>();
 	
-	public boolean bid(){
+	
+	
+	public int bid(){
 		saleItem = selectSaleItem(); 
 		return bidWithoutSaleItem();
 	}
-	public boolean bidWithoutSaleItem(){
+	public int bidWithoutSaleItem(){
 		Boolean soldSuccess = false;
-		
+		int totalPrice = 0;
+		restoreMap.clear();
 		
 		if (saleItem!=null){
 			
@@ -61,16 +68,30 @@ public class Market {
 						Host host = buyers.get(i).getHost();
 						List<Double> allocatedMipsForVm =  vm.getHost().getAllocatedMipsForVm(vm);
 						host.allocatePesForVm(vm, allocatedMipsForVm);
-										
+						restoreMap.put(host,vm);
 				}
 			}
-			if (saleItem.getOwner()==null || saleItem.getOwner().accept(bidPrice))
+			if (saleItem.getOwner()==null || saleItem.getOwner().accept(bidPrice)){
 				soldSuccess = bidPrice.isValid();
+				totalPrice = bidPrice.totalPrice();
+			}
 			soldItem = soldSuccess ? saleItem : null;
 		}
-		return soldSuccess;
+		restoreHosts();
+		return totalPrice;
 	}
 	
+	private void restoreHosts(){
+		Host host = null;
+		Vm vm = null;
+		
+		Iterator<Host> it = restoreMap.keySet().iterator();
+		while(it.hasNext()){
+			host = it.next();
+			vm = restoreMap.get(host);			
+			host.deallocatePesForVm(vm);
+		}		
+	}
 	
 	private SaleItem selectSaleItem() {
 		int priority = -1;
@@ -109,7 +130,7 @@ public class Market {
 	public List<Bidder> getBuyers() {	
 		return buyers;
 	}
+
 	
-	
-	
+
 }

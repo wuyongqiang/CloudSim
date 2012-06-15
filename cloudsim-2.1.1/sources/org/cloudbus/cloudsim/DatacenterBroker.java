@@ -241,7 +241,7 @@ public class DatacenterBroker extends SimEntity {
 			getVmsCreatedList().add(VmList.getById(getVmList(), vmId));
 			Log.printLine(CloudSim.clock()+": "+getName()+ ": VM #"+vmId+" has been created in Datacenter #" + datacenterId + ", Host #" + VmList.getById(getVmsCreatedList(), vmId).getHost().getId());
 		} else {
-			send(getDatacenterIdsList().get(0),5, CloudSimTags.VM_CREATE_ACK, VmList.getById(getVmList(), vmId));
+			//send(getDatacenterIdsList().get(0),5, CloudSimTags.VM_CREATE_ACK, VmList.getById(getVmList(), vmId));
 			Log.printLine(CloudSim.clock()+": "+getName()+ ": Creation of VM #"+vmId+" failed in Datacenter #" + datacenterId);// +" datacenter name: "+ CloudSim.getEntityName(datacenterId));
 		}
 
