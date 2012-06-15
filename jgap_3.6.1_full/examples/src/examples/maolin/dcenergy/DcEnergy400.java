@@ -38,7 +38,7 @@ import org.jgap.impl.WeightedRouletteSelector;
  * @author Klaus Meffert
  * @since 2.4
  */
-public class DcEnergy {
+public class DcEnergy400 {
   /** String containing the CVS revision. Read out via reflection!*/
   private final  String CVS_REVISION = "$Revision: 1.10 $";
 
@@ -147,7 +147,7 @@ public class DcEnergy {
 		// the population (which could be seen as bad).
 		// ------------------------------------------------------------
 		// conf.setPopulationSize(100);
-		popuSize =  scale / capacityIndex;
+		popuSize = 2* scale / capacityIndex;
 		conf.setPopulationSize(popuSize);
 		
 		queue = new ArrayDeque<Double>(popuSize);
@@ -194,7 +194,7 @@ public class DcEnergy {
 			else {
 				Date now = new Date();
 				long duration = now.getTime() - startTime.getTime();
-				if (duration > 3600*1000) 
+				if (duration > 2*3600*1000) 
 					over = true;
 			}
 		}
@@ -240,11 +240,11 @@ public class DcEnergy {
 	 * @since 1.0
 	 */
 	public static void main(String[] args) throws Exception {
-		for (int j = 0; j < 1; j++) {
-			int scales[] = { 200 };
+		for (int j = 20; j < 30; j++) {
+			int scales[] = { 400 };
 			for (int i = 0; i < scales.length; i++) {
 				PrintUtil.setLogName(j + "-" + scales[i]);
-				DcEnergy dc = new DcEnergy();
+				DcEnergy400 dc = new DcEnergy400();
 				if (args.length != 2) {
 					int scale = scales[i];
 					int capacityIndex = 5;

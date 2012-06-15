@@ -7,7 +7,7 @@
  * or have a look at the top of class org.jgap.Chromosome which representatively
  * includes the JGAP license policy applicable for any file delivered with JGAP.
  */
-package examples.maolin.dcenergy;
+package examples.maolin.dcenergy.only50;
 
 import java.util.ArrayDeque;
 import java.util.Date;
@@ -19,6 +19,7 @@ import org.jgap.Gene;
 import org.jgap.Genotype;
 import org.jgap.IChromosome;
 import org.jgap.IGeneConstraintChecker;
+import org.jgap.IUniversalRateCalculator;
 import org.jgap.impl.BestChromosomesSelector;
 import org.jgap.impl.CrossoverOperator;
 import org.jgap.impl.DefaultConfiguration;
@@ -46,6 +47,9 @@ public class DcEnergy {
    * The total number of times we'll let the population evolve.
    */
   private  final int MAX_ALLOWED_EVOLUTIONS = 400*100;
+  
+  private double rouletteCrossoverRate=0.5;
+  private int mutationRate = 10;
 
   /**
    * Executes the genetic algorithm to determine the minimum number of
@@ -105,8 +109,10 @@ public class DcEnergy {
 		// specific value, and each coin with different value has a specific
 		// weight. Not necessarily a higher weight for higher coin values!
 		// (as in real life!).
-		@SuppressWarnings("-access")
+		Date beforeFirstFit = new Date();
+		@SuppressWarnings("-access")		
 		int vmAssign[] = myFunc.firstFit();
+		println("ffd time:"+ ((new Date()).getTime() - beforeFirstFit.getTime())/1000.0);
 
 		for (int i = 0; i < vmAssign.length; i++) {
 			IntegerGene gene = new IntegerGene(conf, 0, scale / capacityIndex
@@ -126,19 +132,21 @@ public class DcEnergy {
 		// SwappingMutationOperator(conf,10);
 		// conf.addGeneticOperator(swapper);
 
-		conf.addGeneticOperator(new MutationOperator(conf, 10));
-		conf.addGeneticOperator(new CrossoverOperator(conf,0.5d));
-		conf.addGeneticOperator(new WeightedRouletteCrossoverOperator(conf, 0.5));
-		//conf.addGeneticOperator(new MutationOperator(conf, 10));
+		
+		//conf.addGeneticOperator(new MutationOperator(conf, 5));
+		//conf.addGeneticOperator(new CrossoverOperator(conf,0.5d));
+		conf.addGeneticOperator(new WeightedRouletteCrossoverOperator(conf, rouletteCrossoverRate));
+		
+		conf.addGeneticOperator(new MutationOperator(conf, mutationRate ));
 
-		//conf.getNaturalSelectors(true).clear();
-		//conf.getNaturalSelectors(false).clear();
+		 //conf.getNaturalSelectors(true).clear();
+		 //conf.getNaturalSelectors(false).clear();
 		WeightedRouletteSelector selector = new WeightedRouletteSelector(conf);
 		// BestChromosomesSelector selector = new BestChromosomesSelector(conf);
 
 		conf.addNaturalSelector(selector, false);
 
-		conf.setSelectFromPrevGen(0.5);
+		
 
 		// Finally, we need to tell the Configuration object how many
 		// Chromosomes we want in our population. The more Chromosomes,
@@ -147,10 +155,12 @@ public class DcEnergy {
 		// the population (which could be seen as bad).
 		// ------------------------------------------------------------
 		// conf.setPopulationSize(100);
-		popuSize =  scale / capacityIndex;
+		popuSize = 200;//scale / capacityIndex;
 		conf.setPopulationSize(popuSize);
 		
 		queue = new ArrayDeque<Double>(popuSize);
+		
+		conf.setSelectFromPrevGen(0.5);
 		// Create random initial population of Chromosomes.
 		// ------------------------------------------------
 		Genotype population = Genotype.randomInitialGenotype(conf);
@@ -162,7 +172,11 @@ public class DcEnergy {
 		for (i = 0; i < MAX_ALLOWED_EVOLUTIONS * scale / capacityIndex; i++) {
 
 			population.evolve();
-			if (i % 50 == 1) {				
+			
+			bPrintAssignment = (i==0)?true:false;
+			
+			if ( i % 50 == 1) 
+			{				
 				printSolution(population, i);
 			}
 			if (evolutionOver(population, i))
@@ -170,7 +184,8 @@ public class DcEnergy {
 		}
 		// Display the best solution we found.
 		// -----------------------------------
-		//printSolution(population, i);
+		bPrintAssignment = true;
+		printSolution(population, i);
 	}
   
 	private ArrayDeque<Double> queue = null;
@@ -182,14 +197,14 @@ public class DcEnergy {
 		if (ftail>fitnessBest) fitnessBest = ftail;
 		fitnessSum += ftail;
 		queue.push(ftail);
-		int length = popuSize*2 > 200? popuSize*2 : 200;
+		int length = (popuSize > 200? popuSize : 200)/1;
 		if (generation > length) {
 			Double f0 = queue.removeLast();
 			fitnessSum -= f0;
 			double fitnessAvg = fitnessSum/(length+1);
-			if ( ( fitnessBest - fitnessAvg)/fitnessBest <= 0.00001)
+			if ( ( fitnessBest - fitnessAvg)/fitnessBest <= 0.000000001)
 				over = true;
-			else if (generation >10*1000)
+			else if (generation >1000*1000)
 				over = true;
 			else {
 				Date now = new Date();
@@ -199,6 +214,7 @@ public class DcEnergy {
 			}
 		}
 		return over;
+		//return true;
 	}
 	
 	private void printSolution(Genotype population, int generation) {
@@ -212,7 +228,7 @@ public class DcEnergy {
 			println("It contains the following: ");
 		}
 
-		println(bPrintAssignment?myFunc.printResult(bestSolutionSoFar) + "\n":""				
+		println((bPrintAssignment?myFunc.printResult(bestSolutionSoFar) + "\n":"")				
 				+ "time:"
 				+ String.format("%.1f", duration / 1000.0)
 				+ " generation:"
@@ -222,8 +238,12 @@ public class DcEnergy {
 				+ myFunc.getTotalWeightStr(bestSolutionSoFar) + "\n");
 	}
 
-	void println(String s) {
+	public void println(String s) {
 		PrintUtil.print(s);
+	}
+	
+	public void setLogFolder(String path){
+		PrintUtil.setLogFolder(path);
 	}
 
 	/**
@@ -239,11 +259,11 @@ public class DcEnergy {
 	 * @author Klaus Meffert
 	 * @since 1.0
 	 */
-	public static void main(String[] args) throws Exception {
-		for (int j = 0; j < 1; j++) {
-			int scales[] = { 200 };
+	public static void main(String[] args) throws Exception {		
+		for (int j =30; j < 31; j++) {
+			int scales[] = { 100,200,300,400,500};
 			for (int i = 0; i < scales.length; i++) {
-				PrintUtil.setLogName(j + "-" + scales[i]);
+				PrintUtil.setLogName(scales[i] + "-" + j);
 				DcEnergy dc = new DcEnergy();
 				if (args.length != 2) {
 					int scale = scales[i];
@@ -323,4 +343,11 @@ public class DcEnergy {
 			return true;
 		}
 	}
+	
+	  public  void setRouletteCrossoverRate(double v){
+		  rouletteCrossoverRate=v;
+	  }
+	  public void  setMutationRate(int v){
+		  mutationRate = v;
+	  }
 }

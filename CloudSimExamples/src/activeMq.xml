@@ -1,0 +1,70 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:amq="http://activemq.apache.org/schema/core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:jms="http://www.springframework.org/schema/jms"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+  http://activemq.apache.org/schema/core http://activemq.apache.org/schema/core/activemq-core.xsd http://www.springframework.org/schema/jms http://www.springframework.org/schema/jms/spring-jms-3.0.xsd">
+
+
+
+	<bean id="jmsFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+		<property name="brokerURL">
+			<value>tcp://localhost:61616?wireFormat.cacheEnabled=false&amp;wireFormat.tightEncodingEnabled=false</value>
+		</property>
+	</bean>
+
+	<!-- JMS ConnectionFactory to use, configuring the embedded broker using 
+		XML <amq:connectionFactory id="jmsFactory" brokerURL="vm://localhost"/> -->
+
+	<!-- Spring JMS Template -->
+	<bean id="myJmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+		<property name="connectionFactory">
+			<!-- lets wrap in a pool to avoid creating a connection per send -->
+			<bean class="org.springframework.jms.connection.SingleConnectionFactory">
+				<property name="targetConnectionFactory">
+					<ref local="jmsFactory" />
+				</property>
+			</bean>
+		</property>
+	</bean>
+
+	<amq:queue id="destination"
+		physicalName="foo.bar1" />
+
+	<bean id="consumerJmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+		<property name="connectionFactory" ref="jmsFactory" />
+	</bean>
+
+	<!-- a sample POJO which uses a Spring JmsTemplate -->
+	<bean id="producer" class="org.apache.activemq.spring.SpringProducer">
+		<property name="template">
+			<ref bean="myJmsTemplate"></ref>
+		</property>
+
+		<property name="destination">
+			<ref bean="destination" />
+		</property>
+
+		<property name="messageCount">
+			<value>10</value>
+		</property>
+	</bean>
+
+	<!-- a sample POJO consumer -->
+	<bean id="consumer" class="org.apache.activemq.spring.SpringConsumer">
+		<property name="template" ref="consumerJmsTemplate" />
+		<property name="destination" ref="destination" />
+	</bean>
+	
+
+	 
+	  <!-- A POJO that implements the JMS message listener -->
+	  <bean id="simpleMessageListener" class="org.apache.activemq.spring.MyMessageListener"/>
+	 
+	  <!-- The Spring message listener container configuration -->
+	  <jms:listener-container container-type="default" connection-factory="jmsFactory" acknowledge="auto">
+	    <jms:listener destination="foo.bar1" ref="simpleMessageListener" method="onMessage" />
+	  </jms:listener-container>
+
+
+
+</beans>

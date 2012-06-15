@@ -7,7 +7,7 @@
  * or have a look at the top of class org.jgap.Chromosome which representatively
  * includes the JGAP license policy applicable for any file delivered with JGAP.
  */
-package examples.maolin.dcenergy;
+package examples.maolin.dcenergy.only50;
 
 import java.util.ArrayDeque;
 import java.util.Date;
@@ -38,7 +38,7 @@ import org.jgap.impl.WeightedRouletteSelector;
  * @author Klaus Meffert
  * @since 2.4
  */
-public class DcEnergy {
+public class DcEnergy400 {
   /** String containing the CVS revision. Read out via reflection!*/
   private final  String CVS_REVISION = "$Revision: 1.10 $";
 
@@ -126,13 +126,13 @@ public class DcEnergy {
 		// SwappingMutationOperator(conf,10);
 		// conf.addGeneticOperator(swapper);
 
-		conf.addGeneticOperator(new MutationOperator(conf, 10));
+		//conf.addGeneticOperator(new MutationOperator(conf, 5));
 		conf.addGeneticOperator(new CrossoverOperator(conf,0.5d));
 		conf.addGeneticOperator(new WeightedRouletteCrossoverOperator(conf, 0.5));
-		//conf.addGeneticOperator(new MutationOperator(conf, 10));
+		conf.addGeneticOperator(new MutationOperator(conf, 10));
 
-		//conf.getNaturalSelectors(true).clear();
-		//conf.getNaturalSelectors(false).clear();
+		// conf.getNaturalSelectors(true).clear();
+		// conf.getNaturalSelectors(false).clear();
 		WeightedRouletteSelector selector = new WeightedRouletteSelector(conf);
 		// BestChromosomesSelector selector = new BestChromosomesSelector(conf);
 
@@ -147,7 +147,7 @@ public class DcEnergy {
 		// the population (which could be seen as bad).
 		// ------------------------------------------------------------
 		// conf.setPopulationSize(100);
-		popuSize =  scale / capacityIndex;
+		popuSize = 200;//scale / capacityIndex;
 		conf.setPopulationSize(popuSize);
 		
 		queue = new ArrayDeque<Double>(popuSize);
@@ -162,7 +162,11 @@ public class DcEnergy {
 		for (i = 0; i < MAX_ALLOWED_EVOLUTIONS * scale / capacityIndex; i++) {
 
 			population.evolve();
-			if (i % 50 == 1) {				
+			
+			bPrintAssignment = (i==0)?true:false;
+			
+			if ( i % 50 == 1) 
+			{				
 				printSolution(population, i);
 			}
 			if (evolutionOver(population, i))
@@ -170,7 +174,8 @@ public class DcEnergy {
 		}
 		// Display the best solution we found.
 		// -----------------------------------
-		//printSolution(population, i);
+		bPrintAssignment = true;
+		printSolution(population, i);
 	}
   
 	private ArrayDeque<Double> queue = null;
@@ -182,14 +187,14 @@ public class DcEnergy {
 		if (ftail>fitnessBest) fitnessBest = ftail;
 		fitnessSum += ftail;
 		queue.push(ftail);
-		int length = popuSize*2 > 200? popuSize*2 : 200;
+		int length = (popuSize > 200? popuSize : 200)/1;
 		if (generation > length) {
 			Double f0 = queue.removeLast();
 			fitnessSum -= f0;
 			double fitnessAvg = fitnessSum/(length+1);
-			if ( ( fitnessBest - fitnessAvg)/fitnessBest <= 0.00001)
+			if ( ( fitnessBest - fitnessAvg)/fitnessBest <= 0.000000001)
 				over = true;
-			else if (generation >10*1000)
+			else if (generation >1000*1000)
 				over = true;
 			else {
 				Date now = new Date();
@@ -212,7 +217,7 @@ public class DcEnergy {
 			println("It contains the following: ");
 		}
 
-		println(bPrintAssignment?myFunc.printResult(bestSolutionSoFar) + "\n":""				
+		println((bPrintAssignment?myFunc.printResult(bestSolutionSoFar) + "\n":"")				
 				+ "time:"
 				+ String.format("%.1f", duration / 1000.0)
 				+ " generation:"
@@ -239,12 +244,12 @@ public class DcEnergy {
 	 * @author Klaus Meffert
 	 * @since 1.0
 	 */
-	public static void main(String[] args) throws Exception {
-		for (int j = 0; j < 1; j++) {
-			int scales[] = { 200 };
+	public static void main(String[] args) throws Exception {		
+		for (int j = 20; j < 30; j++) {
+			int scales[] = { 400};
 			for (int i = 0; i < scales.length; i++) {
-				PrintUtil.setLogName(j + "-" + scales[i]);
-				DcEnergy dc = new DcEnergy();
+				PrintUtil.setLogName(scales[i] + "-" + j);
+				DcEnergy400 dc = new DcEnergy400();
 				if (args.length != 2) {
 					int scale = scales[i];
 					int capacityIndex = 5;
