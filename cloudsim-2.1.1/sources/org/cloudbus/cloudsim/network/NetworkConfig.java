@@ -131,6 +131,7 @@ public class NetworkConfig {
 			}
 			s += "\n";
 		}
+		s += printResult(null,null,null);
 		println(s);
 	}
 
@@ -154,23 +155,33 @@ public class NetworkConfig {
 				* networkWeight;
 		return totalWeight;
 	}
+	
+	public double getTotalWeight(int[] tmpAssign, double[] vmWorkloads) {
+
+		double totalWeight = networkCalc.getTotalNetworkCost(tmpAssign, vmWorkloads)
+				* networkWeight;
+		return totalWeight;
+	}
 
 	private void println(String s) {
 		System.out.println(s);
 	}
 
 	public String printResult(int tmpAssign[], int tmpuPM[], int tmpusedMEM[]) {
+		clearAllNetworkNodeAppData();
+		
 		String s = " assignment";
-
-		for (int i = 0; i < pNum; i++) {
-			addToNetworkNode(String.format("cpu%%%.2f,mem%%%.2f",
-					tmpuPM[i] * 100, tmpusedMEM[i] * 100), i);
-		}
-
-		s = s + "\n";
-
-		for (int i = 0; i < vNum; i++) {
-			addToNetworkNode(i, tmpAssign[i]);
+		if (tmpAssign!=null){
+			for (int i = 0; i < pNum; i++) {
+				addToNetworkNode(String.format("cpu%%%.2f,mem%%%.2f",
+						tmpuPM[i] * 100, tmpusedMEM[i] * 100), i);
+			}
+	
+			s = s + "\n";
+	
+			for (int i = 0; i < vNum; i++) {
+				addToNetworkNode(i, tmpAssign[i]);
+			}
 		}
 		FatTreeTopologicalNode.clearTreeNode2StrBuilder();
 		FatTreeTopologicalNode.printTreeNode2(root);

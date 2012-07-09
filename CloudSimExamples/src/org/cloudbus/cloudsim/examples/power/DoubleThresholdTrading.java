@@ -36,8 +36,10 @@ public class DoubleThresholdTrading {
 
 	private static double utilizationLowThreshold = 0.4;
 	private static boolean useTrading = true;
-	protected static double hostsNumber = 3 * 4;//4 groups;
-	protected static double vmsNumber = 6 * 4;// 6vms per group;
+	private static int groupNum = 4;
+	private static int hostPerGroup = 5;
+	protected static double hostsNumber = hostPerGroup * groupNum;//4 groups;
+	protected static double vmsNumber = 2 * hostPerGroup * groupNum;// 6vms per group;
 	
 	protected static final int simLength = 120 * 30; //one hour
 
@@ -59,10 +61,12 @@ public class DoubleThresholdTrading {
 	protected static UtilizationModelUniform utilizationModelUniform;
 	protected static UtilizationModelStochastic utilizationModelStochastic;
 	private static boolean doubleDC = false;
+	private static boolean isNetworkAware = false;
+	private static boolean isTradeWithinGrps = true;
+	
 
 	public static void main(String[] args) throws IOException {
 		
-		utilizationThreshold = 0.7;
 		useAverageUtilization = true;
 		workHourLoad = true;
 		
@@ -185,17 +189,20 @@ public class DoubleThresholdTrading {
 		Log.printLine(String.format("satisfaction rate: %.2f%%", totalTotalAllocated*1.0/totalTotalRequested*100));
 		Log.printLine();
 		
+		String memViolation = printMemViolation(datacenter);
+		
 		Log.printLineToInfoFile(datacenter.getVmAllocationPolicy().getPolicyDesc(),simLength, 
 				datacenter.getMigrationCount(),
 				(double) sla.size() * 100 / numberOfAllocations,
 				averageSla,
-				datacenter.getPower() / (3600 * 1000));
+				datacenter.getPower() / (3600 * 1000),
+				datacenter.getNetworkCost(),memViolation);
 		utilizationModelStochastic.saveHistory("c:\\users\\n7682905\\simWorkload.txt");
 		
-		printMemViolation(datacenter);
+		
 	}
 	
-	protected static void printMemViolation(PowerDatacenter datacenter){
+	protected static String printMemViolation(PowerDatacenter datacenter){
 		 int totalTotalRequested = 0;
 		    int totalTotalAllocated = 0;
 		    ArrayList<Double> sla = new ArrayList<Double>();
@@ -210,7 +217,7 @@ public class DoubleThresholdTrading {
 			    		totalRequested += mips.get(0);
 			    		totalAllocated += mips.get(1);
 			    		double _sla = (mips.get(0) - mips.get(1)) / mips.get(0) * 100;
-			    		if (_sla > 0) {
+			    		if (_sla > 0.01) {
 			    			sla.add(_sla);
 			    		}
 			    	}
@@ -229,11 +236,12 @@ public class DoubleThresholdTrading {
 			}
 
 			printLine("");
-			printLine(String.format("Number of SLA violations: %d", sla.size()));
-			printLine(String.format("SLA violation percentage: %.2f%%", (double) sla.size() * 100 / numberOfAllocations));
-			printLine(String.format("Average SLA violation: %.2f%%", averageSla));			
-			printLine(String.format("satisfaction rate: %.2f%%", totalTotalAllocated*1.0/totalTotalRequested*100));
+			Log.printLine(String.format("Number of SLA violations: %d", sla.size()));
+			Log.printLine(String.format("SLA violation percentage: %.2f%%", (double) sla.size() * 100 / numberOfAllocations));
+			Log.printLine(String.format("Average SLA violation: %.2f%%", averageSla));			
+			Log.printLine(String.format("satisfaction rate: %.2f%%", totalTotalAllocated*1.0/totalTotalRequested*100));
 			printLine("");
+			return String.format(" %.4f,%.4f", (double) sla.size() * 100 / numberOfAllocations,averageSla );
 	}
 	
 	private static void printLine(String s){
@@ -249,7 +257,9 @@ public class DoubleThresholdTrading {
 		double maxPower = 250; // 250W
 		double staticPowerPercent = 0.7; // 70%
 
-		int[] mips = { 1000, 2000, 3000 };
+		int[] mips = { 1000,1000,1000,1000,1000, 2000,2000,2000,2000,2000, 3000,3000,3000,3000,3000 };
+		//int[] mips = { 3000,3000,3000,2000,2000,2000, 1000,1000,1000, 1000,1000,1000 };
+		//int[] mips = { 1000,200,3000, 1000,2000,3000, 1000,2000,3000,1000,2000,3000 };
 		int ram = 3000; // host memory (MB)
 		long storage = 1000000; // host storage
 		int bw = 100000;
@@ -259,7 +269,7 @@ public class DoubleThresholdTrading {
 			// In this example, it will have only one core.
 			// 3. Create PEs and add these into an object of PowerPeList.
 			List<PowerPe> peList = new ArrayList<PowerPe>();
-			peList.add(new PowerPe(0, new PeProvisionerSimple(mips[i % mips.length]), new PowerModelLinear(maxPower+ 100 *  (i % mips.length), staticPowerPercent))); // need to store PowerPe id and MIPS Rating
+			peList.add(new PowerPe(0, new PeProvisionerSimple(mips[i % mips.length]), new PowerModelLinear(maxPower+ 100 *  (mips[i % mips.length]-1000)/1000 + i, staticPowerPercent))); // need to store PowerPe id and MIPS Rating
 
 			// 4. Create PowerHost with its id and list of PEs and add them to the list of machines
 			hostList.add(
@@ -295,9 +305,9 @@ public class DoubleThresholdTrading {
 		PowerDatacenter powerDatacenter = null;
 		VmAllocationPolicy policy =null;
 		if (!useTrading)
-			policy = new PowerVmAllocationPolicyDoubleThreshold(hostList, utilizationThreshold,utilizationLowThreshold);
+			policy = new PowerVmAllocationPolicyDoubleThreshold(hostList, utilizationThreshold,utilizationLowThreshold, groupNum);
 		else
-			policy =new PowerVmAllocationPolicyTrading(hostList, utilizationThreshold,utilizationLowThreshold);
+			policy =new PowerVmAllocationPolicyTrading(hostList, utilizationThreshold,utilizationLowThreshold, groupNum);
 		try {
 			powerDatacenter = new PowerDatacenter(
 					name,
@@ -307,6 +317,8 @@ public class DoubleThresholdTrading {
 					5.0);
 			if (policy instanceof PowerVmAllocationPolicyTrading){
 				((PowerVmAllocationPolicyTrading) policy).setPowerDatacenter(powerDatacenter);
+				((PowerVmAllocationPolicyTrading) policy).setNetworkAware(isNetworkAware);
+				((PowerVmAllocationPolicyTrading) policy).setTradeWithinGrps(isTradeWithinGrps);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -336,7 +348,7 @@ protected static List<Cloudlet> createCloudletList(int brokerId) {
 				cloudlet = new Cloudlet(i, length, pesNumber, fileSize, outputSize, utilizationModelStochastic, new UtilizationModelStochastic(roughIndex), new UtilizationModelStochastic(roughIndex));
 			}else{
 				if (workHourLoad)
-					cloudlet = new Cloudlet(i, length, pesNumber, fileSize, outputSize, new UtilizationModelWorkHour(roughIndex), new UtilizationModelWorkHour(roughIndex-2), new UtilizationModelStochastic(roughIndex));
+					cloudlet = new Cloudlet(i, length, pesNumber, fileSize, outputSize, new UtilizationModelWorkHour(roughIndex), new UtilizationModelWorkHour(roughIndex), new UtilizationModelStochastic(roughIndex));
 				else
 					cloudlet = new Cloudlet(i, length, pesNumber, fileSize, outputSize, new UtilizationModelStochastic(roughIndex), new UtilizationModelStochastic(roughIndex), new UtilizationModelStochastic(roughIndex));
 			}

@@ -32,23 +32,24 @@ public class BidderAndSeller extends Bidder implements Seller {
 		
 		if (vm != null && !inMigration) {
 			if (CloudSim.clock()<vm.getRecommendMigrationInterval() 
-					|| vm.getRecommendMigrationInterval() + vm.getLastMigrationTime() < CloudSim.clock()){
+					|| vm.getRecommendMigrationInterval()/2 + vm.getLastMigrationTime() < CloudSim.clock()
+					){
 				item = new SaleItem(vm, this);
 				item.setOwner(this);
 				// Date d =new Date();
 				// Random r = new Random(d.getTime());
 				item.setPriority(priority); // Math.abs(r.nextInt())%10 );
-				if (host.getMaxUtilization(false) > 0.8)
+				if (host.getMaxUtilization(false) > 0.8)// || host.getUtilizationOfMem()> 0.8)
 					item.setPriority(20000);
-				else if (host.getMaxUtilization(false) > 0.75)
+				else if (host.getMaxUtilization(false) > 0.75)// || host.getUtilizationOfMem()> 0.75)
 					item.setPriority(15000);
-				else if (host.getMaxUtilization(false) > 0.7)
+				else if (host.getMaxUtilization(false) > 0.7)// || host.getUtilizationOfMem()> 0.7)
 					item.setPriority(10000);
 				else if (!canHoldMoreVm())
 					item.setPriority(9999);
-				else if (host.getMaxUtilization(false) < 0.02) {
+				else if (host.getMaxUtilization(false) < 0.02 &&  host.getUtilizationOfMem() < 0.02) {
 					item.setPriority(6999);
-				}else if (host.getMaxUtilization(false) < 0.4) {
+				}else if (host.getMaxUtilization(false) < 0.4 &&  host.getUtilizationOfMem() < 0.4) {
 					if (host.getVmsMigratingIn().size()==0){
 					item.setPriority(5999);					
 					item.getRealItems().clear();

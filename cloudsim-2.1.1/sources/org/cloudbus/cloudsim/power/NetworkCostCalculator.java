@@ -84,6 +84,26 @@ public class NetworkCostCalculator{
 		
 		return total;
 	}
+	
+	public int getTotalNetworkCost(int[] assignment, double[] vmWorkloads){
+		int total = 0;
+		
+		if(vNum > assignment.length || vNum > vmWorkloads.length){
+			System.err.println( "vNum("+vNum+") != assignment.length("+assignment.length+")");
+			//throw new RuntimeException("vNum != assignment.length");
+			return 0;
+		}
+		for(int i=0;i<vNum;i++){			
+			for(int j=0;j<vNum;j++){
+				if (i==j) continue;
+				if (assignment[i]==-1 || assignment[j]==-1) 
+					continue;
+				total += networkCost(i,j,assignment) * (vmWorkloads[i]+ vmWorkloads[j])/2;
+			}
+		}		
+		
+		return total;
+	}
 
 	private int networkUnitCost(int pmNumber1, int pmNumber2){
 		String pm1 = "pm"+pmNumber1;

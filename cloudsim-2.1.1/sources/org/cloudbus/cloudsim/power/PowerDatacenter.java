@@ -103,7 +103,8 @@ public class PowerDatacenter extends Datacenter {
 		double timeframeNetworkCost = 0.0;			
 		
 		int[] vmAssign = getVmAssign();
-		timeframeNetworkCost = networkConfig.getTotalWeight(vmAssign);
+		double[] vmWorkloads = getVmWorkloads();
+		timeframeNetworkCost = networkConfig.getTotalWeight(vmAssign,vmWorkloads);
 
 		// if some time passed since last processing
 		if (currentTime > getLastProcessTime()) {
@@ -214,6 +215,22 @@ public class PowerDatacenter extends Datacenter {
 		}
 	}
 	
+	private double[] _vmWorkloads = null;
+	private double[] getVmWorkloads() {
+		if (_vmWorkloads==null)
+			_vmWorkloads = new double[getMaxVmId()+10];
+		
+		for(int i=0;i<_vmWorkloads.length;i++){
+			_vmWorkloads[i] = 0;
+		}
+					
+		for (Vm vm : getVmList()) {			
+			_vmWorkloads[vm.getId()] = vm.getAvgCurrentRequestedTotalMips()/vm.getMips();			
+		}
+		
+		return _vmWorkloads;
+	}
+
 	int[] _vmAssign = null; 
 	public int[] getVmAssign() {
 		if (_vmAssign==null)
@@ -222,7 +239,7 @@ public class PowerDatacenter extends Datacenter {
 		for(int i=0;i<_vmAssign.length;i++){
 			_vmAssign[i] = -1;
 		}
-		int i=0;		
+				
 		for (Vm vm : getVmList()) {
 			if (vm.getHost()!=null)
 				_vmAssign[vm.getId()] = vm.getHost().getId();			

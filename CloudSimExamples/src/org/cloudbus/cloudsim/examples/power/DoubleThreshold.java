@@ -32,6 +32,7 @@ public class DoubleThreshold extends SingleThreshold {
 
 	private static double utilizationLowThreshold = 0.4;
 	private static boolean useTrading = true;
+	private static int groupNum = 4;
 	
 
 	public static void main(String[] args) throws IOException {
@@ -255,9 +256,9 @@ public class DoubleThreshold extends SingleThreshold {
 		PowerDatacenter powerDatacenter = null;
 		VmAllocationPolicy policy =null;
 		if (!useTrading)
-			policy = new PowerVmAllocationPolicyDoubleThreshold(hostList, utilizationThreshold,utilizationLowThreshold);
+			policy = new PowerVmAllocationPolicyDoubleThreshold(hostList, utilizationThreshold,utilizationLowThreshold,groupNum);
 		else
-			policy =new PowerVmAllocationPolicyTrading(hostList, utilizationThreshold,utilizationLowThreshold);
+			policy =new PowerVmAllocationPolicyTrading(hostList, utilizationThreshold,utilizationLowThreshold,groupNum);
 		try {
 			powerDatacenter = new PowerDatacenter(
 					name,

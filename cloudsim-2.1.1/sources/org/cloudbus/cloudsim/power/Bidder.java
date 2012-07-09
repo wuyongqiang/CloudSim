@@ -11,6 +11,7 @@ public class Bidder {
 	protected PowerHost host;
 	private PowerDatacenter dc;
 	protected int bidPrice = 0;
+	private boolean networkAware = true;
 	public Bidder(PowerHost host){
 		this.host = host;
 	}
@@ -55,7 +56,7 @@ public class Bidder {
 	
 	protected int getSelfBidPrice(Vm vm){
 		if (!canHoldTheVm(vm)) return 0;
-		int income = (int)vm.getMips();
+		int income = 2*(int)vm.getMips();
 		double oldPower =  host.getPower();
 		double newPower =  getPowerAfterDeAllocation(vm);
 		int cost = (int) (oldPower - newPower);
@@ -77,9 +78,9 @@ public class Bidder {
 		vmAssign[vm.getId()] = oldHostId;
 		
 		int incNetworkCost = newNetworkCost -oldNetworkCost;
-		//incNetworkCost = 0;
+		if (!isNetworkAware()) incNetworkCost = 0;
 		
-		int income = (int)vm.getMips();
+		int income =2 * (int)vm.getMips();
 
 		double newPower = 0;
 		double oldPower = 0;
@@ -155,7 +156,7 @@ public class Bidder {
 		for(Vm vm : host.getVmList()){
 			income += vm.getMips();
 		}
-		return income;
+		return income*2;
 	}
 
 
@@ -186,5 +187,15 @@ public class Bidder {
 
 	public void setDc(PowerDatacenter dc) {
 		this.dc = dc;
+	}
+
+
+	public boolean isNetworkAware() {
+		return networkAware;
+	}
+
+
+	public void setNetworkAware(boolean networkAware) {
+		this.networkAware = networkAware;
 	}
 }

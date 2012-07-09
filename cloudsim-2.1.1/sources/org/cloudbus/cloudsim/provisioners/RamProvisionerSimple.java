@@ -54,7 +54,7 @@ public class RamProvisionerSimple extends RamProvisioner {
 		if (getAvailableRam() >= ram) {
 			setAvailableRam(getAvailableRam() - ram);
 			getRamTable().put(vm.getUid(), ram);
-			
+			vmTable.put(vm.getUid(), vm);
 			vm.setCurrentAllocatedRam(getAllocatedRamForVm(vm));
 			return true;
 		}else{
@@ -68,17 +68,27 @@ public class RamProvisionerSimple extends RamProvisioner {
 			totalRequest += ram;
 			
 			double percent = getRam() *1.0 / totalRequest;
+			if (percent>1.0) 
+				throw new RuntimeException("percent > 100%");
+			
+			vmTable.put(vm.getUid(), vm);			
+			int ramAssigned = 0;
 			
 			it = vmTable.values().iterator();
 			for(int i=0;i<vmTable.size();i++){
 				Vm vmTmp = it.next();
-				vm.setCurrentAllocatedRam((int) (vmTmp.getCurrentRequestedRam() * percent) );
+				int ramTmp = (int) (vmTmp.getCurrentRequestedRam() * percent);
+				int ramLeft = getRam()-ramAssigned;
+				
+				ramTmp = Math.min(ramTmp,ramLeft);
+				
+				vmTmp.setCurrentAllocatedRam( ramTmp<ramLeft?ramTmp:ramLeft );
+				ramAssigned += ramTmp;
+				
+				getRamTable().put(vmTmp.getUid(), ramTmp);
 			}
 			
-			setAvailableRam((int) ( ram * percent) );
-			getRamTable().put(vm.getUid(), ram);
-			
-			vm.setCurrentAllocatedRam(getAllocatedRamForVm(vm));
+			setAvailableRam( getRam()-ramAssigned );
 		}
 
 		vm.setCurrentAllocatedRam(getAllocatedRamForVm(vm));
@@ -116,6 +126,7 @@ public class RamProvisionerSimple extends RamProvisioner {
 	@Override
 	public void deallocateRamForAllVms() {
 		super.deallocateRamForAllVms();
+		vmTable.clear();
 		getRamTable().clear();
 	}
 

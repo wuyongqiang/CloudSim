@@ -126,24 +126,28 @@ public class HostDynamicWorkload extends Host {
 		
 		for (Vm vm : getVmList()) {
 			double totalRequestedMem = vm.getCurrentRequestedRam();
-			getRamProvisioner().allocateRamForVm(vm, vm.getCurrentRequestedRam());
-			double totalAllocatedMem = getRamProvisioner().getAllocatedRamForVm(vm);
+			getRamProvisioner().allocateRamForVm(vm, (int)totalRequestedMem);
+			
+		}
+		for (Vm vm : getVmList()) {
+			double totalRequestedMem = vm.getCurrentRequestedRam();
+			double totalAllocatedMem = getRamProvisioner().getAllocatedRamForVm(vm);					
 
-			if (totalAllocatedMem + 0.1 < totalRequestedMem) {
+			if (totalAllocatedMem  < totalRequestedMem) {
 				Log.printLine("Under allocated mem for VM #" + vm.getId() + ": requested " + totalRequestedMem + ", allocated " + totalAllocatedMem);
 			}
 
 			updateUnderAllocatedMem(vm, totalRequestedMem, totalAllocatedMem, CloudSim.clock());
 
-			Log.formatLine("%.2f: Total allocated Mem for VM #" + vm.getId() + " (Host #" + vm.getHost().getId() + ") is %.2f, was requested %.2f out of total %.2f (%.2f%%)", CloudSim.clock(), totalAllocatedMem, totalRequestedMem, vm.getMips(), totalRequestedMem / vm.getMips() * 100);
+			Log.formatLine("%.2f: Total allocated Mem for VM #" + vm.getId() + " (Host #" + vm.getHost().getId() + ") is %.2f, was requested %.2f out of total %.2f (%.2f%%)", CloudSim.clock(), totalAllocatedMem, totalRequestedMem, vm.getRam()/1.0, totalRequestedMem / vm.getRam() * 100);
 			if ( totalAllocatedMem < totalRequestedMem ){ 
 				Log.printLineToMemViolationFile((int)CloudSim.clock(), vm.getId(), vm.getHost().getId(),  totalRequestedMem, totalAllocatedMem);
 			}
 			if (vm.isInMigration()) {
 				Log.printLine("VM #" + vm.getId() + " is in migration");
-				totalAllocatedMem /= 0.99; // performance degradation due to migration - 10%
+				//totalAllocatedMem /= 0.99; // performance degradation due to migration - 10%
 			}
-
+			
 			setUtilizationMem(getUtilizationMem() + totalAllocatedMem);
 		}
 

@@ -2,10 +2,12 @@ package org.cloudbus.cloudsim.power;
 
 import java.awt.image.SampleModel;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.TreeMap;
 
 import org.cloudbus.cloudsim.Host;
@@ -20,13 +22,17 @@ public class PowerVmAllocationPolicyTrading extends
 	/** The utilization threshold. */
 	private double utilizationLowThreshold = 0.5;
 	private PowerDatacenter dc;
-
+	private boolean tradeWithinGrps = true;
+	private boolean networkAware = true;
+	private int groupNum = 4;
+	
 	public PowerVmAllocationPolicyTrading(
 			List<? extends PowerHost> list, double utilizationThreshold,
-			double utilizationLowThreshold) {
+			double utilizationLowThreshold,
+			int groupNum) {
 		super(list, utilizationThreshold);
 		setUtilizationLowThreshold(utilizationLowThreshold);
-		
+		this.groupNum = groupNum;
 	}
 	
 	public void setPowerDatacenter(PowerDatacenter dc){
@@ -88,7 +94,7 @@ public class PowerVmAllocationPolicyTrading extends
 	
 private List<Map<String, Object>> tradeInGrps() {
 	
-		int groupNum = 4;
+		
 		Market[] markets = new Market[groupNum];		
 		List<Map<String, Object>> migListAll =  new ArrayList<Map<String,Object>>();
 		
@@ -108,45 +114,67 @@ private List<Map<String, Object>> tradeInGrps() {
 			TreeMap<Integer, ArrayList<Map<String, Object>>> e = new TreeMap<Integer,ArrayList<Map<String, Object>>>();
 			e.put(price*1000+i, migList);
 			bidList.add(e);
+			migListAll.addAll(migList);
 		}
-							
-		// second round to check whether it is possible to find hosts in other groups to migrate to
-		for(int i=0;i<groupNum;i++){
-			SaleItem item = saleItems.get(i);
-			if (item==null) continue;
-			for(int j=0;j<groupNum;j++){
-				if (i==j) continue; //no need to check its own group again
-				ArrayList<Map<String, Object>> migList = new ArrayList<Map<String,Object>>();
-				Market market = markets[j];
+		
+			
+		if (!tradeWithinGrps){
+			migListAll.clear();
+			// second round to check whether it is possible to find hosts in other groups to migrate to
+			for(int i=0;i<groupNum;i++){
+				SaleItem item = saleItems.get(i);
 				
-				int price = addMigList(migList, market,item);								
-				Map<Integer, ArrayList<Map<String, Object>>> e = bidList.get(i);
-				if (price>0)
-					e.put(price*1000 + j, migList);				
+				ArrayList<Integer> selectGrp = RandomSelectGrp(groupNum<5?groupNum:5);
+				if (item==null) continue;
+				for(int j=0;j<groupNum;j++){
+					if (i==j) continue; //no need to check its own group again
+					if (!selectGrp.contains(j)) continue;
+					ArrayList<Map<String, Object>> migList = new ArrayList<Map<String,Object>>();
+					Market market = markets[j];
+					
+					int price = addMigList(migList, market,item);								
+					Map<Integer, ArrayList<Map<String, Object>>> e = bidList.get(i);
+					if (price>0)
+						e.put(price*1000 + j, migList);				
+				}
 			}
-		}
-		
-		//pick the best group to migrate to
-		List<Integer> picked = new ArrayList<Integer>();
-		
-		for(int i=0;i<groupNum;i++){
-			SaleItem item = saleItems.get(i);
-			if (item==null) continue;
-			TreeMap<Integer, ArrayList<Map<String, Object>>> e = bidList.get(i);
-			Iterator<Integer> it = e.descendingKeySet().iterator();
-			while(it.hasNext()){
-				int priceAndGrp = it.next();
-				int grp = priceAndGrp % 1000;
-				if (!picked.contains(grp)){
-					picked.add(grp);
-					migListAll.addAll(e.get(priceAndGrp));
-					break;
+			
+			//pick the best group to migrate to
+			List<Integer> picked = new ArrayList<Integer>();
+			
+			for(int i=0;i<groupNum;i++){
+				SaleItem item = saleItems.get(i);
+				if (item==null) continue;
+				TreeMap<Integer, ArrayList<Map<String, Object>>> e = bidList.get(i);
+				Iterator<Integer> it = e.descendingKeySet().iterator();
+				while(it.hasNext()){
+					int priceAndGrp = it.next();
+					int grp = priceAndGrp % 1000;
+					if (!picked.contains(grp)){
+						picked.add(grp);
+						migListAll.addAll(e.get(priceAndGrp));
+						break;
+					}
 				}
 			}
 		}
-		
-		//migListAll.addAll(migList);
 		return migListAll;
+	}
+
+	private Random randomSelectGrp = null;
+	private ArrayList<Integer> RandomSelectGrp(int selectNum) {
+		if (randomSelectGrp==null) randomSelectGrp = new Random(new Date().getTime());
+		ArrayList<Integer> selectGrp  = new ArrayList<Integer>();
+		selectGrp.clear();
+		int i=0;
+		while(i<selectNum){
+			int rInt = randomSelectGrp.nextInt(groupNum);
+			if (!selectGrp.contains(rInt)){			
+				selectGrp.add(rInt);
+				i++;
+			}
+		}
+		return selectGrp;
 	}
 
 private List<Map<String, Object>> trade() {
@@ -247,6 +275,7 @@ private List<Map<String, Object>> trade() {
 			if (inList(host.getId(),marketHosts)){
 				BidderAndSeller bs = new BidderAndSeller(host);
 				bs.setDc(dc);
+				bs.setNetworkAware(networkAware);
 				market.addBidder(bs);
 				market.addSaleItem(bs.provisionSaleItem());
 			}
@@ -274,8 +303,24 @@ private List<Map<String, Object>> trade() {
 
 	@Override
 	public String getPolicyDesc() {
-		String rst = String.format("trading%.2f-%.2f", getUtilizationThreshold(),
-				utilizationLowThreshold);
+		String rst = String.format("trading%.2f-%.2f-%b-%b)", getUtilizationThreshold(),
+				utilizationLowThreshold,isTradeWithinGrps(),isNetworkAware());
 		return rst;
+	}
+
+	public boolean isTradeWithinGrps() {
+		return tradeWithinGrps;
+	}
+
+	public void setTradeWithinGrps(boolean tradeWithinGrps) {
+		this.tradeWithinGrps = tradeWithinGrps;
+	}
+
+	public boolean isNetworkAware() {
+		return networkAware;
+	}
+
+	public void setNetworkAware(boolean networkAware) {
+		this.networkAware = networkAware;
 	}
 }

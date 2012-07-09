@@ -17,12 +17,14 @@ public class PowerVmAllocationPolicyDoubleThreshold extends
 
 	/** The utilization threshold. */
 	private double utilizationLowThreshold = 0.5;
+	private int groupNum = 1;
 
 	public PowerVmAllocationPolicyDoubleThreshold(
 			List<? extends PowerHost> list, double utilizationThreshold,
-			double utilizationLowThreshold) {
+			double utilizationLowThreshold, int groupNum) {
 		super(list, utilizationThreshold);
 		setUtilizationLowThreshold(utilizationLowThreshold);
+		this.groupNum = groupNum;
 	}
 
 	@Override
@@ -97,7 +99,7 @@ public class PowerVmAllocationPolicyDoubleThreshold extends
 
 		for (Vm vm : vmsToMigrate) {
 			PowerHost oldHost = (PowerHost) getVmTable().get(vm.getUid());
-			PowerHost allocatedHost = findHostForVm(vm);
+			PowerHost allocatedHost = findHostForVm(vm,oldHost);
 			if (allocatedHost != null) {
 				allocatedHost.vmCreate(vm);
 				Log.printLine("VM #" + vm.getId() + " allocated to host #"
@@ -112,8 +114,17 @@ public class PowerVmAllocationPolicyDoubleThreshold extends
 		}
 
 		restoreAllocation(vmsToRestore, getHostList());
-
+		
 		return migrationMap;
+	}
+	
+	private boolean isInSameGroup(Host host1, Host host2){
+		int hostCount = getHostList().size();
+		int grpSize = hostCount / groupNum;
+		int grpNumber1 = host1.getId()/grpSize;
+		int grpNumber2 = host2.getId()/grpSize;
+		
+		return grpNumber1 == grpNumber2;
 	}
 
 	// find the smallest vm in the same host
@@ -198,5 +209,33 @@ public class PowerVmAllocationPolicyDoubleThreshold extends
 		String rst = String.format("MM%.2f-%.2f", getUtilizationThreshold(),
 				utilizationLowThreshold);
 		return rst;
+	}
+	
+	public PowerHost findHostForVm(Vm vm, PowerHost oldHost) {
+		double minPower = Double.MAX_VALUE;
+		PowerHost allocatedHost = null;
+
+		for (PowerHost host : this.<PowerHost>getHostList()) {
+			if (host.isSuitableForVm(vm)) {
+				double maxUtilization = getMaxUtilizationAfterAllocation(host, vm);
+				//if ((!vm.isRecentlyCreated() && maxUtilization > getUtilizationThreshold()) || (vm.isRecentlyCreated() && maxUtilization > 1.0)) {
+				if ( maxUtilization > getUtilizationThreshold() ) {
+					continue;
+				}
+				try {
+					double powerAfterAllocation = getPowerAfterAllocation(host, vm);
+					if (powerAfterAllocation != -1) {
+						double powerDiff = powerAfterAllocation - host.getPower();
+						if (powerDiff < minPower && isInSameGroup(oldHost, host)) {
+							minPower = powerDiff;
+							allocatedHost = host;
+						}
+					}
+				} catch (Exception e) {
+				}
+			}
+		}
+
+		return allocatedHost;
 	}
 }

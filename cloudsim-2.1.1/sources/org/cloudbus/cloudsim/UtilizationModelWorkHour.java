@@ -28,12 +28,15 @@ public class UtilizationModelWorkHour extends UtilizationModelStochastic {
 		if (time==0){
 			return 1;
 		}
-
-		double utilization = geWorkHourWorkLoad(time);
-		utilization = addRandomVariation(utilization);
-		history.put(String.format("%.0f", time), utilization);
-				
-		return utilization;
+		String tmStr = String.format("%.0f", time);
+		if (history.get(tmStr)!=null){
+			return history.get(tmStr).doubleValue();
+		}else{
+			double utilization = geWorkHourWorkLoad(time);
+			utilization = addRandomVariation(utilization);
+			history.put(String.format("%.0f", time), utilization);
+			return utilization;
+		}		
 	}
 	
 	private double geWorkHourWorkLoad(double time) {

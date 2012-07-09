@@ -144,6 +144,17 @@ public class Log {
 		}
 	}
 	
+	public static void printLineToInfoFile(String simdesc,int length, int migration,double violation,double avgviolation,double energy, double network, String memViolation) {
+		if (!isDisabled()) {
+			String message = String.format("%d,%s,%d,%d,%.2f,%.2f,%.4f,%.4f,%s", logSimId,simdesc,length,migration,violation,avgviolation,energy,network,memViolation) + LINE_SEPARATOR;			
+			try {
+				outputInfo.write(message.getBytes());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
 	//simid, time, vm, host, utilization
 	public static void printLineToVmFile(int time,int vm,int host,double utilization, double vmmips, double hostmips, double usedmips, int hostMem, int vmReqMem) {
 		if (!isDisabled()) {
@@ -241,7 +252,7 @@ public class Log {
 		// create info  output stream for importing to database
 		infoFilePath = addFileSuffix(filePath,"Info");		
 		createFileIfNotExist(infoFilePath);
-		outputInfo = new FileOutputStream(infoFilePath);
+		outputInfo = new FileOutputStream(infoFilePath,true);
 		
 		// create vm  output stream for importing to database
 		vmFilePath = addFileSuffix(filePath,"vm");		
