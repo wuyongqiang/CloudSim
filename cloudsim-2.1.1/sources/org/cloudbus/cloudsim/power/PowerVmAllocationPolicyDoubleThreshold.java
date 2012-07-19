@@ -53,8 +53,8 @@ public class PowerVmAllocationPolicyDoubleThreshold extends
 				continue;
 			}
 
-			if (((PowerHost) vm.getHost()).getMaxUtilization(true) < this
-					.getUtilizationThreshold()
+			if (((PowerHost) vm.getHost()).getMaxUtilization(true) < getUtilizationThreshold() 
+					&& ((PowerHost) vm.getHost()).getUtilizationOfMem()< getUtilizationThreshold()
 					&& ((PowerHost) vm.getHost())
 							.getMaxUtilization(false) > this
 							.getUtilizationLowThreshold()) {
@@ -83,7 +83,7 @@ public class PowerVmAllocationPolicyDoubleThreshold extends
 			} 
 			// find the smallest vm to migrate out
 			Vm vmToMigrate = findVmToMigrate(vmList, vm, mustMigrateLevel,migrateOut);
-			if (vmToMigrate != null) {
+			if (vmToMigrate != null && !inMigrationHosts.containsKey(vmToMigrate.getHost().getId()) ) {
 				vmsToMigrate.add(vmToMigrate);
 				inMigrationHosts.put(vmToMigrate.getHost().getId(),
 						vmToMigrate.getHost());
@@ -129,11 +129,15 @@ public class PowerVmAllocationPolicyDoubleThreshold extends
 
 	// find the smallest vm in the same host
 	private Vm findVmToMigrate(List<? extends Vm> vmList, Vm vm, double mustMigrateLevel,boolean migrateOut) {
+		//if (CloudSim.clock()<600) return null;
+		
 		Vm smallestVm = vm;
 
 		for (Vm vmTmp : vmList) {
 			if (IsOntheSameHost(vmTmp, vm)) {
-				if (smallestVm.getRam() > vmTmp.getRam()) {
+				if (smallestVm.getRam() > vmTmp.getRam() 
+						&&
+						checkTimeLimit(vmTmp)) {
 					smallestVm = vmTmp;
 				}
 			}
@@ -150,12 +154,18 @@ public class PowerVmAllocationPolicyDoubleThreshold extends
 			else
 				mustMigrateLevel *= consolidationRatio;
 		}
-		if ( smallestVm.getRecommendMigrationInterval()/mustMigrateLevel + smallestVm.getLastMigrationTime() < CloudSim.clock())
+		//if ( smallestVm.getRecommendMigrationInterval()/mustMigrateLevel + smallestVm.getLastMigrationTime() < CloudSim.clock())
+		if ( checkTimeLimit(smallestVm))
 			return smallestVm;
 		else
 			return null;
+		 
 	}
 	
+	private boolean checkTimeLimit(Vm vmTmp) {
+		return vmTmp.getLastMigrationTime()==0 || vmTmp.getRecommendMigrationInterval()/3 + vmTmp.getLastMigrationTime() < CloudSim.clock();		
+	}
+
 	private double getHostConsolidationRatio(Vm vm){
 		Double result = 1.0;
 		

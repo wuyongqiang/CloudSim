@@ -42,6 +42,8 @@ public class Log {
 	/** The disable output flag. */
 	private static boolean disabled;
 	
+	private static boolean disableMainLog;
+	
 	private static String logFilePath;
 	
 	private static String infoFilePath;
@@ -74,7 +76,7 @@ public class Log {
 	 * @param message the message
 	 */
 	public static void print(String message) {
-		if (!isDisabled()) {
+		if (!isDisabled() && !disableMainLog) {
 			try {
 				getOutput().write(message.getBytes());
 				if (getOutput() != System.out){
@@ -391,6 +393,14 @@ public class Log {
 			}
 		}
 		
+	}
+
+	public static boolean isDisableMainLog() {
+		return disableMainLog;
+	}
+
+	public static void setDisableMainLog(boolean disableMainLog) {
+		Log.disableMainLog = disableMainLog;
 	}
 
 

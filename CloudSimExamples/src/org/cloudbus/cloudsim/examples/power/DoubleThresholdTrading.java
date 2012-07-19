@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
@@ -34,50 +35,52 @@ import org.cloudbus.cloudsim.provisioners.RamProvisionerSimple;
 
 public class DoubleThresholdTrading {
 
-	private static double utilizationLowThreshold = 0.4;
-	private static boolean useTrading = true;
-	private static int groupNum = 4;
-	private static int hostPerGroup = 5;
-	protected static double hostsNumber = hostPerGroup * groupNum;//4 groups;
-	protected static double vmsNumber = 2 * hostPerGroup * groupNum;// 6vms per group;
+	//parameters
+	public  boolean useTrading = false;
+	public  int groupNum = 20;
+	public  int dtGroupNum = 20;
+	public  int hostPerGroup = 10;
+	public  boolean workHourLoad = true;
+	public  int roughIndex = 3;
+	public  boolean isNetworkAware = false;
+	public  boolean isTradeWithinGrps = true;
+	public boolean disableMainLog = true;
+	public boolean generateNewNetCfg = true;
 	
-	protected static final int simLength = 120 * 30; //one hour
-
+	protected  int hostsNumber = hostPerGroup * groupNum;//4 groups;
+	protected  int vmsNumber = 2 * hostPerGroup * groupNum;// 6vms per group;	
+	protected  final int simLength = 120 * 30; //one hour
+	protected  double utilizationThreshold = 0.7;
+	private  double utilizationLowThreshold = 0.4;
+	protected  double cloudletsNumber = vmsNumber;	
+	protected  boolean useSA = false;	
+	protected  boolean useAverageUtilization = true;
+	private  boolean doubleDC = false;
+	
 	/** The cloudlet list. */
-	protected static List<Cloudlet> cloudletList;
-
+	protected  List<Cloudlet> cloudletList;
 	/** The vm list. */
-	protected static List<Vm> vmList;
-
-	protected static double utilizationThreshold = 0.7;
-
-	protected static double cloudletsNumber = vmsNumber;
-	protected static boolean workHourLoad = true;
-	protected static boolean useSA = true;
-	protected static int roughIndex = 3;
-	protected static boolean useAverageUtilization = true;
-
-	//protected static UtilizationModelStochastic utilizationModelWorkHour;
-	protected static UtilizationModelUniform utilizationModelUniform;
-	protected static UtilizationModelStochastic utilizationModelStochastic;
-	private static boolean doubleDC = false;
-	private static boolean isNetworkAware = false;
-	private static boolean isTradeWithinGrps = true;
+	protected  List<Vm> vmList;
+	//protected  UtilizationModelStochastic utilizationModelWorkHour;
+	protected  UtilizationModelUniform utilizationModelUniform;
+	protected  UtilizationModelStochastic utilizationModelStochastic;
 	
+	private long startSimTime = 0;
+	static private NetworkConfig networkConfig = null;
+	
+	public static  void main(String[] args) throws IOException {
+		DoubleThresholdTrading sim = new DoubleThresholdTrading();
+		sim.startSim();
+	}
 
-	public static void main(String[] args) throws IOException {
-		
-		useAverageUtilization = true;
-		workHourLoad = true;
+	public  void startSim() throws IOException {
+		hostsNumber = hostPerGroup * groupNum;//4 groups;
+		dtGroupNum = groupNum;
+		vmsNumber = 2 * hostPerGroup * groupNum;// 6vms per group;			
 		
 		Log.setOutputFile("C:\\Users\\n7682905\\sim.txt");
-		Log.printLine("Starting SingleThreshold example...");
+		Log.setDisableMainLog(disableMainLog);
 		
-		if ( args.length >=2){
-			utilizationThreshold = Double.parseDouble(args[0]);
-			utilizationLowThreshold = Double.parseDouble(args[1]);
-		}
-
 		try {
 			// First step: Initialize the CloudSim package. It should be called
 			// before creating any entities. We can't run this example without
@@ -105,9 +108,10 @@ public class DoubleThresholdTrading {
 			// Fourth step: Create one virtual machine
 			vmList = createVms(brokerId);
 			
-			NetworkConfig networkConfig = new NetworkConfig(datacenter0.getHostList().size(), vmList.size());
+			if (generateNewNetCfg)
+				networkConfig = new NetworkConfig(datacenter0.getHostList().size(), vmList.size());
 			datacenter0.setNetworkConfig(networkConfig);
-			
+			startSimTime  = (new Date()).getTime();
 			// submit vm list to the broker
 			broker.submitVmList(vmList);
 
@@ -136,13 +140,11 @@ public class DoubleThresholdTrading {
 			Log.printLine("Unwanted errors happen");
 		}
 		
-		
-
 		Log.printLine("DoubleThreshold finished!");
 		System.out.println("DoubleThreshold finished!");
 	}
 
-	private static void printAllocationStats(PowerDatacenter datacenter,
+	private  void printAllocationStats(PowerDatacenter datacenter,
 			double lastClock) throws Exception {
 		int totalTotalRequested = 0;
 		int totalTotalAllocated = 0;
@@ -189,7 +191,7 @@ public class DoubleThresholdTrading {
 		Log.printLine(String.format("satisfaction rate: %.2f%%", totalTotalAllocated*1.0/totalTotalRequested*100));
 		Log.printLine();
 		
-		String memViolation = printMemViolation(datacenter);
+		String memViolation = printMemViolation(datacenter) + printSimParams();
 		
 		Log.printLineToInfoFile(datacenter.getVmAllocationPolicy().getPolicyDesc(),simLength, 
 				datacenter.getMigrationCount(),
@@ -202,7 +204,21 @@ public class DoubleThresholdTrading {
 		
 	}
 	
-	protected static String printMemViolation(PowerDatacenter datacenter){
+	protected String printSimParams(){
+		String s = ",params:";
+		s += ",useTrading=" + useTrading;
+		s += ",groupNum=" + groupNum ;
+		s += ",dtGroupNum=" + dtGroupNum ;
+		s += ",hostPerGroup=" + hostPerGroup ;
+		s += ",workHourLoad=" + workHourLoad;
+		s += ",roughIndex=" + roughIndex;
+		s += ",isNetworkAware=" + isNetworkAware;
+		s += ",isTradeWithinGrps=" + isTradeWithinGrps;
+		s += ",runTime=" + ((new Date()).getTime() - startSimTime);
+		return s;
+	}
+	
+	protected  String printMemViolation(PowerDatacenter datacenter){
 		 int totalTotalRequested = 0;
 		    int totalTotalAllocated = 0;
 		    ArrayList<Double> sla = new ArrayList<Double>();
@@ -244,20 +260,27 @@ public class DoubleThresholdTrading {
 			return String.format(" %.4f,%.4f", (double) sla.size() * 100 / numberOfAllocations,averageSla );
 	}
 	
-	private static void printLine(String s){
+	private  void printLine(String s){
 		System.out.println(s);
 	}
 	
-	protected static PowerDatacenter createDatacenter(String name, int startingHostNumber) throws Exception {
+	protected  PowerDatacenter createDatacenter(String name, int startingHostNumber) throws Exception {
 		// Here are the steps needed to create a PowerDatacenter:
 		// 1. We need to create an object of HostList2 to store
 		// our machine
 		List<PowerHost> hostList = new ArrayList<PowerHost>();
 
 		double maxPower = 250; // 250W
-		double staticPowerPercent = 0.7; // 70%
+		double PowerPercent = 0.7; // 70%
 
-		int[] mips = { 1000,1000,1000,1000,1000, 2000,2000,2000,2000,2000, 3000,3000,3000,3000,3000 };
+		//int[] mips = { 1000,1000,1000,1000,1000, 2000,2000,2000,2000,2000, 3000,3000,3000,3000,3000 };
+		int[] mipsType = {1000,2000,3000,4000,5000};
+		int[] mips = new int[groupNum * hostPerGroup];
+		for (int i=0;i<groupNum * hostPerGroup;i++){
+			int j = i / hostPerGroup;
+			int mip = mipsType[j%mipsType.length];
+			mips[i] = mip;
+		}
 		//int[] mips = { 3000,3000,3000,2000,2000,2000, 1000,1000,1000, 1000,1000,1000 };
 		//int[] mips = { 1000,200,3000, 1000,2000,3000, 1000,2000,3000,1000,2000,3000 };
 		int ram = 3000; // host memory (MB)
@@ -269,13 +292,13 @@ public class DoubleThresholdTrading {
 			// In this example, it will have only one core.
 			// 3. Create PEs and add these into an object of PowerPeList.
 			List<PowerPe> peList = new ArrayList<PowerPe>();
-			peList.add(new PowerPe(0, new PeProvisionerSimple(mips[i % mips.length]), new PowerModelLinear(maxPower+ 100 *  (mips[i % mips.length]-1000)/1000 + i, staticPowerPercent))); // need to store PowerPe id and MIPS Rating
+			peList.add(new PowerPe(0, new PeProvisionerSimple(mips[i % mips.length]), new PowerModelLinear(maxPower+ 100 *  (mips[i % mips.length]-1000)/1000 + i, PowerPercent))); // need to store PowerPe id and MIPS Rating
 
 			// 4. Create PowerHost with its id and list of PEs and add them to the list of machines
 			hostList.add(
 				new PowerHost(
 					i,
-					new RamProvisionerSimple(mips[i % mips.length]),//new RamProvisionerSimple(ram),
+					new RamProvisionerSimple(mips[i]),//new RamProvisionerSimple(ram),
 					new BwProvisionerSimple(bw),
 					storage,
 					peList,
@@ -305,7 +328,7 @@ public class DoubleThresholdTrading {
 		PowerDatacenter powerDatacenter = null;
 		VmAllocationPolicy policy =null;
 		if (!useTrading)
-			policy = new PowerVmAllocationPolicyDoubleThreshold(hostList, utilizationThreshold,utilizationLowThreshold, groupNum);
+			policy = new PowerVmAllocationPolicyDoubleThreshold(hostList, utilizationThreshold,utilizationLowThreshold, dtGroupNum);
 		else
 			policy =new PowerVmAllocationPolicyTrading(hostList, utilizationThreshold,utilizationLowThreshold, groupNum);
 		try {
@@ -327,7 +350,7 @@ public class DoubleThresholdTrading {
 		return powerDatacenter;
 	}
 	
-protected static List<Cloudlet> createCloudletList(int brokerId) {
+protected  List<Cloudlet> createCloudletList(int brokerId) {
 		
 		if (workHourLoad)
 			utilizationModelStochastic = new UtilizationModelWorkHour(roughIndex);
@@ -368,14 +391,14 @@ protected static List<Cloudlet> createCloudletList(int brokerId) {
 	 *
 	 * @return the list< vm>
 	 */
-	protected static List<Vm> createVms(int brokerId) {
+	protected  List<Vm> createVms(int brokerId) {
 		List<Vm> vms = new ArrayList<Vm>();
 
 		// VM description
 		int[] mips = { 250, 500, 750, 1000 }; // MIPSRating
 		int pesNumber = 1; // number of cpus
 		int[] rams =    { 250, 500, 750, 1000 };//{128, 256, 374, 512 }; // vm memory (MB)
-		long bw = 2500; // bandwidth
+		long bw = 250; // bandwidth
 		long size = 2500; // image size (MB)
 		String vmm = "Xen"; // VMM name
 
@@ -388,7 +411,7 @@ protected static List<Cloudlet> createCloudletList(int brokerId) {
 		return vms;
 	}
 	
-	protected static DatacenterBroker createBroker() {
+	protected  DatacenterBroker createBroker() {
 		DatacenterBroker broker = null;
 		try {
 			broker = new DatacenterBroker("Broker");
@@ -399,7 +422,7 @@ protected static List<Cloudlet> createCloudletList(int brokerId) {
 		return broker;
 	}
 
-	protected static void printCloudletList(List<Cloudlet> list) {
+	protected  void printCloudletList(List<Cloudlet> list) {
 		int size = list.size();
 		Cloudlet cloudlet;
 

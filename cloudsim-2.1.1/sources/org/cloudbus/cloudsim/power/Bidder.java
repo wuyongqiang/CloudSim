@@ -72,13 +72,15 @@ public class Bidder {
 		
 		int[] vmAssign = dc.getVmAssign();
 		int oldHostId = vmAssign[vm.getId()];
-		int oldNetworkCost = (int) dc.getNetworkConfig().getTotalWeight(vmAssign);
-		vmAssign[vm.getId()] = this.host.getId();
-		int newNetworkCost = (int) dc.getNetworkConfig().getTotalWeight(vmAssign);
-		vmAssign[vm.getId()] = oldHostId;
-		
-		int incNetworkCost = newNetworkCost -oldNetworkCost;
-		if (!isNetworkAware()) incNetworkCost = 0;
+		int oldNetworkCost = 0;
+		int incNetworkCost = 0;
+		if (isNetworkAware()){
+			oldNetworkCost = (int) dc.getNetworkConfig().getTotalWeight(vmAssign);
+			vmAssign[vm.getId()] = this.host.getId();
+			int newNetworkCost = (int) dc.getNetworkConfig().getTotalWeight(vmAssign);
+			vmAssign[vm.getId()] = oldHostId;
+			incNetworkCost = newNetworkCost -oldNetworkCost;
+		}			
 		
 		int income =2 * (int)vm.getMips();
 

@@ -7,6 +7,7 @@ import org.cloudbus.cloudsim.network.FatTreeTopologicalNode;
 
 public class NetworkCostCalculator{
 	
+	private static final int MAXPMNUM = 1000;
 	private FatTreeTopologicalNode networkRootNode =null;
 	private int[] trafficMap;
 	
@@ -15,8 +16,8 @@ public class NetworkCostCalculator{
 	private int []unitCostArray;
 
 	public NetworkCostCalculator( ) {
-		unitCostArray = new int[1000*1000];
-		for (int i=0;i<100*100;i++)
+		unitCostArray = new int[MAXPMNUM*MAXPMNUM];
+		for (int i=0;i<MAXPMNUM*MAXPMNUM;i++)
 			unitCostArray[i] = -1;
 	}
 	
@@ -38,10 +39,10 @@ public class NetworkCostCalculator{
 		int traffic = getTaffic(vm1,vm2);
 		int unitCost = 0;
 		if (traffic>0){
-			unitCost = unitCostArray[pm1*100+pm2];
+			unitCost = unitCostArray[pm1*MAXPMNUM+pm2];
 			if(unitCost==-1){
 				unitCost = networkUnitCost(pm1,pm2);
-				unitCostArray[pm1*100+pm2] = unitCost;
+				unitCostArray[pm1*MAXPMNUM+pm2] = unitCost;
 			}
 		}
 		return unitCost * traffic;

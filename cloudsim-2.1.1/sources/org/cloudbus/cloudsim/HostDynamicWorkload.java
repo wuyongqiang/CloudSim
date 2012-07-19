@@ -109,7 +109,7 @@ public class HostDynamicWorkload extends Host {
 			}
 			if (vm.isInMigration()) {
 				Log.printLine("VM #" + vm.getId() + " is in migration");
-				totalAllocatedMips /= 0.99; // performance degradation due to migration - 10%
+				totalAllocatedMips /= 0.90; // performance degradation due to migration - 10%
 			}
 
 			setUtilizationMips(getUtilizationMips() + totalAllocatedMips);
@@ -144,8 +144,7 @@ public class HostDynamicWorkload extends Host {
 				Log.printLineToMemViolationFile((int)CloudSim.clock(), vm.getId(), vm.getHost().getId(),  totalRequestedMem, totalAllocatedMem);
 			}
 			if (vm.isInMigration()) {
-				Log.printLine("VM #" + vm.getId() + " is in migration");
-				//totalAllocatedMem /= 0.99; // performance degradation due to migration - 10%
+				Log.printLine("VM #" + vm.getId() + " is in migration");				
 			}
 			
 			setUtilizationMem(getUtilizationMem() + totalAllocatedMem);
@@ -195,6 +194,7 @@ public class HostDynamicWorkload extends Host {
 	}
 
 	public double getHistoryAvgUtilization(double currentUtilization,boolean moreRecently){
+		removeZeroFromQueue(currentUtilization);
 		
 		if ( historyUtilizationQueue.isEmpty()){
 			while(historyUtilizationQueue.size()< queueLength){
@@ -218,6 +218,25 @@ public class HostDynamicWorkload extends Host {
 			return avgUtilization / count ++;
 		}
 	}
+	
+	//prevent the in accuracy when the host is back from hibernation
+	private void removeZeroFromQueue(double currentUtilization) {
+		if (historyUtilizationQueue.size()==0) return;			
+		Iterator<Double> it = historyUtilizationQueue.iterator();
+		int zeros = 0;
+		while(it.hasNext()){
+			if (it.next().doubleValue()<0.001) 
+				zeros++;
+			else
+				break;
+		}			
+		for (int i=0;i<zeros;i++){
+			historyUtilizationQueue.remove();
+			historyUtilizationQueue.offer(currentUtilization);
+		}
+		
+	}
+
 	/**
 	 * Gets the max utilization among by all PEs
 	 * allocated to the VM.

@@ -2,6 +2,7 @@ package org.cloudbus.cloudsim.power;
 
 import java.awt.image.SampleModel;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -92,7 +93,94 @@ public class PowerVmAllocationPolicyTrading extends
 		return migList0;
 	}
 	
-private List<Map<String, Object>> tradeInGrps() {
+	private List<Map<String, Object>> tradeInGrps() {
+	
+		
+		Market[] markets = new Market[groupNum];		
+		List<Map<String, Object>> migListAll =  new ArrayList<Map<String,Object>>();
+		
+		List<TreeMap<Double,Host>> bidList 
+			= new ArrayList<TreeMap<Double,Host>>(); 
+		
+		List<Host> usedHosts = new ArrayList<Host>();
+		
+		List<SaleItem> saleItems = new ArrayList<SaleItem>();
+		
+		// first round to check whether there is need to migrate within the group
+		for(int i=0;i<groupNum;i++){
+			ArrayList<Map<String, Object>> migList = new ArrayList<Map<String,Object>>();
+			Market market = createMarket(groupNum,i);
+			markets[i] = market;
+			TreeMap<Double,Host> map = new TreeMap<Double, Host>();
+			bidList.add(map);
+			int price = addMigList(map, market,null);
+			
+			saleItems.add(market.getSelectedSaleItem());
+		}
+		
+			
+		if (!tradeWithinGrps){
+			// second round to check whether it is possible to find hosts in other groups to migrate to
+			for(int i=0;i<groupNum;i++){
+				SaleItem item = saleItems.get(i);
+				
+				ArrayList<Integer> selectGrp = RandomSelectGrp(groupNum<5?groupNum:5);
+				if (item==null) continue;
+				for(int j=0;j<groupNum;j++){
+					if (i==j) continue; //no need to check its own group again
+					if (!selectGrp.contains(j)) continue;
+					
+					Market market = markets[j];
+					TreeMap<Double,Host> map = bidList.get(i);
+					int price = addMigList(map, market,item);															
+				}
+			}
+		}
+			
+		//pick the best group to migrate to
+		List<Host> picked = new ArrayList<Host>();
+		
+		for(int i=groupNum-1;i>=0;i--){
+			SaleItem item = saleItems.get(i);
+			if (item==null) continue;
+			 TreeMap<Double, Host> e = bidList.get(i);
+			Iterator<Double> it = e.descendingKeySet().iterator();
+			while(it.hasNext()){
+				Double price = it.next();		
+				Host newHost = e.get(price);
+				if (!picked.contains(newHost)){					
+					picked.add(newHost);
+					Map<String, Object> migMap = getMigList(item.getRealItem(),newHost);
+					if (migMap!=null) migListAll.add(migMap);
+					break;
+				}
+			}
+		}
+		
+		return migListAll;
+	}
+
+	private Map<String, Object> getMigList(Vm vm,Host host) {				
+			PowerHost allocatedHost = (PowerHost) host;
+			
+			if (host!=null && vm != null && allocatedHost != null
+					&& vm.getHost().getId() != allocatedHost.getId()) {
+				Map<String, Object> migrate = new HashMap<String, Object>();
+				migrate.put("vm", vm);
+				migrate.put("host", allocatedHost);
+				PowerHost oldHost = (PowerHost) vm.getHost();
+				if (oldHost != null)
+					oldHost.setLastMigrationTime(CloudSim.clock());
+				vm.setLastMigrationTime(CloudSim.clock());
+				
+				
+				log(vm.getId()+"from \t" + vm.getHost().getId() + "to \t" + allocatedHost.getId() );
+				return migrate;
+			}
+		return null;		
+	}
+
+	private List<Map<String, Object>> tradeInGrps_old() {
 	
 		
 		Market[] markets = new Market[groupNum];		
@@ -142,7 +230,7 @@ private List<Map<String, Object>> tradeInGrps() {
 			//pick the best group to migrate to
 			List<Integer> picked = new ArrayList<Integer>();
 			
-			for(int i=0;i<groupNum;i++){
+			for(int i=groupNum-1;i>=0;i--){
 				SaleItem item = saleItems.get(i);
 				if (item==null) continue;
 				TreeMap<Integer, ArrayList<Map<String, Object>>> e = bidList.get(i);
@@ -150,7 +238,7 @@ private List<Map<String, Object>> tradeInGrps() {
 				while(it.hasNext()){
 					int priceAndGrp = it.next();
 					int grp = priceAndGrp % 1000;
-					if (!picked.contains(grp)){
+					if (!picked.contains(grp)){					
 						picked.add(grp);
 						migListAll.addAll(e.get(priceAndGrp));
 						break;
@@ -213,6 +301,20 @@ private List<Map<String, Object>> trade() {
 					log(vm.getId()+"from \t" + vm.getHost().getId() + "to \t" + allocatedHost.getId() );
 				}
 			}
+		}
+		return bidResult;
+	}
+	
+	private int addMigList(TreeMap<Double,Host> map, Market market, SaleItem item) {
+		int bidResult = 0;
+		if (item==null){
+			bidResult = market.bid();
+		}else{
+			market.setSelectedSaleItem(item);
+			bidResult = market.bidWithoutSaleItem();
+		}
+		if (bidResult>0) {			
+			map.putAll(market.getBidderMap());
 		}
 		return bidResult;
 	}
